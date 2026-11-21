@@ -11,7 +11,11 @@ vendor/
 .env.local
 .env.*.local
 
-# Logs
+# Tests & Cache
+.phpunit.result.cache
+vendor-prefixed/
+dist/
+build/
 *.log
 logs/
 
