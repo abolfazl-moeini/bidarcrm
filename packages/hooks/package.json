@@ -1,0 +1,17 @@
+{
+  "name": "@wpdev/hooks",
+  "version": "1.0.0",
+  "description": "WordPress hooks helper for wp-starter-kit consumers (typed wrappers around @wordpress/hooks).",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./types": "./types.ts"
+  },
+  "files": [
+    "index.js",
+    "types.ts"
+  ],
+  "dependencies": {},
+  "license": "MIT"
+}

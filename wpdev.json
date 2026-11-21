@@ -1,0 +1,64 @@
+{
+  "schema": 2,
+  "kitVersion": "0.0.0",
+  "distMode": "deps",
+  "slug": "didar-crm",
+  "globalName": "DidarCRM",
+  "localizeVar": "DidarCRMLoc",
+  "textDomain": "didar-crm",
+  "hookPrefix": "didar",
+  "npmScope": "@didar",
+  "depsBundle": "didar-crm-deps.js",
+  "phpFunctionPrefix": "didar_",
+  "uiFramework": "preact",
+  "restNamespace": "wpdev/v1",
+  "vendorPrefix": "WpdevVendor",
+  "phpMinVersion": "7.4",
+  "phpSourceVersion": "8.1",
+  "batchEndpoint": "/batch/v1",
+  "docs": {
+    "enabled": true,
+    "title": "راهنمای کاربری و تنظیمات سامانه",
+    "author": "تیم توسعه",
+    "user_guide_dir": "docs/user-guide",
+    "output_dir": "dist/docs",
+    "formats": [
+      "pdf",
+      "docx"
+    ],
+    "template": "purple_book",
+    "direction": "rtl"
+  },
+  "features": {
+    "js": "typescript",
+    "jsLib": "none",
+    "jsTest": "jest",
+    "phpMinVersion": "7.4",
+    "phpFramework": "none",
+    "phpTest": "phpunit",
+    "phpUnitDocker": "off",
+    "e2eTest": "none",
+    "restBatch": "off",
+    "faultTolerance": "on",
+    "vendorScoping": "on",
+    "husky": "on",
+    "css": "none",
+    "license": "gpl2",
+    "wpMinVersion": "6.0",
+    "exampleFeature": "on",
+    "i18n": "on",
+    "frontendStack": "none",
+    "mcpAbilities": "off",
+    "ci": "auto",
+    "docs": "on"
+  },
+  "build": {
+    "assetMappings": [],
+    "globalMappings": {},
+    "styleEntryPoints": [
+      "assets/stylesheets/style.css"
+    ]
+  },
+  "generatedAt": "2026-11-21T21:31:42.792Z",
+  "projectType": "plugin"
+}

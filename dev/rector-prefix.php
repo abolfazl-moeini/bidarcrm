@@ -1,0 +1,84 @@
+<?php
+/**
+ * Rector prefix pipeline — renames namespaces at release time.
+ *
+ * Ported from `sample-plugin/dev/rector-prefix.php`. The original had a
+ * HARD-CODED `'BetterStudio' => 'BetterFrameworkPackage'` mapping; this
+ * version resolves the mapping from environment variables + a config file
+ * so downstream projects can re-brand without forking the framework.
+ *
+ * Resolution order for the `from => to` pair:
+ *   1. Environment variables `WPDEV_PREFIX_FROM` / `WPDEV_PREFIX_TO`
+ *      (legacy `WPDEV_PREFIX_*` still accepted).
+ *   2. `dev/rector.prefix.json` (a small JSON file committed in the
+ *      downstream project; the starter repo does not commit it).
+ *   3. Fallback: empty mapping (no rewrite) so the pipeline is still a
+ *      no-op when neither is configured.
+ *
+ * Usage:
+ *   WPDEV_PREFIX_FROM=OldName WPDEV_PREFIX_TO=NewName composer rector:prefix
+ *   — or —
+ *   echo '{"from":"OldName","to":"NewName"}' > dev/rector.prefix.json
+ *   composer rector:prefix
+ *
+ * @see docs/vendor-scoping.md
+ */
+
+declare(strict_types=1);
+
+use Rector\Config\RectorConfig;
+use Rector\Renaming\Rector\Name\RenameClassRector;
+
+set_time_limit(0);
+ini_set('max_execution_time', '0');
+
+return static function (RectorConfig $rector_config): void {
+    $shared = include __DIR__ . '/rector-config.php';
+    // include_vendor=true so the autoloader strings in vendor/composer/*.php
+    // are rewritten too (they reference the old namespace).
+    $shared($rector_config, ['include_vendor' => true]);
+
+    $from = (string) (getenv('WPDEV_PREFIX_FROM') ?: getenv('WPSK_PREFIX_FROM'));
+    $to   = (string) (getenv('WPDEV_PREFIX_TO') ?: getenv('WPSK_PREFIX_TO'));
+
+    if (($from === '' || $to === '') && is_file(__DIR__ . '/rector.prefix.json')) {
+        $decoded = json_decode((string) file_get_contents(__DIR__ . '/rector.prefix.json'), true);
+        if (is_array($decoded)) {
+            $from = $from !== '' ? $from : (string) ($decoded['from'] ?? '');
+            $to   = $to   !== '' ? $to   : (string) ($decoded['to']   ?? '');
+        }
+    }
+
+    // No mapping configured: skip all paths so Rector exits cleanly
+    // as a true no-op without running unintended rulesets.
+    if ($from === '' || $to === '' || $from === $to) {
+        $rector_config->skip(['*']);
+        fwrite(STDERR, "rector:prefix: no prefix mapping (env or rector.prefix.json), nothing to do.\n");
+        return;
+    }
+
+    // Build `from => to` mapping. `from` and `to` can be comma-separated
+    // for multi-namespace renames: `WPDEV_PREFIX_FROM=OldA,OldB WPDEV_PREFIX_TO=NewA,NewB`.
+    $namespacePairs = [];
+    foreach (explode(',', $from) as $i => $fromPart) {
+        $toPart = trim(explode(',', $to)[$i] ?? '');
+        $fromPart = trim($fromPart);
+        if ($fromPart === '' || $toPart === '') {
+            continue;
+        }
+        $namespacePairs[$fromPart] = $toPart;
+    }
+
+    if ($namespacePairs === []) {
+        $rector_config->skip(['*']);
+        return;
+    }
+
+    // Rector 1.x/2.x removed RenameNamespaceRector; RenameClassRector only renames
+    // exact FQCNs and does NOT rewrite namespace declarations or prefix sub-namespaces.
+    // Fail explicitly rather than silently producing broken partial renames.
+    throw new \RuntimeException(
+        "rector:prefix is deprecated and cannot safely rewrite namespace prefixes in Rector 1.x/2.x. "
+        . "Use Strauss via `composer release:dist` (or `wpdev release`) for full vendor/namespace scoping."
+    );
+};

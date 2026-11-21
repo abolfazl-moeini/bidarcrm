@@ -1,0 +1,51 @@
+{
+  "name": "@wpdev/build",
+  "version": "1.0.0",
+  "deprecated": "The Node.js build pipeline is deprecated. Use the Go-based build system in packages/build-go instead.",
+  "description": "[DEPRECATED] esbuild-based build pipeline for wp-starter-kit consumers (components, dependencies, styles, assets).",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "wpdev-build-dependencies": "./esbuild-dependencies-cli.js",
+    "wpdev-build-components": "./esbuild-components-cli.js",
+    "wpdev-build-styles": "./esbuild-styles-cli.js",
+    "wpdev-build-assets": "./build-assets-cli.js",
+    "wpdev-build-vendor": "./esbuild-vendor-cli.js",
+    "wpdev-check": "./wpdev-check-cli.js"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./esbuild-components.js": "./esbuild-components.js",
+    "./esbuild-dependencies.js": "./esbuild-dependencies.js",
+    "./esbuild-vendor.js": "./esbuild-vendor.js",
+    "./esbuild-styles.js": "./esbuild-styles.js",
+    "./build-assets.js": "./build-assets.js",
+    "./getJsxOptions.js": "./getJsxOptions.js"
+  },
+  "files": [
+    "index.js",
+    "getJsxOptions.js",
+    "cli-options.js",
+    "esbuild-components.js",
+    "esbuild-components-cli.js",
+    "esbuild-dependencies.js",
+    "esbuild-dependencies-cli.js",
+    "esbuild-vendor.js",
+    "esbuild-vendor-cli.js",
+    "esbuild-styles.js",
+    "esbuild-styles-cli.js",
+    "build-assets.js",
+    "build-assets-cli.js",
+    "wpdev-check-cli.js",
+    "build-all.js"
+  ],
+  "dependencies": {
+    "@wpdev/dependency-extraction-esbuild-plugin": "^1.0.0",
+    "@core/utils": "^1.0.0",
+    "chalk": "^5.4.1",
+    "esbuild": "^0.20.2",
+    "glob": "^10.3.10",
+    "yargs": "^17.7.2"
+  },
+  "license": "MIT"
+}
