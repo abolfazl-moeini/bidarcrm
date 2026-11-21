@@ -1,0 +1,57 @@
+{
+  "name": "didar/didar-crm",
+  "description": "Didar CRM — Open Source Modular WordPress CRM clone built on WPDev platform",
+  "type": "wordpress-plugin",
+  "license": "Unlicense",
+  "require": {
+    "php": ">=7.4",
+    "wpdev/framework": "*",
+    "wpdev/php-fault-tolerance": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "DidarCRM\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "DidarCRMTest\\": "tests/unit-tests/"
+    }
+  },
+  "repositories": [
+    {
+      "type": "path",
+      "url": "packages/*",
+      "options": {
+        "monorepo": true,
+        "symlink": false
+      }
+    }
+  ],
+  "scripts": {
+    "post-install-cmd": [
+      "@php vendor/bin/strauss || true"
+    ],
+    "post-update-cmd": [
+      "@php vendor/bin/strauss || true"
+    ],
+    "scope:vendor": "@php vendor/bin/strauss",
+    "release:dist": "node dev/release/prepare-release.js",
+    "rector:upgrade": "@php ./vendor/bin/rector process -c dev/rector-upgrade.php --clear-cache",
+    "rector:prefix": "@php ./vendor/bin/rector process -c dev/rector-prefix.php --clear-cache",
+    "rector:build": "@php ./vendor/bin/rector process -c dev/rector-build.php --clear-cache",
+    "test": "phpunit"
+  },
+  "config": {
+    "platform-check": false,
+    "platform": {
+      "php": "7.4"
+    }
+  },
+  "require-dev": {
+    "rector/rector": "^2.0",
+    "wpdev/plugin-core-test": "^1.2",
+    "phpunit/phpunit": "^9.6",
+    "yoast/phpunit-polyfills": "^2.0"
+  }
+}
