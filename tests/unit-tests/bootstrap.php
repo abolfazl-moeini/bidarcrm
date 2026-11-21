@@ -28,4 +28,26 @@ if ($tests_dir && file_exists($tests_dir . '/includes/functions.php')) {
     if (class_exists(\WPDevTest\Setup::class)) {
         \WPDevTest\Setup::setup();
     }
+} else {
+    // Provide lightweight standard WordPress option/meta stubs for unit testing
+    if (!isset($GLOBALS['didar_mock_options'])) {
+        $GLOBALS['didar_mock_options'] = [];
+    }
+    if (!function_exists('get_option')) {
+        function get_option(string $key, $default = false) {
+            return $GLOBALS['didar_mock_options'][$key] ?? $default;
+        }
+    }
+    if (!function_exists('update_option')) {
+        function update_option(string $key, $value): bool {
+            $GLOBALS['didar_mock_options'][$key] = $value;
+            return true;
+        }
+    }
+    if (!function_exists('delete_option')) {
+        function delete_option(string $key): bool {
+            unset($GLOBALS['didar_mock_options'][$key]);
+            return true;
+        }
+    }
 }

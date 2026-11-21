@@ -13,6 +13,7 @@ class DealsMoveTest extends PluginBaseTestCase
     {
         parent::tearDown();
         delete_option('didar_crm_pipelines');
+        delete_option('didar_crm_deals');
     }
 
     /**
