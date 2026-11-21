@@ -1,0 +1,89 @@
+# Didar CRM WordPress Plugin (v1)
+
+- slug: `didar-crm`
+- mode: create
+
+A full-featured WordPress CRM plugin modeled after Didar CRM (دیدار), providing visual deal Kanban pipelines, contacts and companies management, activity and task tracking, sales analytics, lead capture forms, Iranian SMS gateway integration, workflow automation, and granular role-based access control.
+
+## Features
+
+### Deals Pipeline & Kanban Board [core] (`deals-kanban-pipeline`)
+
+Visual drag-and-drop sales pipeline board featuring customizable deal stages, deal monetary values, win probabilities, and rotten deal highlighting.
+
+- **C-1** Given A sales manager on the CRM Deals Kanban screen, when Dragging a deal card from 'Qualified' to 'Proposal Sent' stage, then The REST endpoint POST /wp-json/wpdev/v1/deals/{id}/move updates the stage and returns HTTP 200 with updated win probability and pipeline total..
+- **C-2** Given A deal card that has remained inactive past its configured rotten threshold, when Viewing the Kanban pipeline view, then The deal card renders a distinct visual rotten alert badge indicating required follow-up..
+
+### Contacts & Companies Management [core] (`contacts-and-companies-management`)
+
+Unified management of individual contacts and corporate accounts with customizable fields, association mapping, and activity timelines.
+
+- **C-3** Given An admin viewing a contact profile page, when Linking the contact to a company account and assigning custom custom fields via the REST endpoint POST /wp-json/wpdev/v1/contacts/{id}/link, then The associated company details and updated field mappings appear on the contact's unified activity timeline..
+
+### Activity & Task Tracking [core] (`activity-and-task-tracking`)
+
+Task management system for logging phone calls, meetings, follow-ups, and notes with automated reminders and team calendar views.
+
+- **C-4** Given A sales rep with scheduled client tasks, when Accessing the team calendar view at /wp-admin/admin.php?page=didar-calendar, then Phone calls, meetings, and follow-ups display on their scheduled dates with interactive completion checkboxes..
+
+### Sales Reporting & Analytics [core] (`sales-reporting-and-analytics`)
+
+Analytics dashboard providing pipeline conversion funnel reports, deal loss reason analysis, revenue forecasting, and sales rep performance metrics.
+
+- **C-5** Given A sales administrator inspecting the Reports dashboard, when Filtering analytics by custom date range and sales representative, then The conversion funnel, revenue forecast chart, and deal loss breakdown reflect filtered metrics via GET /wp-json/wpdev/v1/analytics/reports..
+
+### WordPress Lead Capture Forms [important] (`wordpress-lead-capture-forms`)
+
+Shortcode and Gutenberg block integration to embed lead generation forms into WordPress pages, automatically creating contacts and deals upon submission.
+
+- **C-6** Given A site visitor submitting a frontend page containing the shortcode [didar_lead_form id="1"], when Submitting valid contact information, then A new contact and associated deal are created in the default pipeline stage and visible via GET /wp-json/wpdev/v1/deals..
+
+Depends on: deals-kanban-pipeline, contacts-and-companies-management
+
+### SMS Gateway & Email Notifications [important] (`sms-and-email-integration`)
+
+Integration with Iranian SMS providers (Kavenegar, IPPanel, FarazSMS) and email notifications for automated follow-ups and stage updates.
+
+- **C-7** Given Valid SMS gateway API credentials configured in WPDev settings dashboard, when A deal advances to a designated stage configured for SMS alerts, then An automated SMS notification dispatch log entry with status 'sent' is recorded and queryable via REST..
+
+### Deal Automation & Workflow Triggers [important] (`deal-automation-workflows`)
+
+Rule-based automated triggers that assign tasks, send SMS/email alerts, or adjust deal properties when a deal transitions between stages.
+
+- **C-8** Given An active workflow rule matching 'Stage change to Won', when A deal moves into the 'Won' stage, then The workflow engine automatically assigns a follow-up task to the owner and triggers the corresponding notification rule..
+
+Depends on: deals-kanban-pipeline, activity-and-task-tracking, sms-and-email-integration
+
+### Role-Based Access Control & Team Management [important] (`team-roles-and-permissions`)
+
+Granular user permissions defining access levels for sales reps, team leads, and administrators with deal ownership privacy controls.
+
+- **C-9** Given A user logged in with the 'Sales Rep' role assigned to Team A, when Querying deals via GET /wp-json/wpdev/v1/deals, then The REST response strictly filters out unassigned deals and deals belonging to other teams based on two-gate security checks..
+
+## Non-functional
+
+- Architecture adheres strictly to WPDev specifications: modular design at src/Modules/<Feature>/Module.php registered via ModuleLoader.
+- Target runtime is PHP 7.4 (authored in PHP 8.1 and Rector-downgraded).
+- i18n translation strings loaded on 'init' hook priority 1 using English source strings.
+- REST endpoints exposed under 'wpdev.json' namespace with Two-Gate security checks combining capabilities (action-based) and domain permissions.
+- Plugin options managed exclusively through WPDev settings dashboard sections; direct WP option API calls avoided.
+- Multisite network activation safe with strict database table prefixing and site isolation.
+
+## Out of scope
+
+- Native mobile iOS and Android applications.
+- Direct bank gateway payment processing inside CRM deals.
+- VoIP telephony PABX server hardware hosting.
+
+## Assumptions
+
+- Iranian SMS providers (Kavenegar, IPPanel, FarazSMS) expose standard REST HTTP APIs reachable from the WordPress host.
+- Date displays automatically accommodate standard Gregorian and Jalali localized formats based on site locale settings.
+- Default user permissions map to customized WordPress capabilities created upon plugin activation.
+- Known risk: Criterion C-6 specifies public front-end lead form submissions creating contact and deal records without requiring anti-spam/honeypot mechanisms, public submission nonces, IP-based rate limiting, input sanitization/validation, or duplicate handling, leaving the system vulnerable to spam floods, database exhaustion, and injection attacks. (fix: Require CSRF/nonce verification for public form submissions, honeypot fields, IP-based rate limiting, strict server-side validation/sanitization on all input fields, and duplicate contact detection rules (e.g. matching email/phone).)
+- Known risk: REST endpoints and administrative actions lack explicit custom capability definitions and cookie-session nonce verification requirements. Acceptance criteria refer to user roles ('Sales Manager', 'Admin', 'Sales Rep') rather than specific capabilities, and state-changing REST routes lack explicit X-WP-Nonce verification for cookie-authenticated browser requests. (fix: Define a canonical WordPress capability matrix (e.g., 'didar_view_deals', 'didar_edit_deals', 'didar_manage_contacts', 'didar_view_reports') enforced in REST permission_callbacks, mandate X-WP-Nonce checks on all state-changing endpoints, and formalize the Two-Gate ownership policy.)
+- Known risk: The spec lacks criteria, endpoints, and data contracts for core Contact and Company CRUD operations. Criterion C-3 only addresses linking an existing contact to a company via POST /contacts/{id}/link, leaving creation, listing, updating, and deletion of contacts and companies completely undefined. (fix: Add explicit acceptance criteria and REST route contracts (GET/POST/PUT/DELETE for /contacts and /companies) specifying required fields, validation rules, relationship cardinality, and response schemas.)
+- Known risk: Criterion C-4 describes viewing tasks on an admin calendar page (/wp-admin/admin.php?page=didar-calendar), but omits REST routes, data contracts, and acceptance criteria for creating, updating, completing, or deleting activities (calls, meetings, follow-ups), preventing test generation. (fix: Specify REST endpoints (e.g. GET/POST/PATCH /wp-json/wpdev/v1/activities) with explicit request payloads, required fields (type, due_date, deal_id, contact_id, status), and completion state transitions.)
+- Known risk: Workflow triggers (C-8) lack specifications for workflow authoring/storage, execution boundary (synchronous in-request vs asynchronous queue/Action Scheduler), infinite loop/cascade prevention, idempotency, and failure handling when SMS/email notifications fail. (fix: Specify how workflow rules are authored and stored, define the execution pipeline (synchronous vs background queue), loop-prevention safeguards for chained stage updates, and retry/logging behavior on notification failure.)
+- Known risk: Contradiction between Non-functional requirements and acceptance criteria regarding the REST API namespace: Non-functional specifies the namespace 'wpdev.json', whereas criteria C-1, C-3, C-5, C-6, and C-9 specify 'wpdev/v1'. (fix: Standardize the REST route namespace across both Non-functional requirements and all acceptance criteria (e.g. use 'wpdev/v1' consistently).)
+- Known risk: Criterion C-7 logs automated SMS dispatches upon stage advancement, but omits secret masking/redaction for stored API keys in settings REST responses, Iranian phone number normalization (+98 / 09xx), and timeout/failure handling when SMS gateways are unreachable or out of credit. (fix: Specify masking for stored API keys in settings endpoints, Iranian mobile number normalization rules, and timeout/error handling with dedicated failure statuses in notification logs.)

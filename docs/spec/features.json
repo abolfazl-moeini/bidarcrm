@@ -1,0 +1,60 @@
+{
+  "features": [
+    {
+      "key": "deals-kanban-pipeline",
+      "name": "Deals Pipeline & Kanban Board",
+      "description": "Visual drag-and-drop sales pipeline board featuring customizable deal stages, deal monetary values, win probabilities, and rotten deal highlighting.",
+      "evidence": [],
+      "priority": "core"
+    },
+    {
+      "key": "contacts-and-companies-management",
+      "name": "Contacts & Companies Management",
+      "description": "Unified management of individual contacts and corporate accounts with customizable fields, association mapping, and activity timelines.",
+      "evidence": [],
+      "priority": "core"
+    },
+    {
+      "key": "activity-and-task-tracking",
+      "name": "Activity & Task Tracking",
+      "description": "Task management system for logging phone calls, meetings, follow-ups, and notes with automated reminders and team calendar views.",
+      "evidence": [],
+      "priority": "core"
+    },
+    {
+      "key": "sales-reporting-and-analytics",
+      "name": "Sales Reporting & Analytics",
+      "description": "Analytics dashboard providing pipeline conversion funnel reports, deal loss reason analysis, revenue forecasting, and sales rep performance metrics.",
+      "evidence": [],
+      "priority": "core"
+    },
+    {
+      "key": "wordpress-lead-capture-forms",
+      "name": "WordPress Lead Capture Forms",
+      "description": "Shortcode and Gutenberg block integration to embed lead generation forms into WordPress pages, automatically creating contacts and deals upon submission.",
+      "evidence": [],
+      "priority": "important"
+    },
+    {
+      "key": "sms-and-email-integration",
+      "name": "SMS Gateway & Email Notifications",
+      "description": "Integration with Iranian SMS providers (Kavenegar, IPPanel, FarazSMS) and email notifications for automated follow-ups and stage updates.",
+      "evidence": [],
+      "priority": "important"
+    },
+    {
+      "key": "deal-automation-workflows",
+      "name": "Deal Automation & Workflow Triggers",
+      "description": "Rule-based automated triggers that assign tasks, send SMS/email alerts, or adjust deal properties when a deal transitions between stages.",
+      "evidence": [],
+      "priority": "important"
+    },
+    {
+      "key": "team-roles-and-permissions",
+      "name": "Role-Based Access Control & Team Management",
+      "description": "Granular user permissions defining access levels for sales reps, team leads, and administrators with deal ownership privacy controls.",
+      "evidence": [],
+      "priority": "important"
+    }
+  ]
+}
