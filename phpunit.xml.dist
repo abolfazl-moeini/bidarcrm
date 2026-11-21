@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+    bootstrap="tests/unit-tests/bootstrap.php"
+    backupGlobals="false"
+    colors="true"
+    verbose="true"
+    executionOrder="random"
+>
+    <testsuites>
+        <testsuite name="didar-crm">
+            <directory suffix="Test.php">./tests/unit-tests</directory>
+            <exclude>./tests/unit-tests/TestCases</exclude>
+            <exclude>./tests/unit-tests/fixtures</exclude>
+        </testsuite>
+    </testsuites>
+
+    <php>
+        <env name="WP_TESTS_DIR" value="/tmp/wordpress-develop/tests/phpunit"/>
+        <env name="BOOTSTRAP_FILE" value="/tmp/wordpress-develop/wp-content/plugins/didar-crm/didar-crm.php"/>
+        <env name="PLUGIN_ROOT" value="/tmp/wordpress-develop/wp-content/plugins/didar-crm"/>
+    </php>
+</phpunit>
