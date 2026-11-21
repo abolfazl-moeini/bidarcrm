@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "test:unit:js": "wp-scripts test-unit-js",
+    "test:unit:js:watch": "wp-scripts test-unit-js --watch",
+    "test:unit:js:coverage": "wp-scripts test-unit-js --coverage"
+  },
+  "devDependencies": {
+    "@wordpress/scripts": "^35.0.0"
+  }
+}

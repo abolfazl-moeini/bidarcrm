@@ -1,0 +1,34 @@
+{
+    "name": "wpdev/wc-core-test",
+    "type": "library",
+    "description": "Universal test framework and fixtures for WooCommerce plugins and extensions.",
+    "version": "2.0.0",
+    "authors": [
+        {
+            "name": "Abolfazl Moeini",
+            "email": "a.moeny@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4"
+    },
+    "require-dev": {
+        "brain/monkey": "^2.6",
+        "mockery/mockery": "^1.4",
+        "phpunit/phpunit": "^9.6"
+    },
+    "suggest": {
+        "brain/monkey": "Allows pure in-memory unit testing of WooCommerce logic without MySQL.",
+        "mockery/mockery": "Provides expressive mocking capabilities for unit tests."
+    },
+    "autoload": {
+        "psr-4": {
+            "WPDevTest\\Woocommerce\\": "./src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WPDevTest\\Woocommerce\\Tests\\": "./tests"
+        }
+    }
+}
