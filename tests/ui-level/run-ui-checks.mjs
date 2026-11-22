@@ -22,6 +22,8 @@ const isDryRun = args.includes('--dry-run');
 const noDaemon = args.includes('--no-daemon');
 const screenFilterIndex = args.indexOf('--screen');
 const screenFilter = screenFilterIndex !== -1 ? args[screenFilterIndex + 1] : null;
+const profileFilterIndex = args.indexOf('--profile');
+const profileFilter = profileFilterIndex !== -1 ? args[profileFilterIndex + 1] : null;
 
 const manifestPathIndex = args.indexOf('--manifest');
 const manifestPath = manifestPathIndex !== -1
@@ -31,6 +33,7 @@ const manifestPath = manifestPathIndex !== -1
 console.log('==> BidarCRM ui-level Multi-Screen Verification Runner');
 console.log(`    Manifest: ${manifestPath}`);
 console.log(`    Engine:   ${UI_LEVEL_CLI}`);
+console.log(`    Profile:  ${profileFilter || 'all'}`);
 console.log(`    Dry-run:  ${isDryRun ? 'YES' : 'NO'}`);
 
 if (!existsSync(manifestPath)) {
@@ -62,7 +65,11 @@ if (isDryRun) {
   for (const screen of targetScreens) {
     const refPath = resolve(ROOT_DIR, screen.ref);
     const refExists = existsSync(refPath);
-    console.log(`  - [${screen.id}] "${screen.name}": target=${screen.targetUrl}, ref=${screen.ref} (${refExists ? 'EXISTS' : 'PENDING'})`);
+    const viewports = (screen.viewports || [screen.viewport]).filter((vp) =>
+      !profileFilter || (vp.name === profileFilter)
+    );
+    const vpSummary = viewports.map((v) => `${v.name || 'custom'}: ${v.width}x${v.height}`).join(', ');
+    console.log(`  - [${screen.id}] "${screen.name}": target=${screen.targetUrl}, ref=${screen.ref} (${refExists ? 'EXISTS' : 'PENDING'}), viewports=[${vpSummary}]`);
     if (!screen.targetUrl || !screen.ref || !screen.selector) {
       console.error(`    ERROR: Missing required fields on screen ${screen.id}`);
       hasErrors = true;
@@ -96,7 +103,6 @@ try {
   }
 
   for (const screen of targetScreens) {
-    totalExecuted++;
     const refPath = resolve(ROOT_DIR, screen.ref);
 
     if (!existsSync(refPath)) {
@@ -105,46 +111,54 @@ try {
       continue;
     }
 
-    console.log(`\n==> Testing screen "${screen.name}" (${screen.id})...`);
-    const cliArgs = [
-      'check',
-      '--json',
-      '-t', screen.targetUrl,
-      '-r', refPath,
-      '-a', screen.adapter || 'html',
-      '-s', screen.selector || '#root',
-      '--viewport', `${screen.viewport?.width || 1280}x${screen.viewport?.height || 800}`,
-      '--dpr', String(screen.viewport?.deviceScaleFactor || 2),
-      '--threshold', String(screen.geometryTolerancePx || 0.5),
-    ];
+    const viewports = (screen.viewports || [screen.viewport]).filter((vp) =>
+      !profileFilter || (vp.name === profileFilter)
+    );
 
-    if (!noDaemon && daemonStarted) {
-      cliArgs.push('--daemon');
-    }
+    for (const vp of viewports) {
+      totalExecuted++;
+      const vpName = vp.name ? ` [${vp.name}]` : '';
+      console.log(`\n==> Testing screen "${screen.name}" (${screen.id})${vpName}...`);
+      const cliArgs = [
+        'check',
+        '--json',
+        '-t', screen.targetUrl,
+        '-r', refPath,
+        '-a', screen.adapter || 'html',
+        '-s', screen.selector || '#root',
+        '--viewport', `${vp.width || 1280}x${vp.height || 800}`,
+        '--dpr', String(vp.deviceScaleFactor || 2),
+        '--threshold', String(screen.geometryTolerancePx || 0.5),
+      ];
 
-    if (screen.maskSelectors && screen.maskSelectors.length > 0) {
-      cliArgs.push('--mask', ...screen.maskSelectors);
-    }
+      if (!noDaemon && daemonStarted) {
+        cliArgs.push('--daemon');
+      }
 
-    try {
-      const output = execFileSync('node', [UI_LEVEL_CLI, ...cliArgs], {
-        encoding: 'utf8',
-        stdio: ['pipe', 'pipe', 'pipe'],
-      });
+      if (screen.maskSelectors && screen.maskSelectors.length > 0) {
+        cliArgs.push('--mask', ...screen.maskSelectors);
+      }
 
-      const result = JSON.parse(output);
-      if (result.ok || result.status === 'passed') {
-        console.log(`  [PASS] Screen "${screen.name}": DeltaE and pixel diff within thresholds.`);
-        totalPassed++;
-      } else {
-        console.error(`  [FAIL] Screen "${screen.name}": Differences detected.`);
+      try {
+        const output = execFileSync('node', [UI_LEVEL_CLI, ...cliArgs], {
+          encoding: 'utf8',
+          stdio: ['pipe', 'pipe', 'pipe'],
+        });
+
+        const result = JSON.parse(output);
+        if (result.ok || result.status === 'passed') {
+          console.log(`  [PASS] Screen "${screen.name}"${vpName}: DeltaE and pixel diff within thresholds.`);
+          totalPassed++;
+        } else {
+          console.error(`  [FAIL] Screen "${screen.name}"${vpName}: Differences detected.`);
+          allPassed = false;
+          totalFailed++;
+        }
+      } catch (execErr) {
+        console.error(`  [FAIL] Screen "${screen.name}"${vpName} check exited with error: ${execErr.message}`);
         allPassed = false;
         totalFailed++;
       }
-    } catch (execErr) {
-      console.error(`  [FAIL] Screen "${screen.name}" check exited with error: ${execErr.message}`);
-      allPassed = false;
-      totalFailed++;
     }
   }
 } finally {

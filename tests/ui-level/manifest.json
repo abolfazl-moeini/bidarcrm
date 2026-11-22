@@ -1,5 +1,17 @@
 {
   "$schema": "https://raw.githubusercontent.com/abolfazl-moeini/ui-level/main/schema.json",
+  "profiles": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "deviceScaleFactor": 2
+    },
+    "tablet": {
+      "width": 1024,
+      "height": 768,
+      "deviceScaleFactor": 2
+    }
+  },
   "screens": [
     {
       "id": "login",
@@ -13,6 +25,20 @@
         "height": 800,
         "deviceScaleFactor": 2
       },
+      "viewports": [
+        {
+          "name": "desktop",
+          "width": 1280,
+          "height": 800,
+          "deviceScaleFactor": 2
+        },
+        {
+          "name": "tablet",
+          "width": 1024,
+          "height": 768,
+          "deviceScaleFactor": 2
+        }
+      ],
       "colorThresholdDeltaE": 2.0,
       "geometryTolerancePx": 0.5,
       "maskSelectors": []
@@ -29,6 +55,20 @@
         "height": 800,
         "deviceScaleFactor": 2
       },
+      "viewports": [
+        {
+          "name": "desktop",
+          "width": 1280,
+          "height": 800,
+          "deviceScaleFactor": 2
+        },
+        {
+          "name": "tablet",
+          "width": 1024,
+          "height": 768,
+          "deviceScaleFactor": 2
+        }
+      ],
       "colorThresholdDeltaE": 2.0,
       "geometryTolerancePx": 0.5,
       "maskSelectors": [".dynamic-time", ".user-avatar"]
@@ -45,6 +85,20 @@
         "height": 800,
         "deviceScaleFactor": 2
       },
+      "viewports": [
+        {
+          "name": "desktop",
+          "width": 1280,
+          "height": 800,
+          "deviceScaleFactor": 2
+        },
+        {
+          "name": "tablet",
+          "width": 1024,
+          "height": 768,
+          "deviceScaleFactor": 2
+        }
+      ],
       "colorThresholdDeltaE": 2.0,
       "geometryTolerancePx": 0.5,
       "maskSelectors": [".kpi-amount", ".chart-container"]
@@ -61,6 +115,20 @@
         "height": 800,
         "deviceScaleFactor": 2
       },
+      "viewports": [
+        {
+          "name": "desktop",
+          "width": 1280,
+          "height": 800,
+          "deviceScaleFactor": 2
+        },
+        {
+          "name": "tablet",
+          "width": 1024,
+          "height": 768,
+          "deviceScaleFactor": 2
+        }
+      ],
       "colorThresholdDeltaE": 2.0,
       "geometryTolerancePx": 0.5,
       "maskSelectors": [".deal-card-time", ".deal-amount"]
@@ -77,6 +145,20 @@
         "height": 800,
         "deviceScaleFactor": 2
       },
+      "viewports": [
+        {
+          "name": "desktop",
+          "width": 1280,
+          "height": 800,
+          "deviceScaleFactor": 2
+        },
+        {
+          "name": "tablet",
+          "width": 1024,
+          "height": 768,
+          "deviceScaleFactor": 2
+        }
+      ],
       "colorThresholdDeltaE": 2.0,
       "geometryTolerancePx": 0.5,
       "maskSelectors": [".dynamic-time", ".deal-amount"]
@@ -93,6 +175,20 @@
         "height": 800,
         "deviceScaleFactor": 2
       },
+      "viewports": [
+        {
+          "name": "desktop",
+          "width": 1280,
+          "height": 800,
+          "deviceScaleFactor": 2
+        },
+        {
+          "name": "tablet",
+          "width": 1024,
+          "height": 768,
+          "deviceScaleFactor": 2
+        }
+      ],
       "colorThresholdDeltaE": 2.0,
       "geometryTolerancePx": 0.5,
       "maskSelectors": [".dynamic-time"]
@@ -109,6 +205,20 @@
         "height": 800,
         "deviceScaleFactor": 2
       },
+      "viewports": [
+        {
+          "name": "desktop",
+          "width": 1280,
+          "height": 800,
+          "deviceScaleFactor": 2
+        },
+        {
+          "name": "tablet",
+          "width": 1024,
+          "height": 768,
+          "deviceScaleFactor": 2
+        }
+      ],
       "colorThresholdDeltaE": 2.0,
       "geometryTolerancePx": 0.5,
       "maskSelectors": [".dynamic-time"]
