@@ -1,0 +1,5 @@
+{
+  "Kavenegar": {
+    "senderClassName": "Espo\\Modules\\BidarIran\\Sms\\KavenegarSender"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "BidarIran",
+  "version": "1.0.0",
+  "acceptableVersions": [
+    ">=10.1.0"
+  ],
+  "php": [
+    ">=8.3"
+  ],
+  "description": "BidarIran Extension for EspoCRM 10.1.4 - Kavenegar SMS Provider and Iranian VoIP Webhook"
+}

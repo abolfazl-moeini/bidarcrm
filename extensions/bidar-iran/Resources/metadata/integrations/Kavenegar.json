@@ -1,0 +1,12 @@
+{
+  "fields": {
+    "apiKey": {
+      "type": "varchar",
+      "required": true
+    },
+    "senderLine": {
+      "type": "varchar",
+      "required": false
+    }
+  }
+}
