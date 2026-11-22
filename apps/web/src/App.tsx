@@ -15,6 +15,7 @@ import { AppShell } from './components/layout/AppShell';
 import { DashboardPage } from './pages/DashboardPage';
 import { KanbanPage } from './pages/KanbanPage';
 import { DealDetailPage } from './pages/DealDetailPage';
+import { ContactsPage } from './pages/ContactsPage';
 
 export function AppContent(): React.JSX.Element {
   const { isAuthenticated } = useAuth();
@@ -31,6 +32,9 @@ export function AppContent(): React.JSX.Element {
     }
     if (currentPath === '/kanban') {
       return <KanbanPage onSelectDeal={(id) => setCurrentPath(`/deals/${id}`)} />;
+    }
+    if (currentPath === '/contacts') {
+      return <ContactsPage />;
     }
     return <DashboardPage />;
   };
