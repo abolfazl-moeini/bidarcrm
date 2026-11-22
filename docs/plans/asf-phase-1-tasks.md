@@ -3,8 +3,12 @@
 > **وضعیت:** آماده ورود به کارخانه نرم‌افزار خودکار (**ASF v6**) — صرفاً پلن (بدون پیاده‌سازی)  
 > **نام محصول:** **BidarCRM** (`bidar` / بیدار)  
 > **معماری فاز اول:** موتور **EspoCRM 10.1.4** (بک‌اند، ORM، ACL و REST API) + فرانت‌اند اختصاصی **Front-Office Headless** (فقط ۶ تا ۸ صفحه روزمره فروش)؛ پنل تنظیمات و مدیریت سیستم روی `/admin` بومی EspoCRM باقی می‌ماند.  
-> **دامنه فاز دوم:** مهاجرت به Full Headless در سند [asf-phase-2-future.md](./asf-phase-2-future.md) مستند شده و خارج از دامنه فعلی است.  
-> **متدولوژی اجباری:** TDD مکانیکی (قرمز → سبز) + تست بصری و هندسی با `/Users/moeini/Dev/ui-level` + تست E2E در `packages/e2e` مبتنی بر `monitoring-boilerplate` (`@wpdev/monitor-core`).
+> **دامنه فاز دوم:** مهاجرت به Full Headless در سند [asf-phase-2-future.md](./asf-phase-2-future.md) مستند شده و **اکیداً خارج از دامنه فعلی است و نباید اجرا یا آغاز شود.**  
+> **مستندات مرجع تحقیق:**  
+> • تحلیل تفصیلی ویدئوهای آموزشی و دموهای یوتیوب: [YOUTUBE_WALKTHROUGHS.md](../research/YOUTUBE_WALKTHROUGHS.md)  
+> • کاتالوگ ۸ فیچر و سناریوهای جامع E2E: [FEATURES_AND_SCENARIOS.md](../research/FEATURES_AND_SCENARIOS.md)  
+> • ساختار تخصیص مدل‌ها و ایجنت‌ها: [MULTI_AGENT_ASF_TOPOLOGY.md](../research/MULTI_AGENT_ASF_TOPOLOGY.md)  
+> **متدولوژی اجباری:** TDD مکانیکی (قرمز → سبز) + تست بصری و هندسی با `/Users/moeini/Dev/ui-level` + تست E2E در `packages/e2e` مبتنی بر `monitoring-boilerplate` (`@wpdev/monitor-core`) + واچ‌داگ همگانی.
 
 ---
 
@@ -23,6 +27,8 @@
 | `INV-09` | **مسیریابی Same-Origin بدون CORS** | در محیط توسعه (Vite Proxy) و تولید (Apache `.htaccess` / NGINX) تمام درخواست‌ها هم‌دامنه هستند: `/api/v1/*` ← API هسته؛ `/admin` و `/client/*` و `/install/*` و `?entryPoint=*` ← هسته بومی EspoCRM؛ `/app/*` و مسیرهای Front-Office ← SPA فرانت‌اند (`public/app/index.html` با `base: '/app/'`). |
 | `INV-10` | **محافظت واچ‌داگ و میکروکامیت** | کلیه دستورات شل و گیت‌ها با `/usr/bin/timeout <seconds>s` اجرا می‌شوند. تغییرات به صورت میکروکامیت‌های اتمیک Conventional Commits ثبت می‌شوند. |
 | `INV-11` | **آمادگی بی‌اصطکاک برای فاز ۲** | فرم‌های ثابت فاز ۱ ماژولار طراحی می‌شوند تا در فاز ۲ کامپوننت `DynamicFieldRenderer` به‌سادگی در بخش «اطلاعات تکمیلی» تزریق شود؛ تمام تماس‌های API پشت لایه Repository تایپ‌شده قرار می‌گیرند. |
+| `INV-12` | **ممنوعیت مطلق آغاز فاز ۲ (Phase 2 Ban)** | فاز دوم صرفاً نقشه راه آینده است. در چرخه فعلی اجرای ASF تحت هیچ شرایطی نباید وارد فاز دوم شد و نباید هیچ‌یک از کدهای مربوط به فاز دوم پیاده‌سازی شوند. تمرکز ۱۰۰٪ بر تکمیل موفق و سبز شدن فاز اول است. |
+| `INV-13` | **توپولوژی چندایجنت با مدل‌های تعیین‌شده** | اجرای ساخت در ASF با توزیع سه ایجنت زیر انجام می‌شود:<br>• **Codex با مدل `gpt-6-luna`:** لید کدنویسی، ایجاد تست‌های RED و پیاده‌سازی کدهای GREEN.<br>• **Antigravity (agy) با مدل `gemini-3.8-flash`:** بازبینی کد (Code Review)، ارزیابی داوری و ممیزی بصری `ui-level`.<br>• **WorkBuddy با مدل `hy4-flash`:** دستیار کمکی، کنترل مضاعف (Double-Check) و اجرای بیلدها و تست‌های پایانی. |
 
 ---
 
