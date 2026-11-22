@@ -6,7 +6,8 @@
  */
 
 import { EspoUser } from '../../types/espocrm';
-import { apiClient, API_UNAUTHORIZED_EVENT } from '../../lib/api-client';
+import { apiClient, API_UNAUTHORIZED_EVENT, encodeBase64Utf8 } from '../../lib/api-client';
+import { queryClient } from '../../lib/query-client';
 
 export interface AuthState {
   user: EspoUser | null;
@@ -66,6 +67,7 @@ function clearStoredAuth(): void {
 export class AuthStore {
   private state: AuthState;
   private listeners = new Set<Listener>();
+  private isLoggingOut = false;
 
   constructor() {
     const initial = loadStoredAuth();
@@ -85,7 +87,7 @@ export class AuthStore {
     // Auto-logout on intercepted 401 Unauthorized
     if (typeof window !== 'undefined') {
       window.addEventListener(API_UNAUTHORIZED_EVENT, () => {
-        this.logout();
+        this.logout(true);
       });
     }
   }
@@ -120,7 +122,7 @@ export class AuthStore {
     this.setState({ isLoading: true, error: null });
 
     try {
-      const basicAuth = btoa(`${username}:${password}`);
+      const basicAuth = encodeBase64Utf8(`${username}:${password}`);
       const response = await apiClient.request<{ user: EspoUser; token: string }>('/App/user', {
         method: 'GET',
         headers: {
@@ -161,27 +163,35 @@ export class AuthStore {
   /**
    * Destroys current session and cleans up credentials.
    */
-  public logout = async (): Promise<void> => {
-    const currentToken = this.state.token;
+  public logout = async (fromUnauthorized = false): Promise<void> => {
+    if (this.isLoggingOut) return;
+    this.isLoggingOut = true;
 
-    if (currentToken) {
-      try {
-        await apiClient.post('/App/destroyAuthToken', { token: currentToken });
-      } catch {
-        // Ignore failure during token invalidation
+    try {
+      const currentToken = this.state.token;
+
+      if (!fromUnauthorized && currentToken) {
+        try {
+          await apiClient.post('/App/destroyAuthToken', { token: currentToken });
+        } catch {
+          // Ignore failure during token invalidation
+        }
       }
+
+      apiClient.clearAuth();
+      clearStoredAuth();
+      queryClient.clear();
+
+      this.setState({
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: null,
+      });
+    } finally {
+      this.isLoggingOut = false;
     }
-
-    apiClient.clearAuth();
-    clearStoredAuth();
-
-    this.setState({
-      user: null,
-      token: null,
-      isAuthenticated: false,
-      isLoading: false,
-      error: null,
-    });
   };
 
   /**
@@ -200,7 +210,7 @@ export class AuthStore {
       }
       return false;
     } catch {
-      await this.logout();
+      await this.logout(true);
       return false;
     }
   };

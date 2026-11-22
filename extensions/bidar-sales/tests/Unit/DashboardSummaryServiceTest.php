@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace Espo\Modules\BidarSales\Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
+use Espo\Core\Api\Action;
+use Espo\Core\Api\Request;
+use Espo\Core\Api\Response;
+use Espo\Modules\BidarSales\Api\GetDashboardSummary;
 use Espo\Modules\BidarSales\Services\DashboardSummaryService;
+use PHPUnit\Framework\TestCase;
 
 class DashboardSummaryServiceTest extends TestCase
 {
@@ -28,10 +32,26 @@ class DashboardSummaryServiceTest extends TestCase
         foreach ($routes as $route) {
             if (($route['route'] ?? '') === '/BidarDashboard/summary' && ($route['method'] ?? '') === 'get') {
                 $found = true;
-                $this->assertSame('Espo\\Modules\\BidarSales\\Api\\GetDashboardSummary', $route['action'] ?? null);
+                $this->assertSame(
+                    'Espo\\Modules\\BidarSales\\Api\\GetDashboardSummary',
+                    $route['actionClassName'] ?? null
+                );
             }
         }
-        $this->assertTrue($found, 'GET /BidarDashboard/summary route must be registered');
+        $this->assertTrue($found, 'GET /BidarDashboard/summary route must be registered with actionClassName');
+    }
+
+    public function testGetDashboardSummaryImplementsEspoActionInterface(): void
+    {
+        $action = new GetDashboardSummary($this->service);
+        $this->assertInstanceOf(Action::class, $action);
+
+        $request = $this->createMock(Request::class);
+        $request->method('getQueryParam')->willReturn(null);
+
+        $response = $action->process($request);
+        $this->assertInstanceOf(Response::class, $response);
+        $this->assertSame(200, $response->getStatusCode());
     }
 
     public function testAggregateDashboardSummaryCalculatesMetrics(): void
@@ -67,9 +87,9 @@ class DashboardSummaryServiceTest extends TestCase
         ];
 
         $stages = [
-            ['id' => 's-1', 'name' => 'Initial Contact'],
-            ['id' => 's-2', 'name' => 'Negotiation'],
-            ['id' => 's-3', 'name' => 'Closed Won'],
+            ['id' => 's-1', 'name' => 'Initial Contact', 'color' => '#6366f1'],
+            ['id' => 's-2', 'name' => 'Negotiation', 'color' => '#3b82f6'],
+            ['id' => 's-3', 'name' => 'Closed Won', 'color' => '#10b981'],
         ];
 
         $summary = $this->service->calculateSummary($deals, $activities, $stages);
@@ -81,5 +101,10 @@ class DashboardSummaryServiceTest extends TestCase
         $this->assertSame(1, $summary['rottenCount']);
         $this->assertSame(1, $summary['overdueActivitiesCount']);
         $this->assertCount(3, $summary['funnelStages']);
+        $this->assertSame('s-1', $summary['funnelStages'][0]['stageId']);
+        $this->assertSame('Initial Contact', $summary['funnelStages'][0]['stageName']);
+        $this->assertSame('#6366f1', $summary['funnelStages'][0]['color']);
+        $this->assertSame(1, $summary['funnelStages'][0]['count']);
+        $this->assertSame(10000000.0, (float) $summary['funnelStages'][0]['amount']);
     }
 }

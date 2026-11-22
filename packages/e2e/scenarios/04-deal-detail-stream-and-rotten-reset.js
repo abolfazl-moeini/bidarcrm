@@ -16,7 +16,10 @@ export async function run({ baseUrl, state = {} }) {
       'Content-Type': 'application/json',
     };
     if (state.token) {
-      headers['Espo-Authorization'] = state.token;
+      const username = state.username || 'admin';
+      const authVal = Buffer.from(`${username}:${state.token}`).toString('base64');
+      headers['Espo-Authorization'] = authVal;
+      headers['Espo-Authorization-By-Token'] = 'true';
       headers['Authorization'] = `Bearer ${state.token}`;
     }
 
@@ -36,7 +39,7 @@ export async function run({ baseUrl, state = {} }) {
       body: JSON.stringify({
         parentType: 'Opportunity',
         parentId: dealId,
-        type: 'Note',
+        type: 'Post',
         post: 'ثبت فعالیت پیگیری فوری جهت رفع پوسیدگی معامله و تمدید تعامل',
       }),
     });

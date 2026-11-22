@@ -98,7 +98,19 @@ describe('DashboardPage & KPI / Funnel Visualizations', () => {
   });
 
   it('renders pending activities list with Jalali dates and activity types', async () => {
-    vi.spyOn(apiClient, 'get').mockResolvedValue(mockSummaryData);
+    vi.spyOn(apiClient, 'get').mockImplementation(async (url: string) => {
+      if (url.includes('/Task')) {
+        return {
+          list: [
+            { id: 'act-1', name: 'تماس با شرکت فناوری آریا', type: 'Call', dateDue: '2026-11-22T08:30:00.000Z' },
+            { id: 'act-2', name: 'جلسه پرزنتیشن محصول', type: 'Meeting', dateDue: '2026-11-23T10:00:00.000Z' },
+            { id: 'act-3', name: 'ارسال پیش‌فاکتور رسمی', type: 'Task', dateDue: '2026-11-24T12:00:00.000Z' },
+          ],
+          total: 3,
+        };
+      }
+      return mockSummaryData;
+    });
 
     renderWithClient(<DashboardPage />);
 
@@ -109,6 +121,21 @@ describe('DashboardPage & KPI / Funnel Visualizations', () => {
     expect(screen.getByText(/تماس با شرکت فناوری آریا/i)).toBeInTheDocument();
     expect(screen.getByText(/جلسه پرزنتیشن محصول/i)).toBeInTheDocument();
     expect(screen.getByText(/ارسال پیش‌فاکتور رسمی/i)).toBeInTheDocument();
+  });
+
+  it('renders clean empty state when no pending activities exist', async () => {
+    vi.spyOn(apiClient, 'get').mockImplementation(async (url: string) => {
+      if (url.includes('/Task')) {
+        return { list: [], total: 0 };
+      }
+      return mockSummaryData;
+    });
+
+    renderWithClient(<DashboardPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/فعالیت معوق یا نیازمند اقدامی وجود ندارد/i)).toBeInTheDocument();
+    });
   });
 
   it('displays error state with retry button on network or 500 failure', async () => {

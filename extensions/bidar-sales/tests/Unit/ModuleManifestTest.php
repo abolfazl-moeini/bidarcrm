@@ -27,7 +27,7 @@ class ModuleManifestTest extends TestCase
         $this->assertIsArray($data, 'manifest.json must be valid JSON');
 
         $this->assertSame('BidarSales', $data['name'] ?? null);
-        $this->assertSame('1.0.0', $data['version'] ?? null);
+        $this->assertSame('1.0.1', $data['version'] ?? null);
         $this->assertContains('>=10.1.0', $data['acceptableVersions'] ?? []);
         $this->assertContains('>=8.3', $data['php'] ?? []);
     }

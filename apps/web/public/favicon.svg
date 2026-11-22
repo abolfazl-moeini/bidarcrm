@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="bidarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1" />
+      <stop offset="100%" stop-color="#10b981" />
+    </linearGradient>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="8" fill="url(#bgGrad)" stroke="#334155" stroke-width="1.2" />
+  <!-- BidarCRM Opportunity Checkmark -->
+  <path d="M8 17.5L13.5 23L24 10" fill="none" stroke="url(#bidarGrad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Dynamic Growth Spark Accent -->
+  <path d="M22 5.5L23 8.5L26 9.5L23 10.5L22 13.5L21 10.5L18 9.5L21 8.5Z" fill="#10b981" />
+</svg>

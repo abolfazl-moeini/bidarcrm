@@ -8,7 +8,13 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
-ZIP_FILE="${1:-${ROOT_DIR}/dist/bidar-crm-v1.0.0.zip}"
+PACKAGE_JSON="${ROOT_DIR}/package.json"
+APP_VERSION="1.0.1"
+if [[ -f "${PACKAGE_JSON}" ]]; then
+    APP_VERSION="$(grep -o '"version": "[^"]*"' "${PACKAGE_JSON}" | cut -d'"' -f4 || echo "1.0.1")"
+fi
+
+ZIP_FILE="${1:-${ROOT_DIR}/dist/bidar-crm-v${APP_VERSION}.zip}"
 
 echo "==> Verifying BidarCRM Release Package: ${ZIP_FILE}"
 
@@ -34,9 +40,13 @@ REQUIRED_PATTERNS=(
     "public/\.htaccess"
     "public/api/v1/index\.php"
     "public/install/"
+    "client/css/espo/espo\.css"
+    "client/lib/espo\.js"
     "public/app/index\.html"
     "custom/Espo/Modules/BidarSales/"
+    "custom/Espo/Modules/BidarSales/Api/GetDashboardSummary\.php"
     "custom/Espo/Modules/BidarIran/"
+    "custom/Espo/Modules/BidarIran/Api/PostVoipWebhook\.php"
 )
 
 MISSING=0
@@ -54,6 +64,7 @@ FORBIDDEN_PATTERNS=(
     "node_modules/"
     "\.git/"
     "custom/Espo/Modules/.*/tests/"
+    "custom/Espo/Modules/.*/src/"
 )
 
 FORBIDDEN_FOUND=0

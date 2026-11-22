@@ -19,7 +19,7 @@ class VoipLookupService
 
     public function authenticate(?string $receivedSecret): bool
     {
-        if ($receivedSecret === null || $receivedSecret === '') {
+        if ($this->webhookSecret === '' || $receivedSecret === null || $receivedSecret === '') {
             return false;
         }
 

@@ -14,7 +14,10 @@ export async function run({ baseUrl, state = {} }) {
       Accept: 'application/json',
     };
     if (state.token) {
-      headers['Espo-Authorization'] = state.token;
+      const username = state.username || 'admin';
+      const authVal = Buffer.from(`${username}:${state.token}`).toString('base64');
+      headers['Espo-Authorization'] = authVal;
+      headers['Espo-Authorization-By-Token'] = 'true';
       headers['Authorization'] = `Bearer ${state.token}`;
     }
 
@@ -29,16 +32,20 @@ export async function run({ baseUrl, state = {} }) {
 
     const data = await response.json();
 
-    // Validate metrics structure
-    if (typeof data.openDealsCount !== 'number' && typeof data.totalOpenAmount !== 'number') {
+    // Validate metrics structure (support both new contracts and legacy fallbacks)
+    if (typeof data.openCount !== 'number' && typeof data.openDealsCount !== 'number') {
       throw new Error('Dashboard summary response missing expected KPI metrics');
     }
 
     state.kpis = {
-      openDealsCount: data.openDealsCount ?? 0,
-      totalOpenAmount: data.totalOpenAmount ?? 0,
-      wonDealsCount: data.wonDealsCount ?? 0,
-      rottenDealsCount: data.rottenDealsCount ?? 0,
+      openCount: data.openCount ?? data.openDealsCount ?? 0,
+      openAmount: data.openAmount ?? data.totalOpenAmount ?? 0,
+      wonCount: data.wonCount ?? data.wonDealsCount ?? 0,
+      rottenCount: data.rottenCount ?? data.rottenDealsCount ?? 0,
+      openDealsCount: data.openCount ?? data.openDealsCount ?? 0,
+      totalOpenAmount: data.openAmount ?? data.totalOpenAmount ?? 0,
+      wonDealsCount: data.wonCount ?? data.wonDealsCount ?? 0,
+      rottenDealsCount: data.rottenCount ?? data.rottenDealsCount ?? 0,
     };
 
     const duration = performance.now() - start;

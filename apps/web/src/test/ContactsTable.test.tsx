@@ -157,8 +157,10 @@ describe('Contacts & Accounts Directory - ContactsTable & QuickCreateModal', () 
           lastName: 'محمدی',
           phoneNumber: '09123334455',
           emailAddress: 'mohammadi@test.com',
-          accountName: 'توسعه نرم‌افزار فردا',
         }));
+        const callPayload = postSpy.mock.calls[0]![1] as Record<string, unknown>;
+        expect(callPayload.name).toBeUndefined();
+        expect(callPayload.accountName).toBeUndefined();
       });
 
       expect(onSuccess).toHaveBeenCalled();

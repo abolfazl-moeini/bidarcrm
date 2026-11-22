@@ -8,7 +8,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, AlertCircle, RefreshCw } from 'lucide-react';
 import { apiClient } from '../lib/api-client';
 import { queryKeys } from '../lib/query-keys';
@@ -23,6 +23,7 @@ export interface DealDetailPageProps {
 }
 
 export const DealDetailPage: React.FC<DealDetailPageProps> = ({ dealId, onBack }) => {
+  const queryClient = useQueryClient();
   const [localNotes, setLocalNotes] = useState<Note[]>([]);
   const [localDeal, setLocalDeal] = useState<Opportunity | null>(null);
 
@@ -35,10 +36,28 @@ export const DealDetailPage: React.FC<DealDetailPageProps> = ({ dealId, onBack }
   // 2. Fetch Deal Interaction Stream
   const streamQuery = useQuery<EspoListResponse<Note>>({
     queryKey: queryKeys.deals.stream(dealId),
-    queryFn: () =>
-      apiClient.get<EspoListResponse<Note>>(
-        `/Note?parentType=Opportunity&parentId=${dealId}&maxSize=100`
-      ),
+    queryFn: async () => {
+      try {
+        const res = await apiClient.get<EspoListResponse<Note> | Note[]>(
+          `/Opportunity/${dealId}/stream`
+        );
+        if (Array.isArray(res)) {
+          return { list: res, total: res.length };
+        }
+        if (res && Array.isArray(res.list)) {
+          return res;
+        }
+        return { list: [], total: 0 };
+      } catch {
+        try {
+          return await apiClient.get<EspoListResponse<Note>>(
+            `/Note?parentType=Opportunity&parentId=${dealId}&maxSize=100`
+          );
+        } catch {
+          return { list: [], total: 0 };
+        }
+      }
+    },
   });
 
   // Sync server data to local state
@@ -54,26 +73,60 @@ export const DealDetailPage: React.FC<DealDetailPageProps> = ({ dealId, onBack }
     }
   }, [streamQuery.data]);
 
-  // Handle Note Submission
-  const handleAddNote = async (post: string, type: LogType) => {
-    const created = await apiClient.post<Note>('/Note', {
-      parentType: 'Opportunity',
-      parentId: dealId,
-      post,
-      type,
-    });
+  // Handle Note Submission & Quick Activities
+  const handleAddNote = async (text: string, type: LogType) => {
+    let created: Note | null = null;
+
+    if (type === 'Call') {
+      await apiClient.post('/Call', {
+        name: text,
+        status: 'Held',
+        parentType: 'Opportunity',
+        parentId: dealId,
+      });
+    } else if (type === 'Meeting') {
+      await apiClient.post('/Meeting', {
+        name: text,
+        status: 'Held',
+        parentType: 'Opportunity',
+        parentId: dealId,
+      });
+    } else if (type === 'Task') {
+      await apiClient.post('/Task', {
+        name: text,
+        status: 'Completed',
+        parentType: 'Opportunity',
+        parentId: dealId,
+      });
+    } else {
+      // type === 'Note'
+      created = await apiClient.post<Note>('/Note', {
+        parentType: 'Opportunity',
+        parentId: dealId,
+        post: text,
+        type: 'Post',
+      });
+    }
+
+    // Invalidate queries so rotten badge and stream update
+    queryClient.invalidateQueries({ queryKey: queryKeys.deals.detail(dealId) });
+    queryClient.invalidateQueries({ queryKey: queryKeys.deals.stream(dealId) });
+    queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
 
     const newNote: Note = created || {
       id: `temp-${Date.now()}`,
       parentType: 'Opportunity',
       parentId: dealId,
-      post,
-      type,
+      post: text,
+      type: type === 'Note' ? 'Note' : type,
       createdByName: 'شما',
       createdAt: new Date().toISOString(),
     };
 
     setLocalNotes((prev) => [newNote, ...prev]);
+    setLocalDeal((prev) =>
+      prev ? { ...prev, isRotten: false, daysSinceLastActivity: 0 } : null
+    );
   };
 
   // Handle Mark Won
@@ -82,6 +135,8 @@ export const DealDetailPage: React.FC<DealDetailPageProps> = ({ dealId, onBack }
       stage: 'Closed Won',
     });
     setLocalDeal((prev) => (prev ? { ...prev, stage: 'Closed Won' } : null));
+    queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
+    queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
   };
 
   // Handle Mark Lost
@@ -90,11 +145,15 @@ export const DealDetailPage: React.FC<DealDetailPageProps> = ({ dealId, onBack }
       stage: 'Closed Lost',
     });
     setLocalDeal((prev) => (prev ? { ...prev, stage: 'Closed Lost' } : null));
+    queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
+    queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
   };
 
   const handleUpdateStage = async (stage: string) => {
     await apiClient.patch(`/Opportunity/${dealId}`, { stage });
     setLocalDeal((prev) => (prev ? { ...prev, stage } : null));
+    queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
+    queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
   };
 
   const isLoading = dealQuery.isLoading || streamQuery.isLoading;
@@ -118,7 +177,10 @@ export const DealDetailPage: React.FC<DealDetailPageProps> = ({ dealId, onBack }
 
   if (isError || !deal) {
     return (
-      <div className="p-6 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center justify-between gap-4" dir="rtl">
+      <div
+        className="p-6 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center justify-between gap-4"
+        dir="rtl"
+      >
         <div className="flex items-center gap-3">
           <AlertCircle className="w-5 h-5 text-rose-400 flex-shrink-0" />
           <span>خطا در بارگذاری اطلاعات معامله یا سرور در دسترس نیست.</span>

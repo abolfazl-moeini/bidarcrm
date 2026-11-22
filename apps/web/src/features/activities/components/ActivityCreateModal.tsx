@@ -5,7 +5,7 @@
  * priority, due date, and associated customer/deal context.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   CheckSquare,
@@ -21,7 +21,7 @@ export interface ActivityCreateModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: (created: Task) => void;
-  initialData?: Partial<Task>;
+  initialData?: Partial<Task & { type?: 'Task' | 'Call' | 'Meeting' }>;
 }
 
 export const ActivityCreateModal: React.FC<ActivityCreateModalProps> = ({
@@ -38,6 +38,39 @@ export const ActivityCreateModal: React.FC<ActivityCreateModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (isOpen) {
+      setName(initialData?.name || '');
+      setType(initialData?.type || 'Task');
+      setPriority(initialData?.priority || 'Normal');
+      setDateDue(
+        initialData?.dateDue ||
+          initialData?.dateEnd ||
+          (initialData as any)?.dateStart ||
+          ''
+      );
+      setDescription(initialData?.description || '');
+      setError(null);
+    } else {
+      setName('');
+      setType('Task');
+      setPriority('Normal');
+      setDateDue('');
+      setDescription('');
+      setError(null);
+    }
+  }, [isOpen, initialData]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -51,18 +84,52 @@ export const ActivityCreateModal: React.FC<ActivityCreateModalProps> = ({
 
     try {
       setIsSubmitting(true);
-      const created = await apiClient.post<Task>('/Task', {
-        name: name.trim(),
-        type,
-        priority,
-        dateDue: dateDue || new Date().toISOString(),
-        description: description.trim() || undefined,
-        status: 'Not Started',
-        accountName: initialData?.accountName,
-        contactName: initialData?.contactName,
-        parentId: initialData?.parentId,
-        parentType: initialData?.parentType,
-      });
+      const isoDate = dateDue || new Date().toISOString();
+      let created: Task;
+
+      if (type === 'Call') {
+        created = await apiClient.post<Task>('/Call', {
+          name: name.trim(),
+          type: 'Call',
+          status: 'Planned',
+          direction: 'Outbound',
+          dateStart: isoDate,
+          dateDue: isoDate,
+          description: description.trim() || undefined,
+          parentId: initialData?.parentId,
+          parentType: initialData?.parentType,
+          accountName: initialData?.accountName,
+          contactName: initialData?.contactName,
+        });
+      } else if (type === 'Meeting') {
+        created = await apiClient.post<Task>('/Meeting', {
+          name: name.trim(),
+          type: 'Meeting',
+          status: 'Planned',
+          dateStart: isoDate,
+          dateDue: isoDate,
+          description: description.trim() || undefined,
+          parentId: initialData?.parentId,
+          parentType: initialData?.parentType,
+          accountName: initialData?.accountName,
+          contactName: initialData?.contactName,
+        });
+      } else {
+        // type === 'Task'
+        created = await apiClient.post<Task>('/Task', {
+          name: name.trim(),
+          type: 'Task',
+          priority,
+          status: 'Not Started',
+          dateEnd: isoDate,
+          dateDue: isoDate,
+          description: description.trim() || undefined,
+          parentId: initialData?.parentId,
+          parentType: initialData?.parentType,
+          accountName: initialData?.accountName,
+          contactName: initialData?.contactName,
+        });
+      }
 
       onSuccess?.(created);
       onClose();
@@ -75,7 +142,16 @@ export const ActivityCreateModal: React.FC<ActivityCreateModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-150"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="activity-modal-title"
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          e.stopPropagation();
+          onClose();
+        }
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm"
       dir="rtl"
     >
       <div className="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden p-6 space-y-5">
@@ -85,7 +161,7 @@ export const ActivityCreateModal: React.FC<ActivityCreateModalProps> = ({
             <div className="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
               <CheckSquare className="w-4 h-4" />
             </div>
-            <h3 className="text-sm font-bold text-slate-100">ثبت فعالیت جدید</h3>
+            <h3 id="activity-modal-title" className="text-sm font-bold text-slate-100">ثبت فعالیت جدید</h3>
           </div>
           <button
             type="button"

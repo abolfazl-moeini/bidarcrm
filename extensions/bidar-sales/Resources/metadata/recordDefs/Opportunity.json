@@ -1,0 +1,6 @@
+{
+  "readLoaderClassNameList": [
+    "__APPEND__",
+    "Espo\\Modules\\BidarSales\\FieldProcessing\\Opportunity\\RottenLoader"
+  ]
+}

@@ -5,6 +5,7 @@
  * - Dual view: Filterable List View and Monthly Jalali Calendar Grid
  * - Optimistic quick completion with next follow-up workflow prompt
  * - Creation modal for tasks/calls/meetings
+ * - Aggregation of Tasks, Calls, and Meetings
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -29,14 +30,31 @@ import { ActivityCreateModal } from '../features/activities/components/ActivityC
 
 export type ActivityFilterTab = 'all' | 'today' | 'overdue' | 'tomorrow';
 
+export type UnifiedActivity = Task & {
+  type?: 'Task' | 'Call' | 'Meeting';
+  _endpoint?: 'Task' | 'Call' | 'Meeting';
+  dateStart?: string;
+};
+
+function getTehranDateString(d: Date = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Tehran',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(d);
+}
+
 export const ActivitiesPage: React.FC = () => {
   const queryClient = useQueryClient();
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
   const [filterTab, setFilterTab] = useState<ActivityFilterTab>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalInitialData, setModalInitialData] = useState<Partial<Task> | undefined>(undefined);
-  const [localActivities, setLocalActivities] = useState<(Task & { type?: 'Task' | 'Call' | 'Meeting' })[]>([]);
+  const [modalInitialData, setModalInitialData] = useState<Partial<UnifiedActivity> | undefined>(
+    undefined
+  );
+  const [localActivities, setLocalActivities] = useState<UnifiedActivity[]>([]);
 
   const {
     data,
@@ -44,20 +62,69 @@ export const ActivitiesPage: React.FC = () => {
     isError,
     error,
     refetch,
-  } = useQuery<EspoListResponse<Task>>({
+  } = useQuery<UnifiedActivity[]>({
     queryKey: queryKeys.activities.lists(),
-    queryFn: () => apiClient.get<EspoListResponse<Task>>('/Task?maxSize=200'),
+    queryFn: async () => {
+      const tasksRes = await apiClient.get<EspoListResponse<Task>>('/Task?maxSize=200');
+      const taskList: UnifiedActivity[] = (tasksRes?.list || []).map((t) => ({
+        ...t,
+        _endpoint: 'Task',
+        dateDue: t.dateEnd || t.dateDue,
+      }));
+
+      try {
+        const [callsRes, meetingsRes] = await Promise.all([
+          apiClient.get<EspoListResponse<any>>('/Call?maxSize=100').catch(() => null),
+          apiClient.get<EspoListResponse<any>>('/Meeting?maxSize=100').catch(() => null),
+        ]);
+
+        const calls: UnifiedActivity[] = (callsRes?.list || [])
+          .filter((c: any) => !taskList.some((t) => t.id === c.id))
+          .map((c: any) => ({
+            ...c,
+            type: 'Call' as const,
+            _endpoint: 'Call' as const,
+            dateDue: c.dateStart || c.dateDue || c.dateEnd,
+            status:
+              c.status === 'Held'
+                ? 'Completed'
+                : c.status === 'Not Held'
+                ? 'Canceled'
+                : 'Not Started',
+          }));
+
+        const meetings: UnifiedActivity[] = (meetingsRes?.list || [])
+          .filter((m: any) => !taskList.some((t) => t.id === m.id))
+          .map((m: any) => ({
+            ...m,
+            type: 'Meeting' as const,
+            _endpoint: 'Meeting' as const,
+            dateDue: m.dateStart || m.dateDue || m.dateEnd,
+            status:
+              m.status === 'Held'
+                ? 'Completed'
+                : m.status === 'Not Held'
+                ? 'Canceled'
+                : 'Not Started',
+          }));
+
+        return [...taskList, ...calls, ...meetings];
+      } catch {
+        return taskList;
+      }
+    },
   });
 
   useEffect(() => {
-    if (data?.list) {
-      setLocalActivities(data.list);
+    if (data) {
+      setLocalActivities(data);
     }
   }, [data]);
 
   // Handle Complete Toggle (Optimistic Update)
   const handleToggleComplete = async (activityId: string, completed: boolean) => {
     const previousSnapshot = [...localActivities];
+    const targetActivity = localActivities.find((a) => a.id === activityId);
     const newStatus = completed ? 'Completed' : 'Not Started';
 
     // Optimistically update
@@ -66,7 +133,23 @@ export const ActivitiesPage: React.FC = () => {
     );
 
     try {
-      await apiClient.patch(`/Task/${activityId}`, { status: newStatus });
+      const endpoint =
+        targetActivity?._endpoint ||
+        (targetActivity?.type === 'Call' && !activityId.startsWith('task-')
+          ? 'Call'
+          : targetActivity?.type === 'Meeting' && !activityId.startsWith('task-')
+          ? 'Meeting'
+          : 'Task');
+
+      if (endpoint === 'Call' || endpoint === 'Meeting') {
+        const statusVal = completed ? 'Held' : 'Planned';
+        await apiClient.patch(`/${endpoint}/${activityId}`, { status: statusVal });
+      } else {
+        await apiClient.patch(`/Task/${activityId}`, { status: newStatus });
+      }
+
+      queryClient.invalidateQueries({ queryKey: queryKeys.activities.lists() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
     } catch {
       // Rollback on failure
       setLocalActivities(previousSnapshot);
@@ -87,23 +170,32 @@ export const ActivitiesPage: React.FC = () => {
 
   const handleModalSuccess = () => {
     queryClient.invalidateQueries({ queryKey: queryKeys.activities.lists() });
+    queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
     refetch();
   };
 
   // Filter activities
   const filteredActivities = useMemo(() => {
-    const today = new Date().toISOString().slice(0, 10);
+    const now = new Date();
+    const today = getTehranDateString(now);
+    const tomorrow = getTehranDateString(new Date(now.getTime() + 86400000));
 
     return localActivities.filter((act) => {
+      const actDate = act.dateEnd || act.dateStart || act.dateDue;
+      const actDateStr = actDate
+        ? actDate.includes('T')
+          ? getTehranDateString(new Date(actDate))
+          : actDate.slice(0, 10)
+        : '';
+
       // 1. Filter by Tab
       if (filterTab === 'today') {
-        if (!act.dateDue || !act.dateDue.startsWith(today)) return false;
+        if (!actDateStr || actDateStr !== today) return false;
       } else if (filterTab === 'overdue') {
-        if (act.status === 'Completed') return false;
-        if (!act.dateDue || act.dateDue.slice(0, 10) >= today) return false;
+        if (act.status === 'Completed' || (act.status as string) === 'Held') return false;
+        if (!actDateStr || actDateStr >= today) return false;
       } else if (filterTab === 'tomorrow') {
-        const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
-        if (!act.dateDue || !act.dateDue.startsWith(tomorrow)) return false;
+        if (!actDateStr || actDateStr !== tomorrow) return false;
       }
 
       // 2. Filter by Search Query
@@ -198,7 +290,9 @@ export const ActivitiesPage: React.FC = () => {
         <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
-            <span>{error instanceof Error ? error.message : 'خطا در بارگذاری فعالیت‌ها'}</span>
+            <span>
+              {error instanceof Error ? error.message : 'خطا در بارگذاری فعالیت‌ها'}
+            </span>
           </div>
           <button
             type="button"
@@ -210,11 +304,12 @@ export const ActivitiesPage: React.FC = () => {
         </div>
       )}
 
-      {/* View Mode: List vs Calendar */}
+      {/* View Content */}
       {viewMode === 'list' ? (
         <div className="space-y-4 flex-1">
-          {/* Sub-Filters and Search */}
+          {/* Controls: Tabs & Search */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            {/* Filter Tabs */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
               <button
                 type="button"
@@ -280,18 +375,18 @@ export const ActivitiesPage: React.FC = () => {
                   onClick={() => setSearchQuery('')}
                   className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 p-0.5"
                 >
-                  <X className="w-3 h-3" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
           </div>
 
-          {/* Activities List */}
+          {/* Activity Rows */}
           <div className="space-y-2.5">
-            {filteredActivities.map((activity) => (
+            {filteredActivities.map((act) => (
               <ActivityItemRow
-                key={activity.id}
-                activity={activity}
+                key={act.id}
+                activity={act}
                 onToggleComplete={handleToggleComplete}
                 onScheduleNext={handleScheduleNext}
               />
@@ -310,7 +405,7 @@ export const ActivitiesPage: React.FC = () => {
         </div>
       )}
 
-      {/* Activity Create Modal */}
+      {/* Creation / Follow-up Modal */}
       <ActivityCreateModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

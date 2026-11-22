@@ -19,7 +19,9 @@ export const name = '01-health-and-login';
 export async function run({ baseUrl, credentials = {}, state = {} }) {
   const start = performance.now();
   try {
-    const authHeader = 'Basic ' + Buffer.from(`${credentials.username || 'admin'}:${credentials.password || 'admin'}`).toString('base64');
+    const username = credentials.username || 'admin';
+    const password = credentials.password || 'admin';
+    const authHeader = 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64');
     
     // Call EspoCRM user authentication endpoint
     const response = await fetch(`${baseUrl}/api/v1/App/user`, {
@@ -27,7 +29,7 @@ export async function run({ baseUrl, credentials = {}, state = {} }) {
       headers: {
         'Accept': 'application/json',
         'Authorization': authHeader,
-        'Espo-Authorization': Buffer.from(`${credentials.username || 'admin'}:${credentials.password || 'admin'}`).toString('base64'),
+        'Espo-Authorization': Buffer.from(`${username}:${password}`).toString('base64'),
       },
     });
 
@@ -39,6 +41,7 @@ export async function run({ baseUrl, credentials = {}, state = {} }) {
     const token = data.token || data.user?.id || 'simulated-token';
 
     // Store in shared state for subsequent scenarios (Chain of Responsibility)
+    state.username = username;
     state.token = token;
     state.user = data.user;
 

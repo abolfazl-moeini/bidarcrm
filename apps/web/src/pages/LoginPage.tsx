@@ -31,7 +31,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
 
       {/* Footer Branding */}
       <footer className="relative z-10 mt-8 text-center text-xs text-slate-500 font-normal">
-        <p>© ۱۴۰۳ تمامی حقوق محفوظ است.</p>
+        <p>تمامی حقوق محفوظ است © ۱۴۰۳ بیدار (BidarCRM)</p>
       </footer>
     </div>
   );

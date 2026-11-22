@@ -55,6 +55,16 @@ describe('E2E Offline Simulation & Chain of Responsibility', () => {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(
           JSON.stringify({
+            openCount: 5,
+            openAmount: 180000000,
+            wonCount: 3,
+            wonAmount: 120000000,
+            rottenCount: 1,
+            overdueActivitiesCount: 2,
+            funnelStages: [
+              { stageId: 'stage-1', stageName: 'سرنخ جدید', count: 2, amount: 50000000, color: '#6366f1' },
+              { stageId: 'stage-2', stageName: 'مذاکره اولیه', count: 3, amount: 130000000, color: '#3b82f6' },
+            ],
             openDealsCount: 5,
             totalOpenAmount: 180000000,
             wonDealsCount: 3,
@@ -277,6 +287,7 @@ describe('E2E Offline Simulation & Chain of Responsibility', () => {
     }
 
     // Verify key state propagated across chain of responsibility
+    assert.ok(state.username, 'state.username should be set by 01');
     assert.ok(state.token, 'state.token should be set by 01');
     assert.ok(state.kpis, 'state.kpis should be set by 02');
     assert.ok(state.dealId, 'state.dealId should be set by 03');

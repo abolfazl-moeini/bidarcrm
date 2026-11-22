@@ -2,7 +2,7 @@
  * BidarCRM - DashboardPage Component
  *
  * Primary sales operations hub displaying key performance indicators,
- * real-time sales funnel chart, and prioritized daily action items.
+ * real-time sales funnel chart, and real prioritized pending action items.
  */
 
 import React from 'react';
@@ -10,16 +10,46 @@ import { useQuery } from '@tanstack/react-query';
 import { Briefcase, BadgeCheck, Flame, Clock, AlertCircle, RefreshCw } from 'lucide-react';
 import { apiClient } from '../lib/api-client';
 import { queryKeys } from '../lib/query-keys';
-import { DashboardSummary } from '../types/espocrm';
+import { DashboardSummary, Task, EspoListResponse } from '../types/espocrm';
 import { formatToman, toPersianDigits } from '../lib/currency';
 import { KpiCard } from '../features/dashboard/components/KpiCard';
 import { SalesFunnelChart } from '../features/dashboard/components/SalesFunnelChart';
-import { PendingActivitiesWidget } from '../features/dashboard/components/PendingActivitiesWidget';
+import {
+  PendingActivitiesWidget,
+  PendingActivityItem,
+} from '../features/dashboard/components/PendingActivitiesWidget';
 
-export const DashboardPage: React.FC = () => {
-  const { data, isLoading, isError, error, refetch, isFetching } = useQuery<DashboardSummary>({
+export interface DashboardPageProps {
+  onNavigate?: (path: string) => void;
+}
+
+export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
+  // 1. Fetch KPI Summary
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+  } = useQuery<DashboardSummary>({
     queryKey: queryKeys.dashboard.summary(),
     queryFn: () => apiClient.get<DashboardSummary>('/BidarDashboard/summary'),
+  });
+
+  // 2. Fetch Real Pending Activities
+  const { data: activitiesData } = useQuery<EspoListResponse<Task>>({
+    queryKey: queryKeys.activities.list({ status: 'open' }),
+    queryFn: async () => {
+      try {
+        return await apiClient.get<EspoListResponse<Task>>(
+          '/Task?where[0][type]=in&where[0][attribute]=status&where[0][value][]=Not Started&where[0][value][]=Started&maxSize=10&orderBy=dateEnd'
+        );
+      } catch {
+        return { list: [], total: 0 };
+      }
+    },
+    staleTime: 1000 * 60 * 2,
   });
 
   if (isLoading) {
@@ -78,6 +108,15 @@ export const DashboardPage: React.FC = () => {
     overdueActivitiesCount: 0,
     funnelStages: [],
   };
+
+  const pendingActivities: PendingActivityItem[] = (activitiesData?.list || []).map((t) => ({
+    id: t.id,
+    name: t.name,
+    type: (t as any).type || ('Task' as const),
+    dateDue: t.dateEnd || t.dateDue,
+    status: t.status,
+    priority: t.priority,
+  }));
 
   return (
     <div className="space-y-8" dir="rtl">
@@ -139,7 +178,7 @@ export const DashboardPage: React.FC = () => {
 
         {/* Daily Priority Activities (1 Col) */}
         <div>
-          <PendingActivitiesWidget />
+          <PendingActivitiesWidget activities={pendingActivities} onNavigate={onNavigate} />
         </div>
       </div>
     </div>

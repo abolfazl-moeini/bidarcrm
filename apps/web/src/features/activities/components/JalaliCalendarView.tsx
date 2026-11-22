@@ -16,6 +16,7 @@ import {
   PERSIAN_WEEKDAYS,
   getJalaliParts,
   jalaliToGregorian,
+  getJalaliMonthLength,
 } from '../../../lib/jalali';
 import { toPersianDigits } from '../../../lib/currency';
 
@@ -55,12 +56,10 @@ export const JalaliCalendarView: React.FC<JalaliCalendarViewProps> = ({
     }
   };
 
-  const daysInCurrentMonth = useMemo(() => {
-    if (currentMonth <= 6) return 31;
-    if (currentMonth <= 11) return 30;
-    // Esfand has 29 days (ignoring leap year approximation for display)
-    return 29;
-  }, [currentMonth]);
+  const daysInCurrentMonth = useMemo(
+    () => getJalaliMonthLength(currentYear, currentMonth),
+    [currentYear, currentMonth]
+  );
 
   // First day offset (0: شنبه, 1: یکشنبه, ..., 6: جمعه)
   const firstDayOffset = useMemo(() => {

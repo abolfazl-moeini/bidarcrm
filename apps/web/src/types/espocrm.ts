@@ -127,6 +127,7 @@ export interface Call {
   status: ActivityStatus;
   dateStart?: string;
   dateEnd?: string;
+  dateDue?: string;
   duration?: number;
   direction?: 'Inbound' | 'Outbound';
   parentType?: string;
@@ -148,6 +149,7 @@ export interface Meeting {
   status: ActivityStatus;
   dateStart?: string;
   dateEnd?: string;
+  dateDue?: string;
   parentType?: string;
   parentId?: string;
   parentName?: string;
@@ -169,6 +171,7 @@ export interface Task {
   name: string;
   status: TaskStatus;
   priority?: TaskPriority;
+  dateEnd?: string;
   dateDue?: string;
   dateStartDate?: string;
   parentType?: string;

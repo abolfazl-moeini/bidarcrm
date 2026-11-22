@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace Espo\Modules\BidarIran\Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
-use Espo\Modules\BidarIran\Services\VoipLookupService;
+use Espo\Core\Api\Action;
+use Espo\Core\Api\Request;
+use Espo\Core\Api\Response;
+use Espo\Core\Exceptions\Forbidden;
 use Espo\Modules\BidarIran\Api\PostVoipWebhook;
+use Espo\Modules\BidarIran\Services\VoipLookupService;
+use PHPUnit\Framework\TestCase;
 
 class VoipWebhookServiceTest extends TestCase
 {
@@ -30,11 +34,14 @@ class VoipWebhookServiceTest extends TestCase
             if (($route['route'] ?? '') === '/BidarVoip/webhook' && ($route['method'] ?? '') === 'post') {
                 $found = true;
                 $this->assertTrue($route['noAuth'] ?? false);
-                $this->assertSame('Espo\\Modules\\BidarIran\\Api\\PostVoipWebhook', $route['action'] ?? null);
+                $this->assertSame(
+                    'Espo\\Modules\\BidarIran\\Api\\PostVoipWebhook',
+                    $route['actionClassName'] ?? null
+                );
             }
         }
 
-        $this->assertTrue($found, 'POST /BidarVoip/webhook route must be registered with noAuth: true');
+        $this->assertTrue($found, 'POST /BidarVoip/webhook route must be registered with actionClassName and noAuth: true');
     }
 
     public function testAuthFailsOnMissingOrInvalidSecret(): void
@@ -44,9 +51,57 @@ class VoipWebhookServiceTest extends TestCase
         $this->assertFalse($this->service->authenticate('wrong-secret'));
     }
 
+    public function testAuthFailsClosedWhenConfiguredSecretIsEmpty(): void
+    {
+        $unconfiguredService = new VoipLookupService('');
+        $this->assertFalse($unconfiguredService->authenticate(''));
+        $this->assertFalse($unconfiguredService->authenticate(null));
+        $this->assertFalse($unconfiguredService->authenticate('some-token'));
+    }
+
     public function testAuthSucceedsOnExactSecretMatchingUsingHashEquals(): void
     {
         $this->assertTrue($this->service->authenticate('correct-secret-12345'));
+    }
+
+    public function testPostVoipWebhookImplementsEspoActionInterface(): void
+    {
+        $action = new PostVoipWebhook($this->service);
+        $this->assertInstanceOf(Action::class, $action);
+    }
+
+    public function testPostVoipWebhookThrowsForbiddenOnInvalidSecret(): void
+    {
+        $action = new PostVoipWebhook($this->service);
+
+        $request = $this->createMock(Request::class);
+        $request->method('getHeader')->willReturnCallback(function (string $name) {
+            return match ($name) {
+                'X-Bidar-Voip-Secret' => 'invalid-secret',
+                default => null,
+            };
+        });
+
+        $this->expectException(Forbidden::class);
+        $action->process($request);
+    }
+
+    public function testPostVoipWebhookProcessesSuccessfullyWithValidSecret(): void
+    {
+        $action = new PostVoipWebhook($this->service);
+
+        $request = $this->createMock(Request::class);
+        $request->method('getHeader')->willReturnCallback(function (string $name) {
+            return match ($name) {
+                'X-Bidar-Voip-Secret' => 'correct-secret-12345',
+                default => null,
+            };
+        });
+        $request->method('getParsedBody')->willReturn((object) ['phone' => '09123456789']);
+
+        $response = $action->process($request);
+        $this->assertInstanceOf(Response::class, $response);
+        $this->assertSame(200, $response->getStatusCode());
     }
 
     public function testPhoneLookupMatchesCustomerAndOpenDeals(): void

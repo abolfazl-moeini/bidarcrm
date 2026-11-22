@@ -12,6 +12,8 @@ describe('App Root RTL & Accessibility', () => {
 
   it('renders BidarCRM brand identity', () => {
     render(<App />);
-    expect(screen.getByText(/بیدار|BidarCRM/i)).toBeInTheDocument();
+    const brandElements = screen.getAllByText(/بیدار|BidarCRM/i);
+    expect(brandElements.length).toBeGreaterThanOrEqual(1);
+    expect(brandElements[0]).toBeInTheDocument();
   });
 });

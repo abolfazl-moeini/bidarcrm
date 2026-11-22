@@ -25,7 +25,8 @@ describe('AppShell Component & Layout Structure', () => {
 
     expect(screen.getByText(/داشبورد/i)).toBeInTheDocument();
     expect(screen.getByText(/کاریز معاملات/i)).toBeInTheDocument();
-    expect(screen.getByText(/مخاطبان و شرکت‌ها/i)).toBeInTheDocument();
+    expect(screen.getByText(/مخاطبان/i)).toBeInTheDocument();
+    expect(screen.getByText(/شرکت‌ها/i)).toBeInTheDocument();
     expect(screen.getByText(/فعالیت‌ها و تقویم/i)).toBeInTheDocument();
     expect(screen.getByText('محتوای تست')).toBeInTheDocument();
   });

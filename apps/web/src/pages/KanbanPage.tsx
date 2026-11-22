@@ -130,7 +130,7 @@ export const KanbanPage: React.FC<KanbanPageProps> = ({ onNewDeal, onSelectDeal 
 
       {/* Error Alert with Dismiss */}
       {error && (
-        <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center justify-between gap-3 animate-in fade-in duration-150">
+        <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center justify-between gap-3 transition">
           <div className="flex items-center gap-2.5">
             <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
             <span>{error}</span>

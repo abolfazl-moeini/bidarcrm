@@ -80,7 +80,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, className = '' 
 
       {/* Server Error Alert */}
       {serverError && (
-        <div className="mb-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-sm flex items-start gap-3 animate-in fade-in duration-200">
+        <div className="mb-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-sm flex items-start gap-3 transition">
           <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-rose-400" />
           <span className="leading-relaxed">{serverError}</span>
         </div>

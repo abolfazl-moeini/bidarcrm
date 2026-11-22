@@ -6,7 +6,14 @@
  */
 
 import React from 'react';
-import { LayoutDashboard, Columns3, Users, CalendarCheck, Shield } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Columns3,
+  Users,
+  Building2,
+  CalendarCheck,
+  Shield,
+} from 'lucide-react';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 
 export interface NavItem {
@@ -32,9 +39,15 @@ export const NAV_ITEMS: NavItem[] = [
   },
   {
     id: 'contacts',
-    label: 'مخاطبان و شرکت‌ها',
+    label: 'مخاطبان',
     href: '/contacts',
     icon: Users,
+  },
+  {
+    id: 'accounts',
+    label: 'شرکت‌ها',
+    href: '/accounts',
+    icon: Building2,
   },
   {
     id: 'activities',
@@ -79,7 +92,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <nav className="p-4 space-y-1.5" aria-label="ناوبری اصلی">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
-            const isActive = currentPath === item.href;
+            const isActive =
+              currentPath === item.href ||
+              (item.href === '/kanban' && currentPath === '/deals') ||
+              (item.href === '/kanban' && currentPath.startsWith('/deals/')) ||
+              (item.href === '/activities' && currentPath === '/calendar');
 
             return (
               <a
@@ -97,7 +114,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
                 }`}
               >
-                <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-indigo-400' : 'text-slate-400'}`} />
+                <Icon
+                  className={`w-5 h-5 flex-shrink-0 ${
+                    isActive ? 'text-indigo-400' : 'text-slate-400'
+                  }`}
+                />
                 <span>{item.label}</span>
               </a>
             );

@@ -76,7 +76,7 @@
     {
       "id": "dashboard",
       "name": "داشبورد فروش (Dashboard)",
-      "targetUrl": "http://localhost:5173/app/",
+      "targetUrl": "http://localhost:5173/app/dashboard",
       "ref": "tests/ui-level/refs/dashboard.html",
       "adapter": "html",
       "selector": "#root",
@@ -168,6 +168,36 @@
       "name": "مخاطبان و مشتریان (Contacts)",
       "targetUrl": "http://localhost:5173/app/contacts",
       "ref": "tests/ui-level/refs/contacts.html",
+      "adapter": "html",
+      "selector": "#root",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      },
+      "viewports": [
+        {
+          "name": "desktop",
+          "width": 1280,
+          "height": 800,
+          "deviceScaleFactor": 2
+        },
+        {
+          "name": "tablet",
+          "width": 1024,
+          "height": 768,
+          "deviceScaleFactor": 2
+        }
+      ],
+      "colorThresholdDeltaE": 2.0,
+      "geometryTolerancePx": 0.5,
+      "maskSelectors": [".dynamic-time"]
+    },
+    {
+      "id": "accounts",
+      "name": "شرکت‌ها و حساب‌ها (Accounts)",
+      "targetUrl": "http://localhost:5173/app/accounts",
+      "ref": "tests/ui-level/refs/accounts.html",
       "adapter": "html",
       "selector": "#root",
       "viewport": {

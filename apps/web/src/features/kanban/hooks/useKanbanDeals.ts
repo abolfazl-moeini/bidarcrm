@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../../lib/api-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { Opportunity, Pipeline, PipelineStage, EspoListResponse } from '../../../types/espocrm';
@@ -32,11 +32,12 @@ export interface UseKanbanDealsReturn {
 }
 
 export function useKanbanDeals(initialPipelineId = ''): UseKanbanDealsReturn {
+  const queryClient = useQueryClient();
   const [selectedPipelineId, setSelectedPipelineId] = useState<string>(initialPipelineId);
   const [localDeals, setLocalDeals] = useState<Opportunity[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // 1. Fetch Pipelines & Stages
+  // 1. Fetch Pipelines
   const pipelineQuery = useQuery<EspoListResponse<Pipeline>>({
     queryKey: queryKeys.pipelines.all,
     queryFn: () => apiClient.get<EspoListResponse<Pipeline>>('/Pipeline'),
@@ -45,29 +46,59 @@ export function useKanbanDeals(initialPipelineId = ''): UseKanbanDealsReturn {
 
   const pipelines = pipelineQuery.data?.list || [];
   const activePipelineId = selectedPipelineId || pipelines[0]?.id || 'default';
+  const activePipeline = pipelines.find((p) => p.id === activePipelineId) || pipelines[0];
+
+  const hasInlineStages = Boolean(activePipeline?.stages && activePipeline.stages.length > 0);
+
+  // Fallback query for stages if pipeline response does not contain inline stages
+  const stagesQuery = useQuery<EspoListResponse<PipelineStage>>({
+    queryKey: ['pipelineStages', activePipelineId],
+    queryFn: async () => {
+      try {
+        const endpoint = activePipelineId && activePipelineId !== 'default'
+          ? `/PipelineStage?maxSize=100&orderBy=order&where[0][type]=equals&where[0][attribute]=pipelineId&where[0][value]=${encodeURIComponent(activePipelineId)}`
+          : '/PipelineStage?maxSize=100&orderBy=order';
+        return await apiClient.get<EspoListResponse<PipelineStage>>(endpoint);
+      } catch {
+        return { list: [], total: 0 };
+      }
+    },
+    enabled: !hasInlineStages && pipelines.length > 0,
+    staleTime: 1000 * 60 * 5,
+  });
 
   const stages = useMemo<PipelineStage[]>(() => {
-    const activePipeline = pipelines.find((p) => p.id === activePipelineId) || pipelines[0];
     if (activePipeline?.stages && activePipeline.stages.length > 0) {
       return activePipeline.stages;
     }
+    if (stagesQuery.data?.list && stagesQuery.data.list.length > 0) {
+      return stagesQuery.data.list;
+    }
     return DEFAULT_PIPELINE_STAGES;
-  }, [pipelines, activePipelineId]);
+  }, [activePipeline, stagesQuery.data]);
 
-  // 2. Fetch Opportunities
+  // 2. Fetch Opportunities (filtered by pipelineId if active)
   const dealsQuery = useQuery<EspoListResponse<Opportunity>>({
     queryKey: queryKeys.deals.kanban(activePipelineId),
-    queryFn: () => apiClient.get<EspoListResponse<Opportunity>>('/Opportunity?maxSize=200'),
+    queryFn: () => {
+      const endpoint = activePipelineId && activePipelineId !== 'default'
+        ? `/Opportunity?maxSize=200&where[0][type]=equals&where[0][attribute]=pipelineId&where[0][value]=${encodeURIComponent(activePipelineId)}`
+        : '/Opportunity?maxSize=200';
+      return apiClient.get<EspoListResponse<Opportunity>>(endpoint);
+    },
   });
 
-  // Sync server deals to local state
+  // Sync server deals to local state, filtering by pipelineId if set
   useEffect(() => {
     if (dealsQuery.data?.list) {
-      setLocalDeals(dealsQuery.data.list);
+      const list = activePipelineId && activePipelineId !== 'default'
+        ? dealsQuery.data.list.filter((d) => !d.pipelineId || d.pipelineId === activePipelineId)
+        : dealsQuery.data.list;
+      setLocalDeals(list);
     }
-  }, [dealsQuery.data]);
+  }, [dealsQuery.data, activePipelineId]);
 
-  // 3. Optimistic Move Action with Rollback
+  // 3. Optimistic Move Action with Rollback & Invalidation
   const moveDeal = async (
     dealId: string,
     targetStageId: string,
@@ -86,10 +117,17 @@ export function useKanbanDeals(initialPipelineId = ''): UseKanbanDealsReturn {
     );
 
     try {
-      await apiClient.patch(`/Opportunity/${dealId}`, {
-        pipelineStageId: targetStageId,
-        stage: targetStageName,
-      });
+      const payload: Record<string, unknown> = {};
+      if (targetStageId) {
+        payload.pipelineStageId = targetStageId;
+      }
+      if (targetStageName) {
+        payload.stage = targetStageName;
+      }
+
+      await apiClient.patch(`/Opportunity/${dealId}`, payload);
+      queryClient.invalidateQueries({ queryKey: queryKeys.deals.kanban(activePipelineId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
     } catch (err: unknown) {
       // Rollback on failure
       setLocalDeals(previousSnapshot);

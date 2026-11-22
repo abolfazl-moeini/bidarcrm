@@ -10,7 +10,13 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
-ZIP_FILE="${1:-${ROOT_DIR}/dist/bidar-crm-v1.0.0.zip}"
+PACKAGE_JSON="${ROOT_DIR}/package.json"
+APP_VERSION="1.0.1"
+if [[ -f "${PACKAGE_JSON}" ]]; then
+    APP_VERSION="$(grep -o '"version": "[^"]*"' "${PACKAGE_JSON}" | cut -d'"' -f4 || echo "1.0.1")"
+fi
+
+ZIP_FILE="${1:-${ROOT_DIR}/dist/bidar-crm-v${APP_VERSION}.zip}"
 
 echo "================================================================================"
 echo "==> BidarCRM Shared-Hosting Clean Install Smoke Test"
@@ -121,6 +127,37 @@ if [[ -d "${MODULES_DIR}" ]]; then
             log_fail "Syntax errors detected in BidarCRM PHP files: ${LINT_OUTPUT}"
         fi
     fi
+
+    # Verify PSR-4 module paths (no src/ directory)
+    if [[ -f "${MODULES_DIR}/BidarSales/Api/GetDashboardSummary.php" ]]; then
+        log_pass "BidarSales PSR-4 root path verified (Api/GetDashboardSummary.php exists without src/)"
+    else
+        log_fail "Missing ${MODULES_DIR}/BidarSales/Api/GetDashboardSummary.php"
+    fi
+
+    if [[ -f "${MODULES_DIR}/BidarIran/Api/PostVoipWebhook.php" ]]; then
+        log_pass "BidarIran PSR-4 root path verified (Api/PostVoipWebhook.php exists without src/)"
+    else
+        log_fail "Missing ${MODULES_DIR}/BidarIran/Api/PostVoipWebhook.php"
+    fi
+
+    MODULE_SRC_FOUND="$(find "${MODULES_DIR}" -type d -name "src" 2>/dev/null | wc -l | tr -d ' ')"
+    if [[ "${MODULE_SRC_FOUND}" -eq 0 ]]; then
+        log_pass "Zero legacy src/ directories found inside custom/Espo/Modules"
+    else
+        log_fail "Found ${MODULE_SRC_FOUND} forbidden legacy src/ directory(ies) in custom/Espo/Modules"
+    fi
+
+    # Verify routes.json uses actionClassName (EspoCRM 10.1.4 standard)
+    for rfile in "${MODULES_DIR}/BidarSales/Resources/routes.json" "${MODULES_DIR}/BidarIran/Resources/routes.json"; do
+        if [[ -f "${rfile}" ]]; then
+            if grep -q '"actionClassName"' "${rfile}" && ! grep -q '"action":' "${rfile}"; then
+                log_pass "routes.json ($(basename "$(dirname "$(dirname "${rfile}")")")) uses 'actionClassName'"
+            else
+                log_fail "routes.json (${rfile}) must use 'actionClassName' instead of legacy 'action'"
+            fi
+        fi
+    done
 else
     log_fail "Modules directory ${MODULES_DIR} does not exist"
 fi
@@ -172,6 +209,26 @@ else
     log_fail "${ASSET_READ_FAIL} bundled asset(s) are empty or unreadable"
 fi
 
+# Verify compiled Tailwind CSS (no raw directives, substantial size > 5KB)
+UNCOMPILED_TAILWIND="$(grep -n "@tailwind" "${SMOKE_DIR}"/public/app/assets/*.css 2>/dev/null || true)"
+if [[ -z "${UNCOMPILED_TAILWIND}" ]]; then
+    log_pass "Compiled CSS contains zero raw @tailwind directives"
+else
+    log_fail "Compiled CSS contains uncompiled @tailwind directives: ${UNCOMPILED_TAILWIND}"
+fi
+
+FIRST_CSS_FILE="$(find "${SMOKE_DIR}/public/app" -type f -name "*.css" | head -n 1 || true)"
+if [[ -n "${FIRST_CSS_FILE}" && -f "${FIRST_CSS_FILE}" ]]; then
+    CSS_SIZE="$(wc -c < "${FIRST_CSS_FILE}" | tr -d ' ')"
+    if [[ ${CSS_SIZE} -gt 5000 ]]; then
+        log_pass "Compiled CSS stylesheet size is substantial (${CSS_SIZE} bytes > 5KB)"
+    else
+        log_fail "Compiled CSS stylesheet size is too small (${CSS_SIZE} bytes <= 5KB; suspected uncompiled styles)"
+    fi
+else
+    log_fail "Could not find any CSS stylesheet to check size"
+fi
+
 # ------------------------------------------------------------------------------
 # 6. Verify Same-Origin Routing Rules in .htaccess and public/.htaccess
 # ------------------------------------------------------------------------------
@@ -184,8 +241,11 @@ if [[ -f "${ROOT_HTACCESS}" && -r "${ROOT_HTACCESS}" ]]; then
     ROOT_RULES=(
         "RewriteEngine On"
         "E=HTTP_AUTHORIZATION:%{HTTP:Authorization}"
+        "E=HTTP_X_BIDAR_VOIP_SECRET:%{HTTP:X-Bidar-Voip-Secret}"
+        "E=HTTP_X_VOIP_TOKEN:%{HTTP:X-Voip-Token}"
         "RewriteRule ^api/v1/(.*)$ public/api/v1/index.php"
         "RewriteRule ^admin/?(.*)$ public/index.php"
+        "RewriteRule ^client/ - [L]"
         "public/app/index.html"
         "(application|data|custom|vendor|logs"
     )
@@ -197,6 +257,54 @@ if [[ -f "${ROOT_HTACCESS}" && -r "${ROOT_HTACCESS}" ]]; then
             log_fail "Root .htaccess missing expected rule: ${rule}"
         fi
     done
+
+    # Verification Gate: Ensure client/ static assets are never rewritten to non-existent public/client/
+    if grep -q "public/client/" "${ROOT_HTACCESS}"; then
+        log_fail "Root .htaccess incorrectly contains 'public/client/' rewrite (breaks installer CSS/JS with SPA fallback 404)"
+    else
+        log_pass "Root .htaccess does not contain 'public/client/' rewrite (direct pass-through intact)"
+    fi
+
+    # Verification Gate: Simulated requests for client/ assets find physical files
+    # EspoCRM 10.1.4 installer template (/install/index.php) references:
+    #   <link href="../client/css/espo/espo.css" rel="stylesheet">
+    #   <script src="../client/lib/espo.js"></script>
+    #   <script src="../client/lib/espo-main.js"></script>
+    ESPO_CSS="${SMOKE_DIR}/client/css/espo/espo.css"
+    if [[ -f "${ESPO_CSS}" && -r "${ESPO_CSS}" && -s "${ESPO_CSS}" ]]; then
+        ESPO_CSS_SIZE="$(wc -c < "${ESPO_CSS}" | tr -d ' ')"
+        if [[ ${ESPO_CSS_SIZE} -gt 500000 ]]; then
+            log_pass "Simulated request for client/css/espo/espo.css resolves to physical file (${ESPO_CSS_SIZE} bytes > 500KB)"
+        else
+            log_fail "client/css/espo/espo.css is unexpectedly small (${ESPO_CSS_SIZE} bytes <= 500KB)"
+        fi
+    else
+        log_fail "Simulated request for client/css/espo/espo.css failed: physical file missing or unreadable in release bundle"
+    fi
+
+    ESPO_JS="${SMOKE_DIR}/client/lib/espo.js"
+    if [[ -f "${ESPO_JS}" && -r "${ESPO_JS}" && -s "${ESPO_JS}" ]]; then
+        ESPO_JS_SIZE="$(wc -c < "${ESPO_JS}" | tr -d ' ')"
+        if [[ ${ESPO_JS_SIZE} -gt 1000000 ]]; then
+            log_pass "Simulated request for client/lib/espo.js resolves to physical file (${ESPO_JS_SIZE} bytes > 1MB)"
+        else
+            log_fail "client/lib/espo.js is unexpectedly small (${ESPO_JS_SIZE} bytes <= 1MB)"
+        fi
+    else
+        log_fail "Simulated request for client/lib/espo.js failed: physical file missing or unreadable in release bundle"
+    fi
+
+    ESPO_MAIN_JS="${SMOKE_DIR}/client/lib/espo-main.js"
+    if [[ -f "${ESPO_MAIN_JS}" && -r "${ESPO_MAIN_JS}" && -s "${ESPO_MAIN_JS}" ]]; then
+        ESPO_MAIN_JS_SIZE="$(wc -c < "${ESPO_MAIN_JS}" | tr -d ' ')"
+        if [[ ${ESPO_MAIN_JS_SIZE} -gt 1000000 ]]; then
+            log_pass "Simulated request for client/lib/espo-main.js resolves to physical file (${ESPO_MAIN_JS_SIZE} bytes > 1MB)"
+        else
+            log_fail "client/lib/espo-main.js is unexpectedly small (${ESPO_MAIN_JS_SIZE} bytes <= 1MB)"
+        fi
+    else
+        log_fail "Simulated request for client/lib/espo-main.js failed: physical file missing or unreadable in release bundle"
+    fi
 else
     log_fail "Root .htaccess missing or unreadable"
 fi
@@ -208,6 +316,8 @@ if [[ -f "${PUBLIC_HTACCESS}" && -r "${PUBLIC_HTACCESS}" ]]; then
     PUBLIC_RULES=(
         "RewriteEngine On"
         "E=HTTP_AUTHORIZATION:%{HTTP:Authorization}"
+        "E=HTTP_X_BIDAR_VOIP_SECRET:%{HTTP:X-Bidar-Voip-Secret}"
+        "E=HTTP_X_VOIP_TOKEN:%{HTTP:X-Voip-Token}"
         "^api/v1/(.*)$ api/v1/index.php"
         "^admin/?(.*)$ index.php"
         "app/index.html"

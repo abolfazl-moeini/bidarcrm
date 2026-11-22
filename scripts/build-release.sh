@@ -75,10 +75,10 @@ for mod_slug in bidar-sales bidar-iran; do
     mkdir -p "${target_mod}"
 
     if [[ -d "${src_mod}" ]]; then
-        # Copy everything except tests
-        rsync -a --exclude="tests" --exclude="*.test.*" "${src_mod}/" "${target_mod}/" 2>/dev/null || \
+        # Copy everything except tests and any legacy src directories
+        rsync -a --exclude="tests" --exclude="*.test.*" --exclude="src" "${src_mod}/" "${target_mod}/" 2>/dev/null || \
         cp -a "${src_mod}/." "${target_mod}/"
-        rm -rf "${target_mod}/tests"
+        rm -rf "${target_mod}/tests" "${target_mod}/src"
     else
         # Placeholder module if not yet created
         cat <<EOF > "${target_mod}/manifest.json"

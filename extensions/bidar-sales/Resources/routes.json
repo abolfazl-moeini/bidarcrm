@@ -2,6 +2,6 @@
   {
     "route": "/BidarDashboard/summary",
     "method": "get",
-    "action": "Espo\\Modules\\BidarSales\\Api\\GetDashboardSummary"
+    "actionClassName": "Espo\\Modules\\BidarSales\\Api\\GetDashboardSummary"
   }
 ]

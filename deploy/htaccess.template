@@ -19,6 +19,7 @@
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
     RewriteRule .* - [E=HTTP_ESPO_CGI_AUTH:%{HTTP:Espo-Authorization}]
     RewriteRule .* - [E=HTTP_X_BIDAR_VOIP_SECRET:%{HTTP:X-Bidar-Voip-Secret}]
+    RewriteRule .* - [E=HTTP_X_VOIP_TOKEN:%{HTTP:X-Voip-Token}]
 
     # --------------------------------------------------------------------------
     # 3. EspoCRM Native API v1 Routes
@@ -34,7 +35,8 @@
     RewriteCond %{QUERY_STRING} (^|&)entryPoint= [NC]
     RewriteRule ^.*$ public/index.php [QSA,L]
 
-    RewriteRule ^client/(.*)$ public/client/$1 [L]
+    RewriteRule ^client/ - [L]
+    RewriteRule ^install$ install/ [R=301,L]
     RewriteRule ^install/?(.*)$ public/install/$1 [QSA,L]
     RewriteRule ^oauth-callback\.php$ public/oauth-callback.php [L]
 

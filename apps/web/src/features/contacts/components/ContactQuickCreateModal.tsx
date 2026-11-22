@@ -1,11 +1,11 @@
 /**
  * BidarCRM - ContactQuickCreateModal Component
  *
- * Fast modal dialog for creating contacts/leads with client-side validation
- * and seamless feedback.
+ * Fast modal dialog for creating contacts/leads with client-side validation,
+ * automatic form reset on open/close/success, and omission of read-only fields.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, User, Phone, Mail, Building2, Loader2, AlertCircle } from 'lucide-react';
 import { apiClient } from '../../../lib/api-client';
 import { Contact } from '../../../types/espocrm';
@@ -29,7 +29,37 @@ export const ContactQuickCreateModal: React.FC<ContactQuickCreateModalProps> = (
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const resetForm = () => {
+    setFirstName('');
+    setLastName('');
+    setPhoneNumber('');
+    setEmailAddress('');
+    setAccountName('');
+    setError(null);
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      resetForm();
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        handleClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
+
   if (!isOpen) return null;
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,18 +73,19 @@ export const ContactQuickCreateModal: React.FC<ContactQuickCreateModalProps> = (
 
     try {
       setIsSubmitting(true);
-      const fullName = `${firstName.trim()} ${lastName.trim()}`.trim() || phoneNumber.trim();
 
-      const created = await apiClient.post<Contact>('/Contact', {
+      // Omit read-only fields (name, accountName) from POST payload
+      const payload: Record<string, string | undefined> = {
         firstName: firstName.trim() || undefined,
         lastName: lastName.trim() || undefined,
-        name: fullName,
         phoneNumber: phoneNumber.trim() || undefined,
         emailAddress: emailAddress.trim() || undefined,
-        accountName: accountName.trim() || undefined,
-      });
+      };
+
+      const created = await apiClient.post<Contact>('/Contact', payload);
 
       onSuccess?.(created);
+      resetForm();
       onClose();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'خطا در ثبت مخاطب جدید');
@@ -65,7 +96,16 @@ export const ContactQuickCreateModal: React.FC<ContactQuickCreateModalProps> = (
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-150"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="contact-modal-title"
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          e.stopPropagation();
+          handleClose();
+        }
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm"
       dir="rtl"
     >
       <div className="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden p-6 space-y-5">
@@ -75,11 +115,11 @@ export const ContactQuickCreateModal: React.FC<ContactQuickCreateModalProps> = (
             <div className="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
               <User className="w-4 h-4" />
             </div>
-            <h3 className="text-sm font-bold text-slate-100">ثبت سریع مخاطب جدید</h3>
+            <h3 id="contact-modal-title" className="text-sm font-bold text-slate-100">ثبت سریع مخاطب جدید</h3>
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="p-1.5 text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded-lg transition cursor-pointer"
             title="بستن"
           >
@@ -126,49 +166,50 @@ export const ContactQuickCreateModal: React.FC<ContactQuickCreateModalProps> = (
 
           <div>
             <label className="block text-[11px] font-medium text-slate-400 mb-1">
-              شماره تماس / موبایل
+              شماره همراه / تلفن <span className="text-rose-400">*</span>
             </label>
             <div className="relative">
               <input
                 type="tel"
+                dir="ltr"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
-                placeholder="شماره تماس یا موبایل"
-                className="w-full pl-3 pr-8 py-2 bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl text-xs text-slate-100 placeholder-slate-500 outline-none transition font-mono"
-                dir="ltr"
+                placeholder="شماره تماس یا موبایل (مثال: 09121234567)"
+                data-testid="contact-phone"
+                className="w-full pr-3 pl-9 py-2 bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl text-xs text-slate-100 placeholder-slate-500 outline-none transition font-mono"
               />
-              <Phone className="w-3.5 h-3.5 text-slate-500 absolute right-2.5 top-1/2 -translate-y-1/2" />
+              <Phone className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
 
           <div>
-            <label className="block text-[11px] font-medium text-slate-400 mb-1">ایمیل</label>
+            <label className="block text-[11px] font-medium text-slate-400 mb-1">آدرس ایمیل</label>
             <div className="relative">
               <input
                 type="email"
+                dir="ltr"
                 value={emailAddress}
                 onChange={(e) => setEmailAddress(e.target.value)}
-                placeholder="ایمیل مخاطب"
-                className="w-full pl-3 pr-8 py-2 bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl text-xs text-slate-100 placeholder-slate-500 outline-none transition font-mono"
-                dir="ltr"
+                placeholder="آدرس ایمیل (مثال: info@example.ir)"
+                data-testid="contact-email"
+                className="w-full pr-3 pl-9 py-2 bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl text-xs text-slate-100 placeholder-slate-500 outline-none transition font-mono"
               />
-              <Mail className="w-3.5 h-3.5 text-slate-500 absolute right-2.5 top-1/2 -translate-y-1/2" />
+              <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
 
           <div>
-            <label className="block text-[11px] font-medium text-slate-400 mb-1">
-              شرکت یا سازمان مرتبط
-            </label>
+            <label className="block text-[11px] font-medium text-slate-400 mb-1">نام شرکت / سازمان</label>
             <div className="relative">
               <input
                 type="text"
                 value={accountName}
                 onChange={(e) => setAccountName(e.target.value)}
-                placeholder="نام شرکت یا سازمان"
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl text-xs text-slate-100 placeholder-slate-500 outline-none transition"
+                placeholder="نام شرکت یا سازمان (اختیاری)"
+                data-testid="contact-account"
+                className="w-full pr-3 pl-9 py-2 bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl text-xs text-slate-100 placeholder-slate-500 outline-none transition"
               />
-              <Building2 className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Building2 className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
 
@@ -176,7 +217,7 @@ export const ContactQuickCreateModal: React.FC<ContactQuickCreateModalProps> = (
           <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-800">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="px-4 py-2 text-xs font-medium text-slate-400 hover:text-slate-200 transition cursor-pointer"
             >
               انصراف

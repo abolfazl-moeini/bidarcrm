@@ -24,6 +24,7 @@ const screenFilterIndex = args.indexOf('--screen');
 const screenFilter = screenFilterIndex !== -1 ? args[screenFilterIndex + 1] : null;
 const profileFilterIndex = args.indexOf('--profile');
 const profileFilter = profileFilterIndex !== -1 ? args[profileFilterIndex + 1] : null;
+const activeProfile = (profileFilter && profileFilter.toLowerCase() !== 'all') ? profileFilter : null;
 
 const manifestPathIndex = args.indexOf('--manifest');
 const manifestPath = manifestPathIndex !== -1
@@ -66,7 +67,7 @@ if (isDryRun) {
     const refPath = resolve(ROOT_DIR, screen.ref);
     const refExists = existsSync(refPath);
     const viewports = (screen.viewports || [screen.viewport]).filter((vp) =>
-      !profileFilter || (vp.name === profileFilter)
+      !activeProfile || (vp.name === activeProfile)
     );
     const vpSummary = viewports.map((v) => `${v.name || 'custom'}: ${v.width}x${v.height}`).join(', ');
     console.log(`  - [${screen.id}] "${screen.name}": target=${screen.targetUrl}, ref=${screen.ref} (${refExists ? 'EXISTS' : 'PENDING'}), viewports=[${vpSummary}]`);
@@ -112,7 +113,7 @@ try {
     }
 
     const viewports = (screen.viewports || [screen.viewport]).filter((vp) =>
-      !profileFilter || (vp.name === profileFilter)
+      !activeProfile || (vp.name === activeProfile)
     );
 
     for (const vp of viewports) {
@@ -178,7 +179,10 @@ console.log(`Passed:  ${totalPassed}`);
 console.log(`Failed:  ${totalFailed}`);
 console.log(`Skipped: ${totalSkipped}`);
 
-if (!allPassed) {
+if (!allPassed || (!isDryRun && totalExecuted === 0 && targetScreens.length > 0)) {
+  if (totalExecuted === 0 && targetScreens.length > 0) {
+    console.error('\nFATAL: No test checks were executed despite target screens being configured.');
+  }
   process.exit(1);
 }
 process.exit(0);

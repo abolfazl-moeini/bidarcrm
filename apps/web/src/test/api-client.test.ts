@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { apiClient, ApiError, API_UNAUTHORIZED_EVENT } from '../lib/api-client';
+import { apiClient, ApiError, API_UNAUTHORIZED_EVENT, encodeBase64Utf8 } from '../lib/api-client';
 
 describe('ApiClient & EspoCRM 10.1.4 Auth/Error Handling', () => {
   const originalFetch = globalThis.fetch;
@@ -11,6 +11,49 @@ describe('ApiClient & EspoCRM 10.1.4 Auth/Error Handling', () => {
 
   afterEach(() => {
     globalThis.fetch = originalFetch;
+  });
+
+  describe('encodeBase64Utf8', () => {
+    it('encodes standard ASCII strings identically to btoa', () => {
+      const ascii = 'admin:secret123';
+      expect(encodeBase64Utf8(ascii)).toBe(btoa(ascii));
+    });
+
+    it('safely encodes Persian and UTF-8 strings without throwing InvalidCharacterError', () => {
+      const persianStr = 'کاربر_فروش:رمز-عبور-فارسی-۱۴۰۵';
+      expect(() => btoa(persianStr)).toThrow(); // Native btoa fails on non-Latin1
+      expect(() => encodeBase64Utf8(persianStr)).not.toThrow();
+
+      const encoded = encodeBase64Utf8(persianStr);
+      expect(typeof encoded).toBe('string');
+      expect(encoded.length).toBeGreaterThan(0);
+
+      // Verify round-trip decoding via TextDecoder
+      const binary = atob(encoded);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      const decoded = new TextDecoder().decode(bytes);
+      expect(decoded).toBe(persianStr);
+    });
+
+    it('uses encodeBase64Utf8 for Espo-Authorization header in request', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({ id: '1' }),
+      });
+      globalThis.fetch = mockFetch;
+
+      apiClient.setAuth('کاربر_تست', 'توکن_فارسی_۱۲۳');
+      await apiClient.get('/test');
+
+      const [, options] = mockFetch.mock.calls[0];
+      const headers = new Headers(options.headers);
+      expect(headers.get('Espo-Authorization')).toBe(encodeBase64Utf8('کاربر_تست:توکن_فارسی_۱۲۳'));
+    });
   });
 
   describe('Headers & Credentials', () => {

@@ -1,6 +1,6 @@
 {
   "name": "bidar",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "BidarCRM - Front-Office Headless CRM built on EspoCRM 10.1.4",
   "workspaces": [

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>شرکت‌ها و سازمان‌ها - BidarCRM</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 p-6 min-h-screen">
+  <div class="space-y-6 flex flex-col h-full max-w-7xl mx-auto" dir="rtl">
+    <!-- Header -->
+    <div class="flex items-center justify-between border-b border-slate-800/80 pb-5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-500/15 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl font-bold text-slate-100 tracking-tight">شرکت‌ها و سازمان‌ها</h1>
+            <span class="text-xs font-medium text-slate-400 bg-slate-800 px-2.5 py-0.5 rounded-md">۲ شرکت</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">مدیریت حساب‌ها و سازمان‌های همکار</p>
+        </div>
+      </div>
+      <button class="px-4 py-2 bg-indigo-600 text-white text-xs font-medium rounded-xl">+ شرکت جدید</button>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="max-w-md">
+      <input type="text" placeholder="جستجو در شرکت‌ها (نام، صنعت، تلفن، ایمیل)..." class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 outline-none">
+    </div>
+
+    <!-- Accounts Table -->
+    <div class="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+      <table class="bidar-accounts-table w-full text-right border-collapse">
+        <thead>
+          <tr class="bg-slate-900/90 border-b border-slate-800 text-slate-400 text-xs font-semibold">
+            <th class="py-3.5 px-4">نام سازمان</th>
+            <th class="py-3.5 px-4">صنعت / حوزه فعالیت</th>
+            <th class="py-3.5 px-4">شماره تماس</th>
+            <th class="py-3.5 px-4">وب‌سایت</th>
+            <th class="py-3.5 px-4">تاریخ ثبت</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-800/60 text-xs text-slate-200">
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="py-3.5 px-4 font-semibold text-slate-100">شرکت پتروشیمی رازی</td>
+            <td class="py-3.5 px-4 text-slate-400">نفت و پتروشیمی</td>
+            <td class="py-3.5 px-4"><a href="tel:02188776655" class="text-slate-300 hover:text-emerald-400 font-mono" dir="ltr">02188776655</a></td>
+            <td class="py-3.5 px-4"><a href="https://razi.ir" class="text-slate-300 hover:text-indigo-400 font-mono" dir="ltr">razi.ir</a></td>
+            <td class="py-3.5 px-4 text-slate-400 font-mono text-[11px]" dir="ltr">۱۴۰۵/۰۸/۱۰</td>
+          </tr>
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="py-3.5 px-4 font-semibold text-slate-100">بانک آینده</td>
+            <td class="py-3.5 px-4 text-slate-400">مالی و بانکداری</td>
+            <td class="py-3.5 px-4"><a href="tel:02127663000" class="text-slate-300 hover:text-emerald-400 font-mono" dir="ltr">02127663000</a></td>
+            <td class="py-3.5 px-4"><a href="https://ba.ir" class="text-slate-300 hover:text-indigo-400 font-mono" dir="ltr">ba.ir</a></td>
+            <td class="py-3.5 px-4 text-slate-400 font-mono text-[11px]" dir="ltr">۱۴۰۵/۰۸/۱۵</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="p-3 bg-slate-900/80 border-t border-slate-800/80 text-xs text-slate-400">
+        تعداد کل شرکت‌ها: ۲
+      </div>
+    </div>
+  </div>
+</body>
+</html>

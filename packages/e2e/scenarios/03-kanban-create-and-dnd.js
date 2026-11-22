@@ -15,7 +15,10 @@ export async function run({ baseUrl, state = {} }) {
       'Content-Type': 'application/json',
     };
     if (state.token) {
-      headers['Espo-Authorization'] = state.token;
+      const username = state.username || 'admin';
+      const authVal = Buffer.from(`${username}:${state.token}`).toString('base64');
+      headers['Espo-Authorization'] = authVal;
+      headers['Espo-Authorization-By-Token'] = 'true';
       headers['Authorization'] = `Bearer ${state.token}`;
     }
 

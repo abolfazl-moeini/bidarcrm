@@ -23,11 +23,18 @@ class DashboardSummaryService
         $stageMetrics = [];
         foreach ($stages as $stage) {
             $stageKey = (string) ($stage['name'] ?? $stage['id'] ?? '');
+            $stageId = (string) ($stage['id'] ?? $stageKey);
+            $stageName = (string) ($stage['name'] ?? $stageKey);
+            $stageColor = isset($stage['color']) && is_string($stage['color']) ? $stage['color'] : null;
+
             $stageMetrics[$stageKey] = [
-                'id' => (string) ($stage['id'] ?? $stageKey),
-                'name' => (string) ($stage['name'] ?? $stageKey),
+                'stageId' => $stageId,
+                'stageName' => $stageName,
                 'count' => 0,
                 'amount' => 0.0,
+                'color' => $stageColor,
+                'id' => $stageId,
+                'name' => $stageName,
             ];
         }
 

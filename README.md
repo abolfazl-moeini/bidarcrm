@@ -1,9 +1,9 @@
 # بیدار (BidarCRM)
 
 > **سامانه مدیریت ارتباط با مشتری (CRM) و خط لوله فروش B2B مبتنی بر معماری هیبریدی Headless**  
-> *نسخه ۱.۰.۰ | متصل به هسته آزموده EspoCRM 10.1.4 | آماده استقرار روی هاست‌های اشتراکی ایران*
+> *نسخه ۱.۰.۱ | متصل به هسته آزموده EspoCRM 10.1.4 | آماده استقرار روی هاست‌های اشتراکی ایران*
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](package.json)
+[![Version](https://img.shields.io/badge/version-1.0.1-blue.svg)](package.json)
 [![EspoCRM Engine](https://img.shields.io/badge/espocrm-10.1.4-orange.svg)](engine.version)
 [![License: The Unlicense](https://img.shields.io/badge/license-The%20Unlicense-green.svg)](LICENSE)
 [![Extensions License: AGPL-3.0](https://img.shields.io/badge/extensions-AGPL--3.0-purple.svg)](LICENSE-EXTENSIONS-AGPL3.txt)
@@ -74,7 +74,7 @@ flowchart TD
 ## ۳. قابلیت‌های کلیدی بیدار
 
 ### ۳.۱. مدیریت معاملات و کاریز فروش چندگانه (Multi-Pipeline Kanban)
-- نمایش بصری مراحل فروش در قالب تابلوهای ستونی کانبان با قابلیت کشیدن و رها کردن (@dnd-kit).
+- نمایش بصری مراحل فروش در قالب تابلوهای ستونی کانبان با قابلیت کشیدن و رها کردن با Native HTML5 Drag & Drop (سبک، روان و با کارایی فوق‌العاده بدون سربار کتابخانه‌های حجیم) همراه با انتخاب مرحله از طریق صفحه‌کلید و لمس جهت دسترسی‌پذیری کامل.
 - تفکیک کاریزهای مختلف (مثلاً کاریز «فروش سازمانی»، کاریز «خدمات پشتیبانی»، کاریز «دوره‌های آموزشی»).
 - ایجاد سریع معامله با ثبت نام، ارزش ریالی، مرحله کاریز، مخاطب و حساب کاربری متصل.
 
@@ -208,11 +208,11 @@ bash scripts/build-release.sh
 ```
 بسته نهایی در مسیر زیر ایجاد می‌شود:
 ```text
-dist/bidar-crm-v1.0.0.zip  (~37 MB)
+dist/bidar-crm-v1.0.1.zip  (~37 MB)
 ```
 
 ### نصب در هاست سی‌پنل (cPanel) یا دایرکت‌ادمین (DirectAdmin)
-۱. فایل `bidar-crm-v1.0.0.zip` را در پوشه ریشه سایت خود (معمولاً `public_html`) آپلود و از حالت فشرده خارج (Extract) کنید.
+۱. فایل `bidar-crm-v1.0.1.zip` را در پوشه ریشه سایت خود (معمولاً `public_html`) آپلود و از حالت فشرده خارج (Extract) کنید.
 ۲. در سی‌پنل یک پایگاه داده MySQL با کاراکترست `utf8mb4_unicode_ci` ایجاد کنید.
 ۳. در مرورگر به آدرس `https://yourdomain.com/install` یا `https://yourdomain.com/admin/install` رفته و مراحل نصب هسته را تکمیل کنید.
 ۴. کران‌جاب سی‌پنل را برای اجرای هر دقیقه‌ای اسکریپت `cron.php` تنظیم نمایید:
@@ -221,16 +221,17 @@ dist/bidar-crm-v1.0.0.zip  (~37 MB)
    ```
 ۵. سامانه آماده بهره‌برداری است! فرانت‌افیس بیدار در آدرس اصلی دامنه شما (`/`) لود خواهد شد و پنل ادمین از طریق مسیر `/admin` در دسترس مدیران خواهد بود.
 
-> برای مطالعه راهنمای تفصیلی و گام‌به‌گام، سند [راهنمای نصب هاست اشتراکی](docs/INSTALL_SHARED_HOSTING_FA.md) را مطالعه فرمایید.
+> برای راهنمای فوری و یک‌صفحه‌ای با داکر یا هاست، سند [راهنمای سریع نصب بیدار (TL;DR)](docs/INSTALL_TLDR.md) و برای مطالعه راهنمای تفصیلی و گام‌به‌گام، سند [راهنمای نصب هاست اشتراکی](docs/INSTALL_SHARED_HOSTING_FA.md) را مطالعه فرمایید.
 
 ---
 
 ## ۸. اسناد فنی و راهنماها
 
+- [راهنمای سریع نصب بیدار (TL;DR - کمتر از ۲ دقیقه با داکر یا هاست)](docs/INSTALL_TLDR.md)
 - [راهنمای جامع API های اختصاصی بیدار](docs/API.md)
 - [راهنمای نصب و راه‌اندازی در هاست‌های اشتراکی cPanel و DirectAdmin](docs/INSTALL_SHARED_HOSTING_FA.md)
 - [راهنمای کاربری پرسنل فروش بیدار](docs/USER_MANUAL_FA.md)
-- [تاریخچه تفصیلی تغییرات نسخه ۱.۰.۰](CHANGELOG.md)
+- [تاریخچه تفصیلی تغییرات نسخه ۱.۰.۱](CHANGELOG.md)
 
 ---
 

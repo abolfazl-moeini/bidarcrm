@@ -22,7 +22,7 @@ import { Task } from '../../../types/espocrm';
 import { formatJalaliDate } from '../../../lib/jalali';
 
 export interface ActivityItemRowProps {
-  activity: Task & { type?: 'Task' | 'Call' | 'Meeting' };
+  activity: Task & { type?: 'Task' | 'Call' | 'Meeting'; dateStart?: string };
   onToggleComplete?: (activityId: string, completed: boolean) => void;
   onScheduleNext?: (activity: Task) => void;
   className?: string;
@@ -84,13 +84,16 @@ export const ActivityItemRow: React.FC<ActivityItemRowProps> = ({
   };
 
   const { icon: TypeIcon, label: typeLabel, color: typeColor } = getTypeInfo(activity.type);
-  const jalaliDate = activity.dateDue ? formatJalaliDate(activity.dateDue) : null;
+  const rawDate = activity.type === 'Task'
+    ? (activity.dateEnd || activity.dateDue)
+    : (activity.dateStart || activity.dateDue || activity.dateEnd);
+  const jalaliDate = rawDate ? formatJalaliDate(rawDate) : null;
   const customerLabel = activity.accountName || activity.contactName || activity.parentName;
 
   return (
     <div
       data-testid={`activity-row-${activity.id}`}
-      className={`bidar-activity-row flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-slate-900/80 hover:bg-slate-850 border border-slate-800 hover:border-slate-700/80 rounded-2xl transition duration-150 shadow-sm ${
+      className={`bidar-activity-row flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-slate-900/80 hover:bg-slate-800/80 border border-slate-800 hover:border-slate-700/80 rounded-2xl transition duration-150 shadow-sm ${
         isCompleted ? 'opacity-70 bg-slate-950/40' : ''
       } ${className}`}
       dir="rtl"

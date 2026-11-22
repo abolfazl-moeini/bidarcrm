@@ -6,10 +6,12 @@
 
 import { useSyncExternalStore } from 'react';
 import { authStore, AuthState } from '../authStore';
+import { EspoUser } from '../../../types/espocrm';
 
 export interface UseAuthReturn extends AuthState {
-  login: (username: string, password: string) => Promise<{ user: any; token: string }>;
-  logout: () => Promise<void>;
+  user: EspoUser | null;
+  login: (username: string, password: string) => Promise<{ user: EspoUser; token: string }>;
+  logout: (fromUnauthorized?: boolean) => Promise<void>;
   checkAuth: () => Promise<boolean>;
 }
 

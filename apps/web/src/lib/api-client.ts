@@ -8,6 +8,19 @@
 
 export const API_UNAUTHORIZED_EVENT = 'bidar:unauthorized';
 
+/**
+ * Safely encodes a UTF-8 string to Base64 (supporting non-Latin and Persian characters).
+ */
+export function encodeBase64Utf8(str: string): string {
+  const bytes = new TextEncoder().encode(str);
+  let binary = '';
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
 export class ApiError extends Error {
   public readonly status: number;
   public readonly statusText: string;
@@ -108,7 +121,7 @@ export class ApiClient {
     }
 
     if (this.auth?.username && this.auth?.token) {
-      const tokenHeader = btoa(`${this.auth.username}:${this.auth.token}`);
+      const tokenHeader = encodeBase64Utf8(`${this.auth.username}:${this.auth.token}`);
       headers.set('Espo-Authorization', tokenHeader);
       headers.set('Espo-Authorization-By-Token', 'true');
     }

@@ -25,7 +25,7 @@ server {
         return 404;
     }
 
-    location ~* \.(json|lock|version)$ {
+    location ~* ^/(composer\.(json|lock)|package(-lock)?\.json|engine\.version)$ {
         deny all;
         return 404;
     }
@@ -41,7 +41,12 @@ server {
     # 3. EspoCRM Native Assets & Admin
     # --------------------------------------------------------------------------
     location /client/ {
+        alias /var/www/html/client/;
         try_files $uri =404;
+    }
+
+    location = /install {
+        return 301 /install/;
     }
 
     location /install/ {
@@ -85,6 +90,7 @@ server {
         fastcgi_param HTTP_AUTHORIZATION $http_authorization;
         fastcgi_param HTTP_ESPO_CGI_AUTH $http_espo_authorization;
         fastcgi_param HTTP_X_BIDAR_VOIP_SECRET $http_x_bidar_voip_secret;
+        fastcgi_param HTTP_X_VOIP_TOKEN $http_x_voip_token;
 
         fastcgi_read_timeout 180s;
         fastcgi_buffer_size 128k;

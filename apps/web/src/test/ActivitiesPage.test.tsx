@@ -171,6 +171,43 @@ describe('Activities & Jalali Calendar Management', () => {
 
       expect(onSuccess).toHaveBeenCalled();
     });
+
+    it('resets form fields and error state when reopened or closed', () => {
+      const { rerender } = render(
+        <ActivityCreateModal
+          isOpen={true}
+          onClose={vi.fn()}
+        />
+      );
+
+      // Trigger error and type input
+      fireEvent.click(screen.getByRole('button', { name: /ثبت فعالیت|ذخیره/i }));
+      expect(screen.getByText(/عنوان فعالیت الزامی است/i)).toBeInTheDocument();
+
+      const input = screen.getByPlaceholderText(/عنوان کار یا فعالیت/i) as HTMLInputElement;
+      fireEvent.change(input, { target: { value: 'پیش‌نویس کار' } });
+      expect(input.value).toBe('پیش‌نویس کار');
+
+      // Close modal
+      rerender(
+        <ActivityCreateModal
+          isOpen={false}
+          onClose={vi.fn()}
+        />
+      );
+
+      // Reopen modal
+      rerender(
+        <ActivityCreateModal
+          isOpen={true}
+          onClose={vi.fn()}
+        />
+      );
+
+      const reopenedInput = screen.getByPlaceholderText(/عنوان کار یا فعالیت/i) as HTMLInputElement;
+      expect(reopenedInput.value).toBe('');
+      expect(screen.queryByText(/عنوان فعالیت الزامی است/i)).not.toBeInTheDocument();
+    });
   });
 
   describe('ActivitiesPage Integration', () => {

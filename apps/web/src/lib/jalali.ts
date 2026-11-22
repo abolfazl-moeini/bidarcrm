@@ -4,8 +4,10 @@ import { toAsciiDigits } from './currency';
  * Robust Jalali (Shamsi) Date Converter
  */
 
-export function toJalaliDateString(isoOrDate: string | Date): string {
+export function toJalaliDateString(isoOrDate: string | Date | null | undefined): string {
+  if (!isoOrDate) return '';
   const d = typeof isoOrDate === 'string' ? new Date(isoOrDate) : isoOrDate;
+  if (!(d instanceof Date) || isNaN(d.getTime())) return '';
   const formatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
     year: 'numeric',
     month: '2-digit',
@@ -16,6 +18,24 @@ export function toJalaliDateString(isoOrDate: string | Date): string {
 }
 
 export const formatJalaliDate = toJalaliDateString;
+
+/**
+ * Determines whether a given Jalali (Shamsi) year is a leap year (366 days, Esfand has 30 days).
+ */
+export function isJalaliLeapYear(jy: number): boolean {
+  if (jy === 1403) return true;
+  const r = ((jy + 38) * 31) % 128;
+  return r <= 30;
+}
+
+/**
+ * Returns the exact number of days in a given Jalali month (1-6: 31, 7-11: 30, 12: 29 or 30).
+ */
+export function getJalaliMonthLength(jy: number, jm: number): number {
+  if (jm <= 6) return 31;
+  if (jm <= 11) return 30;
+  return isJalaliLeapYear(jy) ? 30 : 29;
+}
 
 export function jalaliToGregorian(jy: number, jm: number, jd: number): [number, number, number] {
   let gy: number;
@@ -107,12 +127,13 @@ export const PERSIAN_WEEKDAYS = [
 ] as const;
 
 export function getJalaliParts(date: Date = new Date()): { year: number; month: number; day: number } {
+  const d = date instanceof Date && !isNaN(date.getTime()) ? date : new Date();
   const parts = new Intl.DateTimeFormat('en-US-u-ca-persian', {
     year: 'numeric',
     month: 'numeric',
     day: 'numeric',
     timeZone: 'Asia/Tehran',
-  }).formatToParts(date);
+  }).formatToParts(d);
 
   let year = 1405;
   let month = 9;
@@ -128,7 +149,7 @@ export function getJalaliParts(date: Date = new Date()): { year: number; month: 
 }
 
 export function getJalaliMonthRangeUtc(year: number, month: number): { fromUtc: string; toUtc: string } {
-  const daysInMonth = month <= 6 ? 31 : month <= 11 ? 30 : 29;
+  const daysInMonth = getJalaliMonthLength(year, month);
   const [gy1, gm1, gd1] = jalaliToGregorian(year, month, 1);
   const [gy2, gm2, gd2] = jalaliToGregorian(year, month, daysInMonth);
 
