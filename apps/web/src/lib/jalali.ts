@@ -15,6 +15,8 @@ export function toJalaliDateString(isoOrDate: string | Date): string {
   return formatter.format(d);
 }
 
+export const formatJalaliDate = toJalaliDateString;
+
 export function jalaliToGregorian(jy: number, jm: number, jd: number): [number, number, number] {
   let gy: number;
   if (jy > 979) {
