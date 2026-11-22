@@ -1,8 +1,9 @@
 {
   "name": "bidar/bidar-crm",
+  "version": "1.0.0",
   "description": "BidarCRM - Backend Extensions and Testing Harness for EspoCRM 10.1.4",
   "type": "project",
-  "license": "proprietary",
+  "license": "Unlicense",
   "require": {
     "php": ">=8.3"
   },
