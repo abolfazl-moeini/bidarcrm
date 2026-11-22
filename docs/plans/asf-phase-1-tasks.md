@@ -29,6 +29,7 @@
 | `INV-11` | **آمادگی بی‌اصطکاک برای فاز ۲** | فرم‌های ثابت فاز ۱ ماژولار طراحی می‌شوند تا در فاز ۲ کامپوننت `DynamicFieldRenderer` به‌سادگی در بخش «اطلاعات تکمیلی» تزریق شود؛ تمام تماس‌های API پشت لایه Repository تایپ‌شده قرار می‌گیرند. |
 | `INV-12` | **ممنوعیت مطلق آغاز فاز ۲ (Phase 2 Ban)** | فاز دوم صرفاً نقشه راه آینده است. در چرخه فعلی اجرای ASF تحت هیچ شرایطی نباید وارد فاز دوم شد و نباید هیچ‌یک از کدهای مربوط به فاز دوم پیاده‌سازی شوند. تمرکز ۱۰۰٪ بر تکمیل موفق و سبز شدن فاز اول است. |
 | `INV-13` | **توپولوژی چندایجنت با مدل‌های تعیین‌شده** | اجرای ساخت در ASF با توزیع سه ایجنت زیر انجام می‌شود:<br>• **Codex با مدل `gpt-6-luna`:** لید کدنویسی، ایجاد تست‌های RED و پیاده‌سازی کدهای GREEN.<br>• **Antigravity (agy) با مدل `gemini-3.8-flash`:** بازبینی کد (Code Review)، ارزیابی داوری و ممیزی بصری `ui-level`.<br>• **WorkBuddy با مدل `hy4-flash`:** دستیار کمکی، کنترل مضاعف (Double-Check) و اجرای بیلدها و تست‌های پایانی. |
+| `INV-14` | **تعادل UX/UI و مرزبندی حقوقی (Very Similar UX, Similar Clean UI, Zero 100% Copy)** | بر اساس نیازمندی صریح محصول:<br>• **شباهت حداکثری UX (بسیار شبیه):** گردش کار (Workflow)، سادگی و روانی، چیدمان کاریز، درگ اند دراپ کانبان، ثبت سریع معاملات، تایم‌لاین ۳۶۰ درجه، چرخه فعالیت‌ها (تیک زدن و ثبت پیگیری بعدی) و تقویم شمسی دقیقاً با بالاترین شباهت ارگونومیک به دیدار پیاده‌سازی می‌شوند تا کاربر فروش هیچ اصطکاکی حس نکند.<br>• **شباهت ظاهری UI (شبیه ولی بدون کپی ۱۰۰٪):** ظاهر کلی سیستم، حس و حال بصری (Look & Feel)، نظم کارت‌ها، فضای روشن و دلباز و سلسله‌مراتب بصری هم‌رده و شبیه به دیدار خواهد بود؛ اما کپی ۱۰۰٪ و عینی نیست:<br>  - پالت رنگی شیک و متمایز با پایه سرمه‌ای/نیلی (`#4F46E5` / `#0F172A`)، زمردی برای معاملات برنده (`#10B981`) و مرجانی/یاقوتی برای هشدارهای پوسیدگی (`#EF4444`) بدون کپی‌برداری از کدهای رنگی و تم خاص دیدار.<br>  - آیکون‌ها صرفاً از بسته استاندارد `Lucide React` (لایسنس ISC) بدون استفاده از وکتورها یا آیکون‌های گرافیکی اختصاصی دیدار.<br>  - تایپوگرافی با فونت آزاد `Vazirmatn` (لایسنس OFL).<br>  - میکروکپی‌ها، متون راهنما و عناوین اختصاصی نگارش می‌شوند تا هیچ ریسک کپی‌رایت متنی یا تصویری وجود نداشته باشد.<br>  - مراجع بصری `tests/ui-level/refs/*.html` این تعادل طلایی (UX کاملاً روان + UI مدرن و آشنا بدون کپی عینی) را مبنای ارزیابی قرار می‌دهند. |
 
 ---
 
@@ -413,20 +414,21 @@ graph TD
 
 ### مایل‌استون ۳: هسته فرانت‌اند React SPA، کلاینت API و پوسته بیدار (`M3`)
 
-#### `M3-T1` — اسکلت `apps/web` (React 19 + Vite + Tailwind RTL + فونت وزیرمتن + ابزار تاریخ شمسی)
+#### `M3-T1` — اسکلت `apps/web` (React 19 + Vite + Tailwind RTL + هویت بصری مستقل بیدار + فونت وزیرمتن + ابزار تاریخ شمسی)
 - **Metadata:** `kind: unit` | `size: M` | `feature_key: web-foundation` | `depends_on: [M1-T1, M1-T4]`
 - **فایل‌های تست (RED):**
   - `apps/web/src/test/jalali.test.ts` (تبدیل UTC به تهران شمسی، تاریخ کبیسه `1403/12/30`، محاسبه بازه اول تا آخر ماه شمسی به UTC برای API داشبورد)
   - `apps/web/src/test/currency.test.ts` (فرمت‌بندی تومان/ریال و اعداد فارسی)
   - `apps/web/src/test/app-rtl.test.tsx` (تأیید `dir="rtl"`, `lang="fa"`)
+  - `apps/web/src/test/theme-tokens.test.ts` (تأیید توکن‌های رنگی مستقل BidarCRM: رنگ برند ایندیگو `#4F46E5`، خنثی اسلیت `#0F172A` / `#F8FAFC`، زمردی `#10B981`، رز `#EF4444` و عدم وجود پالت رنگی دیدار)
 - **فایل‌های پیاده‌سازی (GREEN):**
-  - `apps/web/package.json` (React 19, TypeScript, Vite, Tailwind CSS, `shadcn/ui`, `TanStack Query`, `React Hook Form`, `Zod`, `@dnd-kit`, `TanStack Table`, `date-fns-jalali`, `react-multi-date-picker`, Vitest, Testing Library)
+  - `apps/web/package.json` (React 19, TypeScript, Vite, Tailwind CSS, `shadcn/ui`, `lucide-react` (لایسنس ISC)، `TanStack Query`, `React Hook Form`, `Zod`, `@dnd-kit`, `TanStack Table`, `date-fns-jalali`, `react-multi-date-picker`, Vitest, Testing Library)
   - `apps/web/vite.config.ts` (`base: '/app/'` در بیلد تولید + dev proxy برای `/api/v1`, `/admin`, `/client` به سرور محلی EspoCRM جهت Same-Origin در توسعه)
-  - `apps/web/index.html`, `apps/web/src/index.css` (توکن‌های رنگی BidarCRM و فونت محلی/بسته‌بندی‌شده `Vazirmatn` برای پایداری آفلاین و `ui-level`)
+  - `apps/web/index.html`, `apps/web/src/index.css` (توکن‌های رنگی مستقل و مدرن BidarCRM و فونت محلی/بسته‌بندی‌شده `Vazirmatn`؛ بدون هیچ فایل یا استایل کپی‌شده از دیدار)
   - `apps/web/src/lib/jalali.ts`, `apps/web/src/lib/currency.ts`
 - **دستور اعتبارسنجی:** `/usr/bin/timeout 90s npm --prefix apps/web run test:ci && npm --prefix apps/web run build`
 - **معیارهای پذیرش:**
-  - `AC-M3-01`: **Given** تاریخ میلادی `2025-03-20T00:00:00Z` (سال کبیسه ۱۴۰۳)، **When** به شمسی با منطقه زمانی `Asia/Tehran` تبدیل می‌شود، **Then** دقیقاً `۱۴۰۳/۱۲/۳۰` بازگردانده می‌شود و بیلد Vite خروجی استاتیک سالم تولید می‌کند.
+  - `AC-M3-01`: **Given** تاریخ میلادی `2025-03-20T00:00:00Z` (سال کبیسه ۱۴۰۳)، **When** به شمسی با منطقه زمانی `Asia/Tehran` تبدیل می‌شود، **Then** دقیقاً `۱۴۰۳/۱۲/۳۰` بازگردانده می‌شود، توکن‌های هویت بصری مستقل BidarCRM اعمال شده و بیلد Vite خروجی استاتیک سالم تولید می‌کند.
 - **کامیت‌ها:**
   - `test(web): add unit tests for Jalali UTC conversions, currency formatter, and RTL root`
   - `feat(web): scaffold BidarCRM React 19 Vite Tailwind RTL workspace`
@@ -484,6 +486,7 @@ graph TD
 
 #### `M4-T1` — داشبورد فروش و نمودار قیف معاملات (`/`)
 - **Metadata:** `kind: unit` | `size: M` | `feature_key: web-dashboard` | `depends_on: [M3-T4, M2-T4]`
+- **طراحی UX/UI:** UX بسیار شبیه به پیشخوان دیدار (سادگی در نگاه اول، کارت‌های KPI بالا، نمودار قیف میانی و فهرست کارهای امروز)، با ظاهر بصری تمیز، شیک و هم‌رده (UI شبیه در نظم و خوانایی، با پالت سرمه‌ای/نیلی و زمردی و بدون کپی‌برداری عینی از متریال‌ها یا گرافیک اختصاصی دیدار).
 - **فایل‌های تست (RED):** `apps/web/src/test/DashboardPage.test.tsx`, `tests/ui-level/refs/dashboard.html`
 - **فایل‌های پیاده‌سازی (GREEN):**
   - `apps/web/src/pages/DashboardPage.tsx` (کلاس `.bidar-dashboard`)
@@ -500,6 +503,7 @@ graph TD
 
 #### `M4-T2` — کانبان‌بورد چندکاریزه فروش (`@dnd-kit`) و مودال ساخت سریع معامله (`/deals`)
 - **Metadata:** `kind: unit` | `size: M` | `feature_key: web-kanban` | `depends_on: [M3-T4, M2-T2]`
+- **طراحی UX/UI:** UX بسیار شبیه به کاریز دیدار (جابجایی فوق‌العاده روان کارت‌ها با کشیدن و رها کردن، به‌روزرسانی آنی مجموع مبلغ هر ستون، فیلتر سریع کاریز، مودال ثبت سریع معامله با کمترین کلیک ممکن)؛ UI شبیه و هم‌رده با کارت‌های خوانا، سایه‌های ملایم، آیکون‌های Lucide و نشانگرهای تمیز بدون کپی کدهای گرافیکی یا استایل‌های انحصاری دیدار.
 - **فایل‌های تست (RED):** `apps/web/src/test/KanbanBoard.test.tsx`, `apps/web/src/test/QuickCreateDealModal.test.tsx`, `tests/ui-level/refs/kanban.html`
 - **فایل‌های پیاده‌سازی (GREEN):**
   - `apps/web/src/pages/KanbanPage.tsx` (کلاس `.bidar-kanban-board`)
@@ -516,6 +520,7 @@ graph TD
 
 #### `M4-T3` — نشانگر پوسیدگی معامله (Rotten Badges) و نوار فیلتر کاریز
 - **Metadata:** `kind: unit` | `size: S` | `feature_key: web-rotten-ui` | `depends_on: [M4-T2, M2-T3]`
+- **طراحی UX/UI:** تجربه کاربری کاملاً منطبق بر مفهوم پوسیدگی دیدار (تفکیک و هشدار فوری معاملاتی که بیش از مهلت تعیین‌شده رها شده‌اند)؛ UI متمایز و متناسب با تم بیدار شامل نوار برجسته مرجانی/یاقوتی (`#EF4444`) و بج با کنتراست استاندارد WCAG بدون کپی استایل‌های گرافیکی دیدار.
 - **فایل‌های تست (RED):** `apps/web/src/test/RottenFilter.test.tsx`
 - **فایل‌های پیاده‌سازی (GREEN):**
   - `apps/web/src/features/kanban/components/RottenBadge.tsx` (نوار/بج هشدار با متن «X روز بدون پیگیری» و کنتراست دسترس‌پذیر WCAG AA)
@@ -530,6 +535,7 @@ graph TD
 
 #### `M4-T4` — صفحه ۳۶۰ درجه جزئیات معامله، تایم‌لاین تعاملات و فایل‌های پیوست (`/deals/:id`)
 - **Metadata:** `kind: unit` | `size: M` | `feature_key: web-deal-detail` | `depends_on: [M3-T4, M2-T3]`
+- **طراحی UX/UI:** UX بسیار شبیه به صفحه معامله دیدار (سایدبار اطلاعات معامله با ادیت درجا، پایپ‌لاین نواری در بالا با قابلیت تغییر مرحله، استریم یکپارچه یادداشت‌ها و فعالیت‌ها، دکمه‌های برد/باخت، و باکس ثبت سریع یادداشت و پیگیری)؛ UI شبیه در تفکیک فضاها و نظم دیداری، ولی با هویت گرافیکی بیدار و آیکون‌های Lucide.
 - **فایل‌های تست (RED):** `apps/web/src/test/DealDetailPage.test.tsx`, `tests/ui-level/refs/deal-detail.html`
 - **فایل‌های پیاده‌سازی (GREEN):**
   - `apps/web/src/pages/DealDetailPage.tsx` (کلاس `.bidar-deal-detail`)
@@ -546,6 +552,7 @@ graph TD
 
 #### `M4-T5` — دایرکتوری و پروفایل اشخاص و شرکت‌ها (`/contacts`, `/accounts`)
 - **Metadata:** `kind: unit` | `size: M` | `feature_key: web-contacts-accounts` | `depends_on: [M3-T4]`
+- **طراحی UX/UI:** UX بسیار شبیه به دایرکتوری دیدار (جدول با لود سریع، مرتب‌سازی و سرچ آنی، تماس مستقیم با کلیک روی شماره تلفن، پروفایل ۳۶۰ درجه شخص/شرکت شامل لیست معاملات و سوابق)؛ UI شبیه در خلوت بودن و چینش المان‌ها، با کامپوننت‌های مدرن `TanStack Table` و استایل مستقل بیدار.
 - **فایل‌های تست (RED):** `apps/web/src/test/ContactsAccounts.test.tsx`, `tests/ui-level/refs/contacts.html`
 - **فایل‌های پیاده‌سازی (GREEN):**
   - `apps/web/src/pages/ContactsPage.tsx`, `AccountsPage.tsx`, `ContactDetailPage.tsx`, `AccountDetailPage.tsx`
@@ -561,6 +568,7 @@ graph TD
 
 #### `M4-T6` — فعالیت‌ها، پیگیری‌ها و تقویم شمسی فروش (`/activities`, `/calendar`)
 - **Metadata:** `kind: unit` | `size: M` | `feature_key: web-activities-calendar` | `depends_on: [M3-T4]`
+- **طراحی UX/UI:** UX بسیار شبیه به دیدار (قانون ارگونومیک "هیچ معامله‌ای بدون پیگیری بعدی نماند" — به محض تکمیل تماس/جلسه، پنجره ثبت پیگیری بعدی باز می‌شود؛ تفکیک تب‌های امروز/معوقه/فردا؛ تقویم شمسی ماهانه و هفتگی بدون پیچیدگی)؛ UI شبیه و هم‌رده با تقویم‌های مدرن B2B، با فونت وزیرمتن و بدون کپی متریال‌های دیدار.
 - **فایل‌های تست (RED):** `apps/web/src/test/ActivitiesCalendar.test.tsx`, `tests/ui-level/refs/calendar.html`
 - **فایل‌های پیاده‌سازی (GREEN):**
   - `apps/web/src/pages/ActivitiesPage.tsx`, `CalendarPage.tsx`
