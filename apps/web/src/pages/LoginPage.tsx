@@ -13,7 +13,11 @@ export interface LoginPageProps {
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white" dir="rtl">
+    <div
+      className="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white"
+      dir="rtl"
+      lang="fa"
+    >
       {/* Background ambient lighting effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-indigo-600/15 rounded-full blur-3xl" />
@@ -27,7 +31,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
 
       {/* Footer Branding */}
       <footer className="relative z-10 mt-8 text-center text-xs text-slate-500 font-normal">
-        <p>© ۱۴۰۳ بیدار (BidarCRM) — تمامی حقوق محفوظ است.</p>
+        <p>© ۱۴۰۳ تمامی حقوق محفوظ است.</p>
       </footer>
     </div>
   );
