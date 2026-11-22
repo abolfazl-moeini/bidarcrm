@@ -5,10 +5,11 @@
  * stage-based revenue aggregations, and quick creation action.
  */
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Plus, AlertCircle, RefreshCw, Columns3 } from 'lucide-react';
 import { useKanbanDeals } from '../features/kanban/hooks/useKanbanDeals';
 import { KanbanBoard } from '../features/kanban/components/KanbanBoard';
+import { KanbanFilterBar } from '../features/kanban/components/KanbanFilterBar';
 import { formatToman, toPersianDigits } from '../lib/currency';
 
 export interface KanbanPageProps {
@@ -16,9 +17,44 @@ export interface KanbanPageProps {
 }
 
 export const KanbanPage: React.FC<KanbanPageProps> = ({ onNewDeal }) => {
-  const { deals, stages, isLoading, error, moveDeal, refetch, clearError } = useKanbanDeals();
+  const {
+    deals,
+    stages,
+    pipelines,
+    selectedPipelineId,
+    setSelectedPipelineId,
+    isLoading,
+    error,
+    moveDeal,
+    refetch,
+    clearError,
+  } = useKanbanDeals();
 
-  const totalAmount = deals.reduce((sum, d) => sum + (d.amount || 0), 0);
+  const [onlyRotten, setOnlyRotten] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const activePipeline = pipelines.find((p) => p.id === selectedPipelineId);
+  const pipelineTitle = activePipeline?.name || 'کاریز فروش اصلی';
+
+  const filteredDeals = useMemo(() => {
+    return deals.filter((deal) => {
+      if (onlyRotten && !deal.isRotten) {
+        return false;
+      }
+      if (searchQuery.trim()) {
+        const q = searchQuery.trim().toLowerCase();
+        const matchesName = deal.name?.toLowerCase().includes(q);
+        const matchesAccount = deal.accountName?.toLowerCase().includes(q);
+        const matchesContact = deal.contactName?.toLowerCase().includes(q);
+        if (!matchesName && !matchesAccount && !matchesContact) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [deals, onlyRotten, searchQuery]);
+
+  const totalAmount = filteredDeals.reduce((sum, d) => sum + (d.amount || 0), 0);
 
   if (isLoading) {
     return (
@@ -37,7 +73,7 @@ export const KanbanPage: React.FC<KanbanPageProps> = ({ onNewDeal }) => {
   }
 
   return (
-    <div className="space-y-6 flex flex-col h-full" dir="rtl">
+    <div className="space-y-5 flex flex-col h-full" dir="rtl">
       {/* Top Header Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800/80 pb-5">
         <div className="flex items-center gap-3">
@@ -46,13 +82,13 @@ export const KanbanPage: React.FC<KanbanPageProps> = ({ onNewDeal }) => {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-slate-100 tracking-tight">کاریز فروش اصلی</h1>
+              <h1 className="text-xl font-bold text-slate-100 tracking-tight">{pipelineTitle}</h1>
               <span className="text-xs font-medium text-slate-400 bg-slate-800 px-2.5 py-0.5 rounded-md">
-                {toPersianDigits(deals.length)} معامله
+                {toPersianDigits(filteredDeals.length)} معامله
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-1">
-              مجموع ارزش معاملات باز:{' '}
+              مجموع ارزش معاملات:{' '}
               <span className="font-semibold text-slate-200 font-mono text-left" dir="ltr">
                 {formatToman(totalAmount)}
               </span>
@@ -80,6 +116,17 @@ export const KanbanPage: React.FC<KanbanPageProps> = ({ onNewDeal }) => {
         </div>
       </div>
 
+      {/* Filter and Pipeline Bar */}
+      <KanbanFilterBar
+        pipelines={pipelines}
+        selectedPipelineId={selectedPipelineId}
+        onSelectPipeline={setSelectedPipelineId}
+        onlyRotten={onlyRotten}
+        onToggleOnlyRotten={() => setOnlyRotten((prev) => !prev)}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
+
       {/* Error Alert with Dismiss */}
       {error && (
         <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center justify-between gap-3 animate-in fade-in duration-150">
@@ -101,7 +148,7 @@ export const KanbanPage: React.FC<KanbanPageProps> = ({ onNewDeal }) => {
       <div className="flex-1 min-h-0">
         <KanbanBoard
           stages={stages}
-          deals={deals}
+          deals={filteredDeals}
           onMoveDeal={(dealId, targetStageId, targetStageName) => {
             moveDeal(dealId, targetStageId, targetStageName).catch(() => {});
           }}

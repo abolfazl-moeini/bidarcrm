@@ -6,9 +6,10 @@
  */
 
 import React from 'react';
-import { Building2, User, Flame, Clock } from 'lucide-react';
+import { Building2, User, Clock } from 'lucide-react';
 import { Opportunity } from '../../../types/espocrm';
 import { formatToman, toPersianDigits } from '../../../lib/currency';
+import { RottenBadge } from './RottenBadge';
 
 export interface DealCardProps {
   deal: Opportunity;
@@ -38,15 +39,7 @@ export const DealCard: React.FC<DealCardProps> = ({ deal, className = '', onClic
         <h4 className="text-xs font-bold text-slate-100 group-hover:text-indigo-300 transition line-clamp-2 leading-relaxed">
           {deal.name}
         </h4>
-        {deal.isRotten && (
-          <span
-            className="flex-shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-rose-500/15 border border-rose-500/30 text-rose-400 text-[10px] font-medium"
-            title="معامله بدون فعالیت معوق (پوسیده)"
-          >
-            <Flame className="w-3 h-3" />
-            <span>پوسیده</span>
-          </span>
-        )}
+        <RottenBadge deal={deal} />
       </div>
 
       {/* Customer / Account Link */}

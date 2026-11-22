@@ -20,6 +20,9 @@ export const DEFAULT_PIPELINE_STAGES: PipelineStage[] = [
 export interface UseKanbanDealsReturn {
   deals: Opportunity[];
   stages: PipelineStage[];
+  pipelines: Pipeline[];
+  selectedPipelineId: string;
+  setSelectedPipelineId: (id: string) => void;
   isLoading: boolean;
   isError: boolean;
   error: string | null;
@@ -28,7 +31,8 @@ export interface UseKanbanDealsReturn {
   clearError: () => void;
 }
 
-export function useKanbanDeals(pipelineId = 'default'): UseKanbanDealsReturn {
+export function useKanbanDeals(initialPipelineId = ''): UseKanbanDealsReturn {
+  const [selectedPipelineId, setSelectedPipelineId] = useState<string>(initialPipelineId);
   const [localDeals, setLocalDeals] = useState<Opportunity[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -39,18 +43,20 @@ export function useKanbanDeals(pipelineId = 'default'): UseKanbanDealsReturn {
     staleTime: 1000 * 60 * 5,
   });
 
+  const pipelines = pipelineQuery.data?.list || [];
+  const activePipelineId = selectedPipelineId || pipelines[0]?.id || 'default';
+
   const stages = useMemo<PipelineStage[]>(() => {
-    const pipelines = pipelineQuery.data?.list || [];
-    const activePipeline = pipelines.find((p) => p.id === pipelineId) || pipelines[0];
+    const activePipeline = pipelines.find((p) => p.id === activePipelineId) || pipelines[0];
     if (activePipeline?.stages && activePipeline.stages.length > 0) {
       return activePipeline.stages;
     }
     return DEFAULT_PIPELINE_STAGES;
-  }, [pipelineQuery.data, pipelineId]);
+  }, [pipelines, activePipelineId]);
 
   // 2. Fetch Opportunities
   const dealsQuery = useQuery<EspoListResponse<Opportunity>>({
-    queryKey: queryKeys.deals.kanban(pipelineId),
+    queryKey: queryKeys.deals.kanban(activePipelineId),
     queryFn: () => apiClient.get<EspoListResponse<Opportunity>>('/Opportunity?maxSize=200'),
   });
 
@@ -103,6 +109,9 @@ export function useKanbanDeals(pipelineId = 'default'): UseKanbanDealsReturn {
   return {
     deals: localDeals,
     stages,
+    pipelines,
+    selectedPipelineId: activePipelineId,
+    setSelectedPipelineId,
     isLoading: dealsQuery.isLoading || pipelineQuery.isLoading,
     isError: dealsQuery.isError || pipelineQuery.isError,
     error: errorMessage || (dealsQuery.error instanceof Error ? dealsQuery.error.message : null),
