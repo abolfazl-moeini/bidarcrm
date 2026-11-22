@@ -64,6 +64,22 @@
       "colorThresholdDeltaE": 2.0,
       "geometryTolerancePx": 0.5,
       "maskSelectors": [".deal-card-time", ".deal-amount"]
+    },
+    {
+      "id": "deal-detail",
+      "name": "جزئیات معامله ۳۶۰ درجه (Deal Detail)",
+      "targetUrl": "http://localhost:5173/app/deals/deal-101",
+      "ref": "tests/ui-level/refs/deal-detail.html",
+      "adapter": "html",
+      "selector": "#root",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      },
+      "colorThresholdDeltaE": 2.0,
+      "geometryTolerancePx": 0.5,
+      "maskSelectors": [".dynamic-time", ".deal-amount"]
     }
   ]
 }
