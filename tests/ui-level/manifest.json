@@ -1,0 +1,69 @@
+{
+  "$schema": "https://raw.githubusercontent.com/abolfazl-moeini/ui-level/main/schema.json",
+  "screens": [
+    {
+      "id": "login",
+      "name": "صفحه ورود به بیدار (Login)",
+      "targetUrl": "http://localhost:5173/app/login",
+      "ref": "tests/ui-level/refs/login.html",
+      "adapter": "html",
+      "selector": "#root",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      },
+      "colorThresholdDeltaE": 2.0,
+      "geometryTolerancePx": 0.5,
+      "maskSelectors": []
+    },
+    {
+      "id": "shell",
+      "name": "پوسته نرم‌افزار و نوار ناوبری (AppShell)",
+      "targetUrl": "http://localhost:5173/app/deals",
+      "ref": "tests/ui-level/refs/shell.html",
+      "adapter": "html",
+      "selector": "#root > div",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      },
+      "colorThresholdDeltaE": 2.0,
+      "geometryTolerancePx": 0.5,
+      "maskSelectors": [".dynamic-time", ".user-avatar"]
+    },
+    {
+      "id": "dashboard",
+      "name": "داشبورد فروش (Dashboard)",
+      "targetUrl": "http://localhost:5173/app/",
+      "ref": "tests/ui-level/refs/dashboard.html",
+      "adapter": "html",
+      "selector": "#root",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      },
+      "colorThresholdDeltaE": 2.0,
+      "geometryTolerancePx": 0.5,
+      "maskSelectors": [".kpi-amount", ".chart-container"]
+    },
+    {
+      "id": "kanban",
+      "name": "کانبان کاریز معاملات (Kanban)",
+      "targetUrl": "http://localhost:5173/app/deals",
+      "ref": "tests/ui-level/refs/kanban.html",
+      "adapter": "html",
+      "selector": "#root",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      },
+      "colorThresholdDeltaE": 2.0,
+      "geometryTolerancePx": 0.5,
+      "maskSelectors": [".deal-card-time", ".deal-amount"]
+    }
+  ]
+}
