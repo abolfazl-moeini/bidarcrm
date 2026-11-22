@@ -12,6 +12,7 @@ dist/
 build/
 .ui-level/
 .phpunit.cache/
+.cache/
 
 # Environment
 .env
