@@ -1,0 +1,7 @@
+{
+  "fields": {
+    "lastActivityAt": "آخرین پیگیری",
+    "isRotten": "معامله پوسیده",
+    "daysSinceLastActivity": "روزهای بدون پیگیری"
+  }
+}

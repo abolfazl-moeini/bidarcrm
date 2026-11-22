@@ -1,0 +1,10 @@
+{
+  "fields": {
+    "rottenDays": {
+      "type": "int",
+      "min": 1,
+      "default": null,
+      "color": null
+    }
+  }
+}

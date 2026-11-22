@@ -1,0 +1,19 @@
+{
+  "fields": {
+    "lastActivityAt": {
+      "type": "datetime",
+      "readOnly": true,
+      "index": true
+    },
+    "isRotten": {
+      "type": "bool",
+      "notStorable": true,
+      "readOnly": true
+    },
+    "daysSinceLastActivity": {
+      "type": "int",
+      "notStorable": true,
+      "readOnly": true
+    }
+  }
+}
