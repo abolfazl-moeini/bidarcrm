@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>پوسته اصلی بیدار - BidarCRM</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 overflow-hidden">
+  <div class="bidar-app-shell flex h-screen w-screen overflow-hidden" dir="rtl" lang="fa">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-slate-900/95 border-l border-slate-800 flex flex-col justify-between">
+      <div>
+        <div class="h-16 flex items-center px-6 border-b border-slate-800 gap-3">
+          <div class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-lg">ب</div>
+          <div class="flex flex-col">
+            <span class="font-bold text-base text-slate-100">بیدار CRM</span>
+            <span class="text-[11px] text-slate-500">مدیریت هوشمند فروش</span>
+          </div>
+        </div>
+        <nav class="p-4 space-y-1.5">
+          <a href="/dashboard" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium bg-indigo-600/15 text-indigo-400 border border-indigo-500/20">
+            <span>داشبورد</span>
+          </a>
+          <a href="/kanban" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-400">
+            <span>کاریز معاملات</span>
+          </a>
+          <a href="/contacts" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-400">
+            <span>مخاطبان و شرکت‌ها</span>
+          </a>
+          <a href="/activities" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-400">
+            <span>فعالیت‌ها و تقویم</span>
+          </a>
+        </nav>
+      </div>
+      <div class="p-4 border-t border-slate-800/80">
+        <a href="/admin" target="_self" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-amber-400/90 border border-amber-500/20">
+          <span>تنظیمات سیستم</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+      <header class="h-16 bg-slate-900/80 border-b border-slate-800 px-6 flex items-center justify-between gap-4">
+        <div class="relative w-full max-w-md">
+          <input type="text" placeholder="جستجو در معاملات، مخاطبان و شرکت‌ها... (Ctrl+K)" class="w-full pr-10 pl-16 py-2 bg-slate-900/70 border border-slate-700/80 rounded-xl text-xs text-slate-200" />
+        </div>
+        <div class="flex items-center gap-3">
+          <button class="px-3.5 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-xl">معامله جدید</button>
+          <div class="flex items-center gap-2.5 px-3 py-1 bg-slate-900/60 border border-slate-800 rounded-xl">
+            <span class="text-xs text-slate-200">مدیر سیستم</span>
+          </div>
+          <button class="p-2 text-slate-400">خروج</button>
+        </div>
+      </header>
+      <main class="flex-1 overflow-y-auto p-6 bg-slate-950/60">
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-8">
+          <h2 class="text-xl font-bold text-slate-100 mb-2">پیشخوان مدیریت فروش بیدار</h2>
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
