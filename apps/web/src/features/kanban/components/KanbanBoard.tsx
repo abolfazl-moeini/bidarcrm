@@ -13,6 +13,7 @@ export interface KanbanBoardProps {
   stages: PipelineStage[];
   deals: Opportunity[];
   onMoveDeal: (dealId: string, targetStageId: string, targetStageName: string) => void;
+  onSelectDeal?: (dealId: string) => void;
   className?: string;
 }
 
@@ -20,6 +21,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   stages,
   deals,
   onMoveDeal,
+  onSelectDeal,
   className = '',
 }) => {
   return (
@@ -33,6 +35,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           stage={stage}
           deals={deals}
           onDropDeal={onMoveDeal}
+          onSelectDeal={onSelectDeal}
         />
       ))}
     </div>

@@ -14,6 +14,7 @@ export interface KanbanColumnProps {
   stage: PipelineStage;
   deals: Opportunity[];
   onDropDeal: (dealId: string, stageId: string, stageName: string) => void;
+  onSelectDeal?: (dealId: string) => void;
   className?: string;
 }
 
@@ -21,6 +22,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   stage,
   deals,
   onDropDeal,
+  onSelectDeal,
   className = '',
 }) => {
   const [isDragOver, setIsDragOver] = useState(false);
@@ -91,7 +93,11 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
       {/* Deal Cards Area */}
       <div className="flex-1 p-3 space-y-3 overflow-y-auto min-h-[380px] max-h-[calc(100vh-230px)]">
         {stageDeals.map((deal) => (
-          <DealCard key={deal.id} deal={deal} />
+          <DealCard
+            key={deal.id}
+            deal={deal}
+            onClick={() => onSelectDeal?.(deal.id)}
+          />
         ))}
 
         {stageDeals.length === 0 && (

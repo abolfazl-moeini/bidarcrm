@@ -14,6 +14,7 @@ import { LoginPage } from './pages/LoginPage';
 import { AppShell } from './components/layout/AppShell';
 import { DashboardPage } from './pages/DashboardPage';
 import { KanbanPage } from './pages/KanbanPage';
+import { DealDetailPage } from './pages/DealDetailPage';
 
 export function AppContent(): React.JSX.Element {
   const { isAuthenticated } = useAuth();
@@ -23,9 +24,20 @@ export function AppContent(): React.JSX.Element {
     return <LoginPage />;
   }
 
+  const renderContent = () => {
+    if (currentPath.startsWith('/deals/')) {
+      const dealId = currentPath.replace('/deals/', '');
+      return <DealDetailPage dealId={dealId} onBack={() => setCurrentPath('/kanban')} />;
+    }
+    if (currentPath === '/kanban') {
+      return <KanbanPage onSelectDeal={(id) => setCurrentPath(`/deals/${id}`)} />;
+    }
+    return <DashboardPage />;
+  };
+
   return (
     <AppShell currentPath={currentPath} onNavigate={setCurrentPath}>
-      {currentPath === '/kanban' ? <KanbanPage /> : <DashboardPage />}
+      {renderContent()}
     </AppShell>
   );
 }

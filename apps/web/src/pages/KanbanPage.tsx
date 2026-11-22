@@ -14,9 +14,10 @@ import { formatToman, toPersianDigits } from '../lib/currency';
 
 export interface KanbanPageProps {
   onNewDeal?: () => void;
+  onSelectDeal?: (dealId: string) => void;
 }
 
-export const KanbanPage: React.FC<KanbanPageProps> = ({ onNewDeal }) => {
+export const KanbanPage: React.FC<KanbanPageProps> = ({ onNewDeal, onSelectDeal }) => {
   const {
     deals,
     stages,
@@ -149,6 +150,7 @@ export const KanbanPage: React.FC<KanbanPageProps> = ({ onNewDeal }) => {
         <KanbanBoard
           stages={stages}
           deals={filteredDeals}
+          onSelectDeal={onSelectDeal}
           onMoveDeal={(dealId, targetStageId, targetStageName) => {
             moveDeal(dealId, targetStageId, targetStageName).catch(() => {});
           }}
