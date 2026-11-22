@@ -13,6 +13,7 @@ import { UserNav } from './UserNav';
 export interface AppShellProps {
   children?: React.ReactNode;
   currentPath?: string;
+  onNavigate?: (path: string) => void;
   onNewDeal?: () => void;
   onSearch?: (query: string) => void;
   className?: string;
@@ -21,6 +22,7 @@ export interface AppShellProps {
 export const AppShell: React.FC<AppShellProps> = ({
   children,
   currentPath = '/dashboard',
+  onNavigate,
   onNewDeal,
   onSearch,
   className = '',
@@ -32,7 +34,7 @@ export const AppShell: React.FC<AppShellProps> = ({
       lang="fa"
     >
       {/* 1. Primary RTL Sidebar (Right side) */}
-      <Sidebar currentPath={currentPath} />
+      <Sidebar currentPath={currentPath} onNavigate={onNavigate} />
 
       {/* 2. Main Work Area (Header + Fluid Content) */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">

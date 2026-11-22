@@ -46,10 +46,15 @@ export const NAV_ITEMS: NavItem[] = [
 
 export interface SidebarProps {
   currentPath?: string;
+  onNavigate?: (path: string) => void;
   className?: string;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentPath = '/dashboard', className = '' }) => {
+export const Sidebar: React.FC<SidebarProps> = ({
+  currentPath = '/dashboard',
+  onNavigate,
+  className = '',
+}) => {
   const { user } = useAuth();
   const isAdmin = Boolean(user?.isAdmin);
 
@@ -80,6 +85,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPath = '/dashboard', cl
               <a
                 key={item.id}
                 href={item.href}
+                onClick={(e) => {
+                  if (onNavigate) {
+                    e.preventDefault();
+                    onNavigate(item.href);
+                  }
+                }}
                 className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition duration-150 ${
                   isActive
                     ? 'bg-indigo-600/15 text-indigo-400 border border-indigo-500/20 shadow-sm'
