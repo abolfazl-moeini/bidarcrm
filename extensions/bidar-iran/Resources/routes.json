@@ -1,0 +1,8 @@
+[
+  {
+    "route": "/BidarVoip/webhook",
+    "method": "post",
+    "action": "Espo\\Modules\\BidarIran\\Api\\PostVoipWebhook",
+    "noAuth": true
+  }
+]

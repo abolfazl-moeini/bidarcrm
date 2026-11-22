@@ -1,0 +1,8 @@
+{
+  "fields": {
+    "webhookSecret": {
+      "type": "varchar",
+      "required": true
+    }
+  }
+}
