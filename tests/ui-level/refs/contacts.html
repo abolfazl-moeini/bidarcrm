@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مخاطبان و مشتریان - BidarCRM</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 p-6 min-h-screen">
+  <div class="space-y-6 flex flex-col h-full max-w-7xl mx-auto" dir="rtl">
+    <!-- Header -->
+    <div class="flex items-center justify-between border-b border-slate-800/80 pb-5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-500/15 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl font-bold text-slate-100 tracking-tight">مخاطبان و مشتریان</h1>
+            <span class="text-xs font-medium text-slate-400 bg-slate-800 px-2.5 py-0.5 rounded-md">۲ مخاطب</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">مدیریت و مشاهده اشخاص و ارتباطات مشتریان</p>
+        </div>
+      </div>
+      <button class="px-4 py-2 bg-indigo-600 text-white text-xs font-medium rounded-xl">+ مخاطب جدید</button>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="max-w-md">
+      <input type="text" placeholder="جستجو در مخاطبان (نام، شرکت، تلفن، ایمیل)..." class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 outline-none">
+    </div>
+
+    <!-- Contacts Table -->
+    <div class="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+      <table class="bidar-contacts-table w-full text-right border-collapse">
+        <thead>
+          <tr class="bg-slate-900/90 border-b border-slate-800 text-slate-400 text-xs font-semibold">
+            <th class="py-3.5 px-4">نام و نام خانوادگی</th>
+            <th class="py-3.5 px-4">شرکت مرتبط</th>
+            <th class="py-3.5 px-4">شماره تماس</th>
+            <th class="py-3.5 px-4">ایمیل</th>
+            <th class="py-3.5 px-4">تاریخ ثبت</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-800/60 text-xs text-slate-200">
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="py-3.5 px-4 font-semibold text-slate-100">علی حسینی</td>
+            <td class="py-3.5 px-4 text-slate-400">شرکت پتروشیمی رازی</td>
+            <td class="py-3.5 px-4"><a href="tel:09121112233" class="text-slate-300 hover:text-emerald-400 font-mono" dir="ltr">09121112233</a></td>
+            <td class="py-3.5 px-4"><a href="mailto:hosseini@razi.ir" class="text-slate-300 hover:text-indigo-400 font-mono" dir="ltr">hosseini@razi.ir</a></td>
+            <td class="py-3.5 px-4 text-slate-400 font-mono text-[11px]" dir="ltr">۱۴۰۵/۰۸/۱۴</td>
+          </tr>
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="py-3.5 px-4 font-semibold text-slate-100">سارا کاظمی</td>
+            <td class="py-3.5 px-4 text-slate-400">بانک آینده</td>
+            <td class="py-3.5 px-4"><a href="tel:09359998877" class="text-slate-300 hover:text-emerald-400 font-mono" dir="ltr">09359998877</a></td>
+            <td class="py-3.5 px-4"><a href="mailto:kazemi@ayandeh.ir" class="text-slate-300 hover:text-indigo-400 font-mono" dir="ltr">kazemi@ayandeh.ir</a></td>
+            <td class="py-3.5 px-4 text-slate-400 font-mono text-[11px]" dir="ltr">۱۴۰۵/۰۸/۲۱</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="p-3 bg-slate-900/80 border-t border-slate-800/80 text-xs text-slate-400">
+        تعداد کل مخاطبان: ۲
+      </div>
+    </div>
+  </div>
+</body>
+</html>
