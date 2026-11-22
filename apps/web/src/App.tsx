@@ -16,6 +16,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { KanbanPage } from './pages/KanbanPage';
 import { DealDetailPage } from './pages/DealDetailPage';
 import { ContactsPage } from './pages/ContactsPage';
+import { ActivitiesPage } from './pages/ActivitiesPage';
 
 export function AppContent(): React.JSX.Element {
   const { isAuthenticated } = useAuth();
@@ -35,6 +36,9 @@ export function AppContent(): React.JSX.Element {
     }
     if (currentPath === '/contacts') {
       return <ContactsPage />;
+    }
+    if (currentPath === '/activities') {
+      return <ActivitiesPage />;
     }
     return <DashboardPage />;
   };

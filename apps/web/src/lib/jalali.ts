@@ -81,6 +81,52 @@ export function toUtcIsoString(jalaliStr: string): string {
   return `${gy}-${pad(gm)}-${pad(gd)}T08:30:00.000Z`;
 }
 
+export const PERSIAN_MONTH_NAMES = [
+  'فروردین',
+  'اردیبهشت',
+  'خرداد',
+  'تیر',
+  'مرداد',
+  'شهریور',
+  'مهر',
+  'آبان',
+  'آذر',
+  'دی',
+  'بهمن',
+  'اسفند',
+] as const;
+
+export const PERSIAN_WEEKDAYS = [
+  'شنبه',
+  'یکشنبه',
+  'دوشنبه',
+  'سه‌شنبه',
+  'چهارشنبه',
+  'پنج‌شنبه',
+  'جمعه',
+] as const;
+
+export function getJalaliParts(date: Date = new Date()): { year: number; month: number; day: number } {
+  const parts = new Intl.DateTimeFormat('en-US-u-ca-persian', {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    timeZone: 'Asia/Tehran',
+  }).formatToParts(date);
+
+  let year = 1405;
+  let month = 9;
+  let day = 1;
+
+  for (const part of parts) {
+    if (part.type === 'year') year = parseInt(part.value, 10);
+    if (part.type === 'month') month = parseInt(part.value, 10);
+    if (part.type === 'day') day = parseInt(part.value, 10);
+  }
+
+  return { year, month, day };
+}
+
 export function getJalaliMonthRangeUtc(year: number, month: number): { fromUtc: string; toUtc: string } {
   const daysInMonth = month <= 6 ? 31 : month <= 11 ? 30 : 29;
   const [gy1, gm1, gd1] = jalaliToGregorian(year, month, 1);

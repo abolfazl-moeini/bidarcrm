@@ -96,6 +96,22 @@
       "colorThresholdDeltaE": 2.0,
       "geometryTolerancePx": 0.5,
       "maskSelectors": [".dynamic-time"]
+    },
+    {
+      "id": "calendar",
+      "name": "تقویم فروش و فعالیت‌ها (Calendar)",
+      "targetUrl": "http://localhost:5173/app/activities",
+      "ref": "tests/ui-level/refs/calendar.html",
+      "adapter": "html",
+      "selector": "#root",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      },
+      "colorThresholdDeltaE": 2.0,
+      "geometryTolerancePx": 0.5,
+      "maskSelectors": [".dynamic-time"]
     }
   ]
 }
