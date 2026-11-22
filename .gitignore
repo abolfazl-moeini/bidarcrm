@@ -1,26 +1,27 @@
-# OS files
-.DS_Store
-Thumbs.db
-
-# Dependencies
-node_modules/
-vendor/
-
-# Environment
-.env
-.env.local
-.env.*.local
-
-# Tests & Cache
-.phpunit.result.cache
-vendor-prefixed/
-dist/
-build/
 *.log
-logs/
-
-# IDE & Editor
-.idea/
-.vscode/
-*.swp
-*.swo
+.DS_Store
+.env
+.env.backup
+.env.production
+.phpactor.json
+.phpunit.result.cache
+/.codex
+/.cursor/
+/.idea
+/.nova
+/.phpunit.cache
+/.vscode
+/.zed
+/auth.json
+/node_modules
+/public/build
+/public/fonts-manifest.dev.json
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/vendor
+_ide_helper.php
+Homestead.json
+Homestead.yaml
+Thumbs.db
