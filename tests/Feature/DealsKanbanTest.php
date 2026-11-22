@@ -179,4 +179,63 @@ class DealsKanbanTest extends TestCase
                 'is_rotten' => false,
             ]);
     }
+
+    public function test_it_renders_kanban_board_with_persian_stages_and_rotten_badges(): void
+    {
+        $pipeline = Pipeline::create(['name' => 'فرایند فروش دیدار']);
+        $stage1 = Stage::create([
+            'pipeline_id' => $pipeline->id,
+            'name' => 'سرنخ اولیه',
+            'slug' => 'lead',
+            'order' => 1,
+            'rotten_days' => 3,
+            'win_probability' => 25,
+        ]);
+        $stage2 = Stage::create([
+            'pipeline_id' => $pipeline->id,
+            'name' => 'پیش‌فاکتور',
+            'slug' => 'proposal',
+            'order' => 2,
+            'rotten_days' => 5,
+            'win_probability' => 60,
+        ]);
+
+        $rottenDeal = Deal::create([
+            'pipeline_id' => $pipeline->id,
+            'stage_id' => $stage1->id,
+            'title' => 'معامله نیازمند پیگیری فوری',
+            'amount' => 45000000,
+            'status' => 'open',
+            'win_probability' => 25,
+            'stage_entered_at' => Carbon::now()->subDays(6),
+            'days_in_stage' => 6,
+            'is_rotten' => true,
+        ]);
+
+        $freshDeal = Deal::create([
+            'pipeline_id' => $pipeline->id,
+            'stage_id' => $stage2->id,
+            'title' => 'معامله فعال جاری',
+            'amount' => 82000000,
+            'status' => 'open',
+            'win_probability' => 60,
+            'stage_entered_at' => Carbon::now()->subDays(1),
+            'days_in_stage' => 1,
+            'is_rotten' => false,
+        ]);
+
+        $response = $this->get("/deals?pipeline_id={$pipeline->id}");
+
+        $response->assertStatus(200);
+        $response->assertSee('فرایند فروش دیدار');
+        $response->assertSee('سرنخ اولیه');
+        $response->assertSee('پیش‌فاکتور');
+        $response->assertSee('معامله نیازمند پیگیری فوری');
+        $response->assertSee('معامله فعال جاری');
+        $response->assertSee('deal-card-'.$rottenDeal->id, false);
+        $response->assertSee('deal-card-'.$freshDeal->id, false);
+        $response->assertSee('rotten-alert');
+        $response->assertSee('role="region"', false);
+        $response->assertSee('role="status"', false);
+    }
 }
