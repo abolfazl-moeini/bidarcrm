@@ -1,0 +1,70 @@
+# ==============================================================================
+# BidarCRM - Root Apache .htaccess Template (Same-Origin Routing)
+# Compatible with EspoCRM 10.1.4 & React Front-Office SPA
+# ==============================================================================
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # --------------------------------------------------------------------------
+    # 1. Security: Block direct HTTP access to internal/sensitive directories
+    # --------------------------------------------------------------------------
+    RewriteRule ^(application|data|custom|vendor|logs|engine|packages|extensions)/ - [F,L,NC]
+    RewriteRule ^(\.git|\.env|\.ui-level|composer\.(json|lock)|package(-lock)?\.json|engine\.version) - [F,L,NC]
+
+    # --------------------------------------------------------------------------
+    # 2. Authentication Headers Preservation (FastCGI / CGI support)
+    # --------------------------------------------------------------------------
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+    RewriteRule .* - [E=HTTP_ESPO_CGI_AUTH:%{HTTP:Espo-Authorization}]
+    RewriteRule .* - [E=HTTP_X_BIDAR_VOIP_SECRET:%{HTTP:X-Bidar-Voip-Secret}]
+
+    # --------------------------------------------------------------------------
+    # 3. EspoCRM Native API v1 Routes
+    # Route /api/v1/* to public/api/v1/index.php
+    # --------------------------------------------------------------------------
+    RewriteCond %{REQUEST_URI} ^/api/v1/(.*)$ [NC]
+    RewriteRule ^api/v1/(.*)$ public/api/v1/index.php [QSA,L]
+
+    # --------------------------------------------------------------------------
+    # 4. EspoCRM Native Assets & Entry Points
+    # Pass directly to client/, install/, oauth callback, or entryPoint requests
+    # --------------------------------------------------------------------------
+    RewriteCond %{QUERY_STRING} (^|&)entryPoint= [NC]
+    RewriteRule ^.*$ public/index.php [QSA,L]
+
+    RewriteRule ^client/(.*)$ public/client/$1 [L]
+    RewriteRule ^install/?(.*)$ public/install/$1 [QSA,L]
+    RewriteRule ^oauth-callback\.php$ public/oauth-callback.php [L]
+
+    # --------------------------------------------------------------------------
+    # 5. EspoCRM Native Admin Panel (Backbone)
+    # Route /admin and /admin/* to EspoCRM native public/index.php
+    # --------------------------------------------------------------------------
+    RewriteRule ^admin/?(.*)$ public/index.php [QSA,L]
+
+    # --------------------------------------------------------------------------
+    # 6. BidarCRM Front-Office React SPA Static Assets
+    # Serve assets under /app/* directly if existing, else fallback to app/index.html
+    # --------------------------------------------------------------------------
+    RewriteCond %{DOCUMENT_ROOT}/public/app/$1 -f
+    RewriteRule ^app/(.*)$ public/app/$1 [L]
+
+    RewriteRule ^app(/.*)?$ public/app/index.html [L]
+
+    # --------------------------------------------------------------------------
+    # 7. Public static files (favicon, manifest, public assets)
+    # --------------------------------------------------------------------------
+    RewriteCond %{DOCUMENT_ROOT}/public/$1 -f
+    RewriteRule ^(.*)$ public/$1 [L]
+
+    # --------------------------------------------------------------------------
+    # 8. Front-Office SPA Route Fallback
+    # All other routes (/, /login, /deals/*, /contacts/*, /accounts/*, /activities, /calendar)
+    # fallback to the Front-Office React SPA
+    # --------------------------------------------------------------------------
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^.*$ public/app/index.html [L]
+</IfModule>

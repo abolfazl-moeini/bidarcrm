@@ -1,0 +1,50 @@
+# ==============================================================================
+# BidarCRM - Public Directory Apache .htaccess Template (DocumentRoot = public/)
+# Compatible with EspoCRM 10.1.4 & React Front-Office SPA
+# ==============================================================================
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # --------------------------------------------------------------------------
+    # 1. Authentication Headers Preservation (FastCGI / CGI support)
+    # --------------------------------------------------------------------------
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+    RewriteRule .* - [E=HTTP_ESPO_CGI_AUTH:%{HTTP:Espo-Authorization}]
+    RewriteRule .* - [E=HTTP_X_BIDAR_VOIP_SECRET:%{HTTP:X-Bidar-Voip-Secret}]
+
+    # --------------------------------------------------------------------------
+    # 2. EspoCRM Native API v1 Routes
+    # --------------------------------------------------------------------------
+    RewriteRule ^api/v1/(.*)$ api/v1/index.php [QSA,L]
+
+    # --------------------------------------------------------------------------
+    # 3. EspoCRM Native Entry Points and Install
+    # --------------------------------------------------------------------------
+    RewriteCond %{QUERY_STRING} (^|&)entryPoint= [NC]
+    RewriteRule ^.*$ index.php [QSA,L]
+
+    RewriteRule ^install/?(.*)$ install/$1 [QSA,L]
+    RewriteRule ^oauth-callback\.php$ oauth-callback.php [L]
+
+    # --------------------------------------------------------------------------
+    # 4. EspoCRM Native Admin Panel (Backbone)
+    # --------------------------------------------------------------------------
+    RewriteRule ^admin/?(.*)$ index.php [QSA,L]
+
+    # --------------------------------------------------------------------------
+    # 5. Front-Office SPA Assets & Route Fallback
+    # --------------------------------------------------------------------------
+    RewriteCond %{REQUEST_URI} ^/app/ [NC]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^app/.*$ app/index.html [L]
+
+    # Existing static files
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # SPA Fallback for all Front-Office routes
+    RewriteRule ^.*$ app/index.html [L]
+</IfModule>
