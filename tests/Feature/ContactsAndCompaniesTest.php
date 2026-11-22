@@ -154,18 +154,19 @@ class ContactsAndCompaniesTest extends TestCase
         ]);
 
         $timelineService = app(TimelineService::class);
+        $baseTime = Carbon::now();
 
         // Log events at distinct timestamps
-        Carbon::setTestNow(Carbon::now()->subHours(5));
+        Carbon::setTestNow($baseTime->copy()->subHours(5));
         $timelineService->log($contact, 'contact_created', 'مخاطب جدید در سیستم ثبت شد.');
 
-        Carbon::setTestNow(Carbon::now()->subHours(3));
+        Carbon::setTestNow($baseTime->copy()->subHours(3));
         $timelineService->log($contact, 'company_linked', 'مخاطب به سازمان نوآوران پایا پیوند داده شد.', [
             'company_id' => $company->id,
             'company_name' => $company->name,
         ]);
 
-        Carbon::setTestNow(Carbon::now()->subHour());
+        Carbon::setTestNow($baseTime->copy()->subHour());
         $timelineService->log($contact, 'phone_call', 'تماس خروجی با مخاطب جهت نیازسنجی سرور ابری برقرار شد.', [
             'duration_minutes' => 14,
             'outcome' => 'موفق و پیگیری جلسه دمو',

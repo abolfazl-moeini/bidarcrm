@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\CompanyController;
+use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\DealController;
 use App\Http\Controllers\Api\PipelineController;
 use Illuminate\Support\Facades\Route;
@@ -14,3 +16,8 @@ Route::prefix('deals')->group(function () {
     Route::post('/', [DealController::class, 'store']);
     Route::post('/{id}/move', [DealController::class, 'move']);
 });
+
+Route::apiResource('companies', CompanyController::class);
+Route::apiResource('contacts', ContactController::class);
+Route::post('/contacts/{id}/link', [ContactController::class, 'link']);
+Route::get('/contacts/{id}/timeline', [ContactController::class, 'timeline']);
