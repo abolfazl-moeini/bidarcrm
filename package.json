@@ -1,0 +1,29 @@
+{
+  "name": "bidar",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BidarCRM - Front-Office Headless CRM built on EspoCRM 10.1.4",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "test:unit": "vendor/bin/phpunit -c extensions/phpunit.xml --testsuite unit",
+    "test:integration": "vendor/bin/phpunit -c extensions/phpunit.xml --testsuite integration",
+    "test:web": "npm --prefix apps/web test",
+    "test:e2e": "npm --prefix packages/e2e test",
+    "test:all": "npm run test:unit && npm --prefix apps/web run test:ci && npm --prefix packages/e2e run test:all",
+    "build:web": "npm --prefix apps/web run build",
+    "build:release": "bash scripts/build-release.sh",
+    "dev:setup": "bash scripts/dev-setup.sh"
+  },
+  "keywords": [
+    "bidarcrm",
+    "crm",
+    "espocrm",
+    "react",
+    "front-office"
+  ],
+  "author": "Abolfazl Moeini",
+  "license": "UNLICENSED"
+}

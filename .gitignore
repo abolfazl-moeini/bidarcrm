@@ -6,6 +6,13 @@ Thumbs.db
 node_modules/
 vendor/
 
+# Engine & Build artifacts
+engine/
+dist/
+build/
+.ui-level/
+.phpunit.cache/
+
 # Environment
 .env
 .env.local

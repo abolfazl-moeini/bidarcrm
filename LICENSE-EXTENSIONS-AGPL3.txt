@@ -1,0 +1,24 @@
+BidarCRM Backend Extensions License Boundary Notice
+===================================================
+
+This document sets forth the license boundary and terms applicable to the
+BidarCRM codebase.
+
+1. Backend Extensions Boundary (AGPL-3.0)
+------------------------------------------
+All backend modules and extensions located in the `extensions/` directory
+(including `extensions/bidar-sales` and `extensions/bidar-iran`) run within
+the EspoCRM runtime process and implement EspoCRM internal interfaces.
+Accordingly, they are licensed under the terms of the GNU Affero General
+Public License, Version 3 (AGPL-3.0) or later, in compliance with EspoCRM
+licensing requirements.
+
+A copy of the GNU Affero General Public License Version 3 can be obtained at:
+https://www.gnu.org/licenses/agpl-3.0.txt
+
+2. Independent Client Boundary
+------------------------------
+Independent user interfaces, frontends (e.g. `apps/web`), and testing suites
+(e.g. `packages/e2e`) that communicate with the backend exclusively via
+standard network protocols and HTTP/REST APIs over the wire are independent works
+and are not governed by the copyleft provisions of the backend extensions.
