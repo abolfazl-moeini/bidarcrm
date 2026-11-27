@@ -8,13 +8,30 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+ROOT_DIR="$(git rev-parse --show-toplevel 2>/dev/null || (cd "${SCRIPT_DIR}/../.." && pwd))"
 
 PACKAGE_JSON="${ROOT_DIR}/package.json"
-APP_VERSION="1.0.1"
-if [[ -f "${PACKAGE_JSON}" ]]; then
-    APP_VERSION="$(grep -o '"version": "[^"]*"' "${PACKAGE_JSON}" | cut -d'"' -f4 || echo "1.0.1")"
-fi
+
+read_app_version() {
+    local pkg="$1"
+    local version=""
+
+    if [[ -f "${pkg}" ]]; then
+        if command -v node >/dev/null 2>&1; then
+            version="$(node -p "require(process.argv[1]).version || ''" "${pkg}" 2>/dev/null || true)"
+        fi
+        if [[ -z "${version}" ]] && command -v php >/dev/null 2>&1; then
+            version="$(php -r '$d = json_decode((string) file_get_contents($argv[1]), true); echo (is_array($d) && isset($d["version"])) ? $d["version"] : "";' "${pkg}" 2>/dev/null || true)"
+        fi
+        if [[ ! "${version}" =~ ^[0-9A-Za-z][0-9A-Za-z._+-]*$ ]]; then
+            version=""
+        fi
+    fi
+
+    printf '%s' "${version:-1.0.4}"
+}
+
+APP_VERSION="$(read_app_version "${PACKAGE_JSON}")"
 
 ZIP_FILE="${1:-${ROOT_DIR}/dist/bidar-crm-v${APP_VERSION}.zip}"
 
@@ -36,14 +53,14 @@ SMOKE_DIR="$(mktemp -d -t bidar-smoke-XXXXXX)"
 echo "==> Creating isolated hosting directory: ${SMOKE_DIR}"
 
 cleanup() {
-    local exit_code=$?
     if [[ -d "${SMOKE_DIR}" ]]; then
         echo "==> [CLEANUP] Removing temporary test environment: ${SMOKE_DIR}"
-        rm -rf "${SMOKE_DIR}"
+        rm -rf "${SMOKE_DIR}" || true
     fi
-    exit "${exit_code}"
 }
-trap cleanup EXIT INT TERM ERR
+# EXIT only: trapping INT/TERM/ERR as well runs the cleanup twice (once for the
+# signal, once when the shell finally exits) and rewrites the real exit status.
+trap cleanup EXIT
 
 # ------------------------------------------------------------------------------
 # 2. Extract Release Package
@@ -74,6 +91,8 @@ REQUIRED_DIRS=(
     "public/app"
     "custom/Espo/Modules/BidarSales"
     "custom/Espo/Modules/BidarIran"
+    "custom/Espo/Modules/BidarBrand"
+    "custom/Espo/Modules/BidarTheme"
     "application"
     "vendor"
 )
@@ -117,11 +136,8 @@ if [[ -d "${MODULES_DIR}" ]]; then
         log_fail "No PHP files found in custom/Espo/Modules"
     else
         echo "    Checking ${PHP_COUNT} PHP module file(s)..."
-        # Run php -l on all files
-        LINT_OUTPUT="$(find "${MODULES_DIR}" -type f -name "*.php" -exec php -l {} + 2>&1)" || {
-            log_fail "PHP syntax lint failed: ${LINT_OUTPUT}"
-        }
-        if [[ $? -eq 0 && ! "${LINT_OUTPUT}" =~ "Fatal error" && ! "${LINT_OUTPUT}" =~ "Parse error" ]]; then
+        # Trust php -l's exit status instead of parsing its human-readable output.
+        if LINT_OUTPUT="$(find "${MODULES_DIR}" -type f -name "*.php" -print0 | xargs -0 -n1 php -l 2>&1)"; then
             log_pass "All ${PHP_COUNT} BidarCRM PHP module files passed syntax check (php -l)"
         else
             log_fail "Syntax errors detected in BidarCRM PHP files: ${LINT_OUTPUT}"
@@ -244,7 +260,6 @@ if [[ -f "${ROOT_HTACCESS}" && -r "${ROOT_HTACCESS}" ]]; then
         "E=HTTP_X_BIDAR_VOIP_SECRET:%{HTTP:X-Bidar-Voip-Secret}"
         "E=HTTP_X_VOIP_TOKEN:%{HTTP:X-Voip-Token}"
         "RewriteRule ^api/v1/(.*)$ public/api/v1/index.php"
-        "RewriteRule ^admin/?(.*)$ public/index.php"
         "RewriteRule ^client/ - [L]"
         "public/app/index.html"
         "(application|data|custom|vendor|logs"
@@ -257,6 +272,15 @@ if [[ -f "${ROOT_HTACCESS}" && -r "${ROOT_HTACCESS}" ]]; then
             log_fail "Root .htaccess missing expected rule: ${rule}"
         fi
     done
+
+    # Accept both the legacy ^admin/?(.*)$ and updated ^admin(/.*)?$ forms so
+    # pre-existing and freshly built release archives both pass this gate.
+    if grep -qF "RewriteRule ^admin/?(.*)$ public/index.php" "${ROOT_HTACCESS}" \
+        || grep -qF "RewriteRule ^admin(/.*)?$ public/index.php" "${ROOT_HTACCESS}"; then
+        log_pass "Root .htaccess contains admin rewrite rule (legacy or updated pattern)"
+    else
+        log_fail "Root .htaccess missing admin rewrite rule (expected ^admin/?(.*)$ or ^admin(/.*)?$)"
+    fi
 
     # Verification Gate: Ensure client/ static assets are never rewritten to non-existent public/client/
     if grep -q "public/client/" "${ROOT_HTACCESS}"; then
@@ -319,7 +343,6 @@ if [[ -f "${PUBLIC_HTACCESS}" && -r "${PUBLIC_HTACCESS}" ]]; then
         "E=HTTP_X_BIDAR_VOIP_SECRET:%{HTTP:X-Bidar-Voip-Secret}"
         "E=HTTP_X_VOIP_TOKEN:%{HTTP:X-Voip-Token}"
         "^api/v1/(.*)$ api/v1/index.php"
-        "^admin/?(.*)$ index.php"
         "app/index.html"
     )
 
@@ -330,6 +353,15 @@ if [[ -f "${PUBLIC_HTACCESS}" && -r "${PUBLIC_HTACCESS}" ]]; then
             log_fail "public/.htaccess missing expected rule: ${rule}"
         fi
     done
+
+    # Accept both the legacy ^admin/?(.*)$ and updated ^admin(/.*)?$ forms so
+    # pre-existing and freshly built release archives both pass this gate.
+    if grep -qF "^admin/?(.*)$ index.php" "${PUBLIC_HTACCESS}" \
+        || grep -qF "^admin(/.*)?$ index.php" "${PUBLIC_HTACCESS}"; then
+        log_pass "public/.htaccess contains admin rewrite rule (legacy or updated pattern)"
+    else
+        log_fail "public/.htaccess missing admin rewrite rule (expected ^admin/?(.*)$ or ^admin(/.*)?$)"
+    fi
 else
     log_fail "public/.htaccess missing or unreadable"
 fi
@@ -371,7 +403,203 @@ else
 fi
 
 # ------------------------------------------------------------------------------
-# 8. Summary & Exit
+# 8. White-Label Verification Gate (AGPLv3 Section 7(b) & Zero-Leakage)
+# ------------------------------------------------------------------------------
+echo "==> Step 6: White-Label Verification Gate (Zero EspoCRM UI Leakage)..."
+
+# 1. Check NOTICE.txt and BidarBrand module
+if [[ -f "${SMOKE_DIR}/NOTICE.txt" && -s "${SMOKE_DIR}/NOTICE.txt" ]]; then
+    log_pass "NOTICE.txt exists in package root (AGPLv3 Section 7(b) legal compliance preserved)"
+else
+    log_fail "NOTICE.txt missing or empty in package root"
+fi
+
+if [[ -f "${SMOKE_DIR}/custom/Espo/Modules/BidarBrand/manifest.json" ]]; then
+    log_pass "BidarBrand extension manifest exists (custom/Espo/Modules/BidarBrand/manifest.json)"
+else
+    log_fail "Missing custom/Espo/Modules/BidarBrand/manifest.json"
+fi
+
+# 2. Check brand logo and favicon assets
+if [[ -f "${SMOKE_DIR}/client/img/logo-light.svg" || -f "${SMOKE_DIR}/client/img/logo.svg" ]]; then
+    log_pass "Brand logo asset exists in client/img/"
+else
+    log_fail "Missing brand logo in client/img/"
+fi
+
+if [[ -f "${SMOKE_DIR}/client/img/favicon.svg" ]]; then
+    log_pass "Brand favicon asset exists in client/img/favicon.svg"
+else
+    log_fail "Missing brand favicon in client/img/favicon.svg"
+fi
+
+# 3. Assert EspoCRM, Inc. is NOT in footers
+FOOTER_FILES=(
+    "html/main.html"
+    "client/res/templates/site/footer.tpl"
+    "install/core/tpl/footer.tpl"
+)
+
+for fpath in "${FOOTER_FILES[@]}"; do
+    if [[ -f "${SMOKE_DIR}/${fpath}" ]]; then
+        if grep -q "EspoCRM, Inc." "${SMOKE_DIR}/${fpath}"; then
+            log_fail "Found forbidden upstream copyright 'EspoCRM, Inc.' in ${fpath}"
+        else
+            log_pass "Zero upstream copyright in ${fpath} (Clean white-label footer)"
+        fi
+    fi
+done
+
+# 4. Assert EspoCRM Installation is NOT in install.json
+INSTALL_JSON_FILES=(
+    "install/core/i18n/fa_IR/install.json"
+    "install/core/i18n/en_US/install.json"
+)
+
+for ipath in "${INSTALL_JSON_FILES[@]}"; do
+    if [[ -f "${SMOKE_DIR}/${ipath}" ]]; then
+        if grep -qi "EspoCRM Installation" "${SMOKE_DIR}/${ipath}"; then
+            log_fail "Found forbidden 'EspoCRM Installation' in ${ipath}"
+        else
+            log_pass "Zero 'EspoCRM Installation' in ${ipath} (Clean white-label installer labels)"
+        fi
+    fi
+done
+
+# ------------------------------------------------------------------------------
+# 9. Iran Localization Verification Gate
+# ------------------------------------------------------------------------------
+echo "==> Step 7: Iran Localization Verification Gate..."
+
+if [[ -f "${SMOKE_DIR}/client/custom/modules/bidar-iran/lib/jalalidatepicker.min.js" ]]; then
+    log_pass "JalaliDatePicker script packaged (client/custom/modules/bidar-iran/lib/jalalidatepicker.min.js)"
+else
+    log_fail "Missing client/custom/modules/bidar-iran/lib/jalalidatepicker.min.js"
+fi
+
+if [[ -d "${SMOKE_DIR}/vendor/morilog/jalali" ]]; then
+    log_pass "Morilog Jalali packaged in vendor/morilog/jalali"
+    if JALALIAN_AUTOLOAD_OUTPUT="$(php -r 'require $argv[1] . "/vendor/autoload.php"; echo class_exists("Morilog\\Jalali\\Jalalian") ? "YES" : "NO";' "${SMOKE_DIR}" 2>&1)" && [[ "${JALALIAN_AUTOLOAD_OUTPUT}" == *YES* ]]; then
+        log_pass "Morilog Jalali autoloader successfully loaded Jalalian class in clean package"
+    else
+        log_fail "Failed to autoload Jalalian class via vendor/autoload.php: ${JALALIAN_AUTOLOAD_OUTPUT}"
+    fi
+else
+    log_fail "Missing vendor/morilog/jalali in release package"
+fi
+
+# ------------------------------------------------------------------------------
+echo "==> Step 8: BidarTheme Verification Gate..."
+
+if [[ -f "${SMOKE_DIR}/custom/Espo/Modules/BidarTheme/manifest.json" ]]; then
+    log_pass "BidarTheme module manifest packaged (custom/Espo/Modules/BidarTheme/manifest.json)"
+else
+    log_fail "Missing custom/Espo/Modules/BidarTheme/manifest.json"
+fi
+
+if [[ -f "${SMOKE_DIR}/custom/Espo/Modules/BidarTheme/Resources/metadata/themes/Bidar.json" ]]; then
+    log_pass "BidarTheme theme definition packaged (custom/Espo/Modules/BidarTheme/Resources/metadata/themes/Bidar.json)"
+else
+    log_fail "Missing custom/Espo/Modules/BidarTheme/Resources/metadata/themes/Bidar.json"
+fi
+
+if [[ -f "${SMOKE_DIR}/client/custom/modules/bidar-theme/css/bidar.css" ]]; then
+    log_pass "BidarTheme stylesheet packaged (client/custom/modules/bidar-theme/css/bidar.css)"
+else
+    log_fail "Missing client/custom/modules/bidar-theme/css/bidar.css"
+fi
+
+if [[ -f "${SMOKE_DIR}/client/custom/modules/bidar-theme/fonts/vazirmatn/Vazirmatn-Variable.woff2" ]]; then
+    log_pass "BidarTheme offline font packaged (client/custom/modules/bidar-theme/fonts/vazirmatn/Vazirmatn-Variable.woff2)"
+else
+    log_fail "Missing client/custom/modules/bidar-theme/fonts/vazirmatn/Vazirmatn-Variable.woff2"
+fi
+
+# ------------------------------------------------------------------------------
+echo "==> Step 9: Installer Theme & RTL Defaults Verification Gate..."
+
+if grep -q "'Bidar'" "${SMOKE_DIR}/install/core/Installer.php" 2>/dev/null; then
+    log_pass "Installer getThemeList() contains 'Bidar' as available theme"
+else
+    log_fail "Installer getThemeList() missing 'Bidar' in install/core/Installer.php"
+fi
+
+if grep -q "'theme' => \$saveData\['theme'\] ?? 'Bidar'" "${SMOKE_DIR}/install/core/Installer.php" 2>/dev/null; then
+    log_pass "Installer default saved theme is 'Bidar'"
+else
+    log_fail "Installer default saved theme is not 'Bidar' in install/core/Installer.php"
+fi
+
+if grep -q "'Bidar'" "${SMOKE_DIR}/install/entry.php" 2>/dev/null; then
+    log_pass "Installer entry.php falls back to theme 'Bidar'"
+else
+    log_fail "Installer entry.php does not fall back to theme 'Bidar'"
+fi
+
+if grep -q "'fa_IR'" "${SMOKE_DIR}/install/entry.php" 2>/dev/null; then
+    log_pass "Installer entry.php falls back to language 'fa_IR'"
+else
+    log_fail "Installer entry.php does not fall back to language 'fa_IR'"
+fi
+
+if [[ -f "${SMOKE_DIR}/application/Espo/Resources/metadata/themes/Bidar.json" ]]; then
+    log_pass "Bidar.json exists in core themes metadata (application/Espo/Resources/metadata/themes/Bidar.json)"
+else
+    log_fail "Missing application/Espo/Resources/metadata/themes/Bidar.json"
+fi
+
+if grep -q "بیدار (پیش‌فرض RTL)" "${SMOKE_DIR}/install/core/i18n/fa_IR/install.json" 2>/dev/null; then
+    log_pass "Installer fa_IR translation has 'Bidar': 'بیدار (پیش‌فرض RTL)'"
+else
+    log_fail "Missing Bidar theme translation in install/core/i18n/fa_IR/install.json"
+fi
+
+# ------------------------------------------------------------------------------
+echo "==> Step 10: Demo Data Seeder Verification Gate (Track D)..."
+
+if grep -q 'name="importDemoData"' "${SMOKE_DIR}/install/core/tpl/step4.tpl" 2>/dev/null; then
+    log_pass "Demo data checkbox packaged in installer step4.tpl (name='importDemoData')"
+else
+    log_fail "Missing demo data checkbox in install/core/tpl/step4.tpl"
+fi
+
+if grep -q "'seedDemoData'" "${SMOKE_DIR}/install/core/Utils.php" 2>/dev/null; then
+    log_pass "Action 'seedDemoData' whitelisted in install/core/Utils.php"
+else
+    log_fail "Action 'seedDemoData' missing from whitelist in install/core/Utils.php"
+fi
+
+if [[ -f "${SMOKE_DIR}/install/core/actions/seedDemoData.php" ]]; then
+    log_pass "Installer action script packaged (install/core/actions/seedDemoData.php)"
+    if SEED_ACTION_LINT="$(php -l "${SMOKE_DIR}/install/core/actions/seedDemoData.php" 2>&1)"; then
+        log_pass "install/core/actions/seedDemoData.php passed syntax lint"
+    else
+        log_fail "install/core/actions/seedDemoData.php has syntax errors: ${SEED_ACTION_LINT}"
+    fi
+else
+    log_fail "Missing install/core/actions/seedDemoData.php"
+fi
+
+if grep -q "importDemoData" "${SMOKE_DIR}/public/install/js/install.js" 2>/dev/null && grep -q "'seedDemoData'" "${SMOKE_DIR}/public/install/js/install.js" 2>/dev/null; then
+    log_pass "Installer JavaScript captures importDemoData and triggers seedDemoData AJAX (public/install/js/install.js)"
+else
+    log_fail "Installer JavaScript missing importDemoData or seedDemoData handling in public/install/js/install.js"
+fi
+
+if [[ -f "${SMOKE_DIR}/custom/Espo/Modules/BidarSales/Seed/DemoDataSeeder.php" ]]; then
+    log_pass "DemoDataSeeder packaged in BidarSales module (custom/Espo/Modules/BidarSales/Seed/DemoDataSeeder.php)"
+    if SEEDER_LINT="$(php -l "${SMOKE_DIR}/custom/Espo/Modules/BidarSales/Seed/DemoDataSeeder.php" 2>&1)"; then
+        log_pass "custom/Espo/Modules/BidarSales/Seed/DemoDataSeeder.php passed syntax lint"
+    else
+        log_fail "custom/Espo/Modules/BidarSales/Seed/DemoDataSeeder.php has syntax errors: ${SEEDER_LINT}"
+    fi
+else
+    log_fail "Missing custom/Espo/Modules/BidarSales/Seed/DemoDataSeeder.php in release bundle"
+fi
+
+# ------------------------------------------------------------------------------
+# 11. Summary & Exit
+
 # ------------------------------------------------------------------------------
 echo "================================================================================"
 if [[ ${ERRORS} -eq 0 ]]; then

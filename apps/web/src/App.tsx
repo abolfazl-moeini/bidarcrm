@@ -17,7 +17,11 @@ import { DealDetailPage } from './pages/DealDetailPage';
 import { ContactsPage } from './pages/ContactsPage';
 import { AccountsPage } from './pages/AccountsPage';
 import { ActivitiesPage } from './pages/ActivitiesPage';
+import { LeadsPage } from './pages/LeadsPage';
+import { ReportsPage } from './pages/ReportsPage';
+import { SettingsPage } from './pages/SettingsPage';
 import { DealCreateModal } from './features/kanban/components/DealCreateModal';
+import { VoipCallToast } from './components/layout/VoipCallToast';
 
 export function normalizePath(pathname: string): string {
   if (!pathname) return '/dashboard';
@@ -115,6 +119,11 @@ export function AppContent(): React.JSX.Element {
       return <ContactsPage />;
     }
 
+    // /leads
+    if (currentPath === '/leads') {
+      return <LeadsPage onSelectDeal={(id) => navigate(`/deals/${id}`)} />;
+    }
+
     // /accounts
     if (currentPath === '/accounts') {
       return <AccountsPage />;
@@ -123,6 +132,16 @@ export function AppContent(): React.JSX.Element {
     // /activities or /calendar
     if (currentPath === '/activities' || currentPath === '/calendar') {
       return <ActivitiesPage />;
+    }
+
+    // /reports
+    if (currentPath === '/reports') {
+      return <ReportsPage />;
+    }
+
+    // /settings
+    if (currentPath === '/settings') {
+      return <SettingsPage />;
     }
 
     // Default: / or /dashboard
@@ -145,6 +164,8 @@ export function AppContent(): React.JSX.Element {
       >
         {renderContent()}
       </AppShell>
+
+      <VoipCallToast />
 
       <DealCreateModal
         isOpen={isNewDealModalOpen}

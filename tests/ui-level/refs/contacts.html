@@ -3,70 +3,82 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>مخاطبان و مشتریان - BidarCRM</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>مخاطبان و مشتریان | بیدار CRM</title>
+  <link rel="stylesheet" href="./assets/bidar-styles.css">
   <style>
-    body { font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    body { font-family: 'Vazirmatn', system-ui, -apple-system, sans-serif; }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 p-6 min-h-screen">
-  <div class="space-y-6 flex flex-col h-full max-w-7xl mx-auto" dir="rtl">
-    <!-- Header -->
-    <div class="flex items-center justify-between border-b border-slate-800/80 pb-5">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-indigo-500/15 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-        </div>
-        <div>
-          <div class="flex items-center gap-2">
-            <h1 class="text-xl font-bold text-slate-100 tracking-tight">مخاطبان و مشتریان</h1>
-            <span class="text-xs font-medium text-slate-400 bg-slate-800 px-2.5 py-0.5 rounded-md">۲ مخاطب</span>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+  
+    <header class="bg-slate-900 border-b border-slate-800 px-4 py-2.5 flex items-center justify-between text-slate-100 select-none">
+      <div class="flex items-center gap-4">
+        <a href="index.html" class="flex items-center gap-2 hover:opacity-90 transition">
+          <div class="w-8 h-8 rounded-xl bg-teal-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+            ب
           </div>
-          <p class="text-xs text-slate-400 mt-1">مدیریت و مشاهده اشخاص و ارتباطات مشتریان</p>
+          <span class="font-bold text-sm tracking-tight text-white">بیدار CRM</span>
+        </a>
+        <nav class="hidden md:flex items-center gap-1 border-r border-slate-800 pr-4">
+          <a href="dashboard.html" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">داشبورد</a>
+          <a href="kanban.html" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">کاریز فروش</a>
+          <a href="deal-detail.html" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">جزئیات معامله</a>
+          <a href="leads.html" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">سرنخ‌ها</a>
+          <a href="contacts.html" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors bg-slate-800 text-white font-semibold">مخاطبان</a>
+          <a href="accounts.html" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">شرکت‌ها</a>
+          <a href="activities.html" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">فعالیت‌ها</a>
+          <a href="reports.html" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">گزارشات</a>
+          <a href="settings.html" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">تنظیمات</a>
+        </nav>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-xs bg-teal-950/80 text-teal-400 border border-teal-800/60 px-2 py-0.5 rounded-md font-mono hidden sm:inline">نسخه آفلاین</span>
+        <a href="login.html" class="text-xs text-rose-400 hover:text-rose-300 font-medium">خروج</a>
+      </div>
+    </header>
+  
+  <main class="w-full">
+    
+      <div class="max-w-7xl mx-auto p-6 space-y-5" dir="rtl">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+          <div>
+            <h1 class="text-xl font-bold text-slate-100">فهرست مخاطبان</h1>
+            <p class="text-xs text-slate-400 mt-0.5">مدیریت اشخاص حقیقی، تصمیم‌گیرندگان و مدیران سازمان‌ها</p>
+          </div>
+          <button class="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-semibold">+ مخاطب جدید</button>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+          <table class="bidar-contacts-table w-full text-right border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-950 border-b border-slate-800 text-slate-400 font-semibold">
+                <th class="py-3 px-4">نام کامل</th>
+                <th class="py-3 px-4">شرکت متبوع</th>
+                <th class="py-3 px-4">سمت</th>
+                <th class="py-3 px-4">تلفن همراه</th>
+                <th class="py-3 px-4">ایمیل</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800 text-slate-200">
+              <tr class="hover:bg-slate-800/40">
+                <td class="py-3 px-4 font-bold text-slate-100">علیرضا رضایی</td>
+                <td class="py-3 px-4 text-slate-400">فولاد البرز</td>
+                <td class="py-3 px-4">مدیر فناوری اطلاعات</td>
+                <td class="py-3 px-4 font-mono" dir="ltr">۰۹۱۲۱۱۱۴۴۵۵</td>
+                <td class="py-3 px-4 font-mono text-slate-400">a.rezaei@alborzsteel.ir</td>
+              </tr>
+              <tr class="hover:bg-slate-800/40">
+                <td class="py-3 px-4 font-bold text-slate-100">سارا یوسفی</td>
+                <td class="py-3 px-4 text-slate-400">بازرگانی سینا</td>
+                <td class="py-3 px-4">مدیر بازرگانی خارجی</td>
+                <td class="py-3 px-4 font-mono" dir="ltr">۰۹۳۳۲۲۲۹۹۰۰</td>
+                <td class="py-3 px-4 font-mono text-slate-400">yousefi@sinatrading.com</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
-      <button class="px-4 py-2 bg-indigo-600 text-white text-xs font-medium rounded-xl">+ مخاطب جدید</button>
-    </div>
-
-    <!-- Search Bar -->
-    <div class="max-w-md">
-      <input type="text" placeholder="جستجو در مخاطبان (نام، شرکت، تلفن، ایمیل)..." class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 outline-none">
-    </div>
-
-    <!-- Contacts Table -->
-    <div class="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
-      <table class="bidar-contacts-table w-full text-right border-collapse">
-        <thead>
-          <tr class="bg-slate-900/90 border-b border-slate-800 text-slate-400 text-xs font-semibold">
-            <th class="py-3.5 px-4">نام و نام خانوادگی</th>
-            <th class="py-3.5 px-4">شرکت مرتبط</th>
-            <th class="py-3.5 px-4">شماره تماس</th>
-            <th class="py-3.5 px-4">ایمیل</th>
-            <th class="py-3.5 px-4">تاریخ ثبت</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-800/60 text-xs text-slate-200">
-          <tr class="hover:bg-slate-800/40 transition">
-            <td class="py-3.5 px-4 font-semibold text-slate-100">علی حسینی</td>
-            <td class="py-3.5 px-4 text-slate-400">شرکت پتروشیمی رازی</td>
-            <td class="py-3.5 px-4"><a href="tel:09121112233" class="text-slate-300 hover:text-emerald-400 font-mono" dir="ltr">09121112233</a></td>
-            <td class="py-3.5 px-4"><a href="mailto:hosseini@razi.ir" class="text-slate-300 hover:text-indigo-400 font-mono" dir="ltr">hosseini@razi.ir</a></td>
-            <td class="py-3.5 px-4 text-slate-400 font-mono text-[11px]" dir="ltr">۱۴۰۵/۰۸/۱۴</td>
-          </tr>
-          <tr class="hover:bg-slate-800/40 transition">
-            <td class="py-3.5 px-4 font-semibold text-slate-100">سارا کاظمی</td>
-            <td class="py-3.5 px-4 text-slate-400">بانک آینده</td>
-            <td class="py-3.5 px-4"><a href="tel:09359998877" class="text-slate-300 hover:text-emerald-400 font-mono" dir="ltr">09359998877</a></td>
-            <td class="py-3.5 px-4"><a href="mailto:kazemi@ayandeh.ir" class="text-slate-300 hover:text-indigo-400 font-mono" dir="ltr">kazemi@ayandeh.ir</a></td>
-            <td class="py-3.5 px-4 text-slate-400 font-mono text-[11px]" dir="ltr">۱۴۰۵/۰۸/۲۱</td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="p-3 bg-slate-900/80 border-t border-slate-800/80 text-xs text-slate-400">
-        تعداد کل مخاطبان: ۲
-      </div>
-    </div>
-  </div>
+    
+  </main>
 </body>
 </html>

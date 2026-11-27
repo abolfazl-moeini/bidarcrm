@@ -1,26 +1,32 @@
 {
   "name": "bidar/bidar-crm",
-  "version": "1.0.1",
+  "version": "1.0.5",
   "description": "BidarCRM - Backend Extensions and Testing Harness for EspoCRM 10.1.4",
   "type": "project",
   "license": "Unlicense",
   "require": {
-    "php": ">=8.3"
+    "php": ">=8.3",
+    "morilog/jalali": "^3.5"
   },
   "require-dev": {
     "phpunit/phpunit": "^11.0"
   },
   "autoload": {
+    "files": [
+      "scripts/apply-whitelabel.php"
+    ],
     "psr-4": {
       "Espo\\Modules\\BidarSales\\": "extensions/bidar-sales/",
       "Espo\\Modules\\BidarIran\\": "extensions/bidar-iran/",
+      "Espo\\Modules\\BidarBrand\\": "extensions/bidar-brand/",
       "Espo\\": "engine/application/Espo/"
     }
   },
   "autoload-dev": {
     "psr-4": {
       "Espo\\Modules\\BidarSales\\Tests\\": "extensions/bidar-sales/tests/",
-      "Espo\\Modules\\BidarIran\\Tests\\": "extensions/bidar-iran/tests/"
+      "Espo\\Modules\\BidarIran\\Tests\\": "extensions/bidar-iran/tests/",
+      "Espo\\Modules\\BidarBrand\\Tests\\": "extensions/bidar-brand/tests/"
     }
   },
   "config": {

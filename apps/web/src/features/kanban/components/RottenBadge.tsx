@@ -34,11 +34,11 @@ export const RottenBadge: React.FC<RottenBadgeProps> = ({
 
   return (
     <span
-      className={`bidar-rotten-badge inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px] font-medium tracking-tight ${className}`}
+      className={`bidar-rotten-badge inline-flex items-center shrink-0 whitespace-nowrap gap-1 px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20 text-[10px] font-medium tracking-tight ${className}`}
       title={label}
       dir="rtl"
     >
-      <Flame className="w-3 h-3 text-rose-400 flex-shrink-0 animate-pulse" />
+      <Flame className="w-3 h-3 text-rose-600 dark:text-rose-400 flex-shrink-0 animate-pulse" />
       <span>{label}</span>
     </span>
   );

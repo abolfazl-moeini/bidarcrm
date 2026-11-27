@@ -1,0 +1,16 @@
+{
+  "fields": {
+    "ldapCreateEspoUser": "Create User in Bidar CRM",
+    "adminNotificationsNewVersion": "Show notification when new Bidar CRM version is available",
+    "adminNotificationsNewExtensionVersion": "Show notification when new extension version is available"
+  },
+  "tooltips": {
+    "ldapCreateEspoUser": "This option allows Bidar CRM to create a user from LDAP.",
+    "adminNotificationsNewVersion": "Show notification to administrator when a newer Bidar CRM version is available.",
+    "b2cMode": "By default Bidar CRM is adapted for B2B. You can switch it to B2C.",
+    "ldapUsername": "The full system user DN which allows to search other users. E.g. \"CN=LDAP System User,OU=users,OU=bidarcrm,DC=test,DC=lan\".",
+    "ldapBaseDn": "The default base DN used for searching users. E.g. \"OU=users,OU=bidarcrm,DC=test,DC=lan\".",
+    "ldapUserLoginFilter": "The filter which allows to restrict users who are able to use Bidar CRM. E.g. \"memberOf=CN=bidarGroup,OU=groups,OU=bidarcrm,DC=test,DC=lan\".",
+    "siteUrl": "A URL of this Bidar CRM instance. You need to change it if you move to another domain."
+  }
+}

@@ -1,0 +1,1 @@
+Approval gate: revise the plan so these cases are written as failing tests before implementation. P0/P1 acceptance should include route, container, and database integration tests—not only mocked unit tests—and must demonstrate denial before data access, transactional rollback/atomicity, and absence of cross-user, cross-team, cross-pipeline, and cross-currency leakage.

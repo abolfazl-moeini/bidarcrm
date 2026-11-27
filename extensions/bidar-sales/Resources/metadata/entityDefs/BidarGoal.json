@@ -1,0 +1,58 @@
+{
+  "fields": {
+    "name": {
+      "type": "varchar",
+      "required": true
+    },
+    "metricType": {
+      "type": "enum",
+      "options": ["wonAmount", "wonCount", "dealsCreated", "activitiesHeld"],
+      "default": "wonAmount",
+      "required": true
+    },
+    "scopeType": {
+      "type": "enum",
+      "options": ["all", "team", "user"],
+      "default": "all"
+    },
+    "assignedUserId": {
+      "type": "varchar",
+      "maxLength": 24
+    },
+    "assignedUser": {
+      "type": "link"
+    },
+    "teamId": {
+      "type": "varchar",
+      "maxLength": 24
+    },
+    "team": {
+      "type": "link"
+    },
+    "period": {
+      "type": "enum",
+      "options": ["daily", "weekly", "monthly"],
+      "default": "monthly"
+    },
+    "dateStart": {
+      "type": "date"
+    },
+    "dateEnd": {
+      "type": "date"
+    },
+    "targetValue": {
+      "type": "float",
+      "required": true
+    }
+  },
+  "links": {
+    "assignedUser": {
+      "type": "belongsTo",
+      "entity": "User"
+    },
+    "team": {
+      "type": "belongsTo",
+      "entity": "Team"
+    }
+  }
+}

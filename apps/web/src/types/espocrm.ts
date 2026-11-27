@@ -28,6 +28,7 @@ export interface PipelineStage {
   pipelineId?: string;
   pipelineName?: string;
   order?: number;
+  mappedStatus?: string;
   isWon?: boolean;
   isLost?: boolean;
 }
@@ -63,6 +64,8 @@ export interface Opportunity {
   lastActivityAt?: string;
   isRotten?: boolean;
   daysSinceLastActivity?: number;
+  lossReason?: string;
+  lossReasonNote?: string;
   description?: string;
   createdAt?: string;
   modifiedAt?: string;
@@ -78,6 +81,7 @@ export interface Contact {
   title?: string;
   accountId?: string;
   accountName?: string;
+  nationalCode?: string;
   assignedUserId?: string;
   assignedUserName?: string;
   description?: string;
@@ -93,6 +97,8 @@ export interface Account {
   website?: string;
   type?: string;
   industry?: string;
+  nationalId?: string;
+  shebaNumber?: string;
   billingAddressStreet?: string;
   billingAddressCity?: string;
   billingAddressState?: string;
@@ -111,6 +117,9 @@ export interface Note {
   parentId?: string;
   type?: string;
   post?: string;
+  relatedType?: string;
+  relatedName?: string;
+  relatedId?: string;
   data?: Record<string, unknown>;
   createdById?: string;
   createdByName?: string;
@@ -170,6 +179,7 @@ export interface Task {
   id: string;
   name: string;
   status: TaskStatus;
+  type?: 'Task' | 'Call' | 'Meeting';
   priority?: TaskPriority;
   dateEnd?: string;
   dateDue?: string;
@@ -200,6 +210,36 @@ export interface DashboardSummary {
   wonAmount: number;
   rottenCount: number;
   overdueActivitiesCount: number;
+  conversionRate?: number;
+  avgSalesCycleDays?: number;
+  lossReasonsBreakdown?: Array<{
+    reason: string;
+    label: string;
+    count: number;
+    amount: number;
+  }>;
+  topSalesReps?: Array<{
+    userId: string;
+    userName: string;
+    wonAmount: number;
+    wonCount: number;
+    openCount: number;
+    rottenCount: number;
+  }>;
+  goal?: {
+    name?: string;
+    targetValue?: number;
+    currentValue?: number;
+    percentage?: number;
+    remainingValue?: number;
+  };
+  leadSourceBreakdown?: Array<{
+    source: string;
+    label: string;
+    count: number;
+    amount: number;
+    percentage?: number;
+  }>;
   funnelStages: Array<{
     stageId: string;
     stageName: string;
@@ -210,9 +250,105 @@ export interface DashboardSummary {
 }
 
 export interface GlobalSearchResult {
-  entityType: string;
+  entityType?: string;
+  _scope?: string;
   id: string;
   name: string;
   description?: string;
   extra?: Record<string, unknown>;
 }
+
+export interface Lead {
+  id: string;
+  name: string;
+  firstName?: string;
+  lastName?: string;
+  emailAddress?: string;
+  phoneNumber?: string;
+  accountName?: string;
+  title?: string;
+  status?: 'New' | 'Assigned' | 'In Process' | 'Converted' | 'Recycled' | 'Dead' | string;
+  source?: string;
+  description?: string;
+  assignedUserId?: string;
+  assignedUserName?: string;
+  createdAt?: string;
+  modifiedAt?: string;
+}
+
+export interface BidarProduct {
+  id: string;
+  name: string;
+  sku?: string;
+  code?: string;
+  unitPrice?: number;
+  category?: string;
+  unit?: string;
+  isActive?: boolean;
+  createdAt?: string;
+}
+
+export interface BidarDealItem {
+  id: string;
+  name?: string;
+  opportunityId?: string;
+  opportunityName?: string;
+  productId?: string;
+  productName?: string;
+  quantity?: number;
+  unitPrice?: number;
+  discountPercent?: number;
+  lineTotal?: number;
+  createdAt?: string;
+}
+
+export interface BidarGoal {
+  id: string;
+  name: string;
+  metricType?: 'wonAmount' | 'wonCount' | 'dealsCreated' | 'activitiesHeld';
+  scopeType?: 'all' | 'team' | 'user';
+  assignedUserId?: string;
+  assignedUserName?: string;
+  period?: 'daily' | 'weekly' | 'monthly';
+  dateStart?: string;
+  dateEnd?: string;
+  targetValue: number;
+  currentValue?: number;
+  progressPercent?: number;
+  createdAt?: string;
+}
+
+export interface BidarSmsTemplate {
+  id: string;
+  name: string;
+  body: string;
+  isActive?: boolean;
+  createdAt?: string;
+}
+
+export interface BidarApiKey {
+  id: string;
+  name: string;
+  keyPrefix?: string;
+  rawKey?: string;
+  isActive?: boolean;
+  expiresAt?: string;
+  lastUsedAt?: string;
+  allowedIpList?: string[];
+  userId?: string;
+  userName?: string;
+  createdAt?: string;
+}
+
+export interface EspoNotification {
+  id: string;
+  type?: string;
+  data?: Record<string, unknown>;
+  userId?: string;
+  createdAt?: string;
+  isRead?: boolean;
+  message?: string;
+  relatedId?: string;
+  relatedType?: string;
+}
+

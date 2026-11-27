@@ -70,7 +70,7 @@ describe('Contacts & Accounts Directory - ContactsTable & QuickCreateModal', () 
       expect(screen.getByText('بانک آینده')).toBeInTheDocument();
 
       // Check tel: and mailto: links
-      const phoneLink = screen.getByRole('link', { name: /09121112233/i });
+      const phoneLink = screen.getByRole('link', { name: /۰۹۱۲ ۱۱۱ ۲۲۳۳|09121112233/i });
       expect(phoneLink).toHaveAttribute('href', 'tel:09121112233');
 
       const emailLink = screen.getByRole('link', { name: /hosseini@razi.ir/i });
@@ -160,7 +160,7 @@ describe('Contacts & Accounts Directory - ContactsTable & QuickCreateModal', () 
         }));
         const callPayload = postSpy.mock.calls[0]![1] as Record<string, unknown>;
         expect(callPayload.name).toBeUndefined();
-        expect(callPayload.accountName).toBeUndefined();
+        expect(callPayload.accountName).toBe('توسعه نرم‌افزار فردا');
       });
 
       expect(onSuccess).toHaveBeenCalled();

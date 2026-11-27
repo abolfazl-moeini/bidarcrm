@@ -1,0 +1,93 @@
+{
+  "fields": {
+    "name": {
+      "type": "varchar",
+      "required": true,
+      "maxLength": 100
+    },
+    "userId": {
+      "type": "foreignId",
+      "index": true,
+      "readOnly": true
+    },
+    "user": {
+      "type": "link",
+      "readOnly": true
+    },
+    "keyPrefix": {
+      "type": "varchar",
+      "maxLength": 24,
+      "readOnly": true
+    },
+    "keyHash": {
+      "type": "varchar",
+      "maxLength": 64,
+      "index": true,
+      "readOnly": true,
+      "internal": true
+    },
+    "isActive": {
+      "type": "bool",
+      "default": true
+    },
+    "expiresAt": {
+      "type": "datetime",
+      "hasSeconds": true
+    },
+    "lastUsedAt": {
+      "type": "datetime",
+      "readOnly": true,
+      "hasSeconds": true
+    },
+    "allowedIpList": {
+      "type": "array",
+      "default": []
+    },
+    "revokedAt": {
+      "type": "datetime",
+      "hasSeconds": true,
+      "readOnly": true
+    },
+    "revokedByUserId": {
+      "type": "foreignId",
+      "index": true,
+      "readOnly": true
+    },
+    "revokedByUser": {
+      "type": "link",
+      "readOnly": true
+    },
+    "createdAt": {
+      "type": "datetime",
+      "readOnly": true,
+      "hasSeconds": true
+    },
+    "modifiedAt": {
+      "type": "datetime",
+      "readOnly": true,
+      "hasSeconds": true
+    }
+  },
+  "links": {
+    "user": {
+      "type": "belongsTo",
+      "entity": "User"
+    },
+    "revokedByUser": {
+      "type": "belongsTo",
+      "entity": "User"
+    }
+  },
+  "collection": {
+    "orderBy": "createdAt",
+    "order": "desc"
+  },
+  "indexes": {
+    "keyHash": {
+      "columns": ["keyHash", "deleted"]
+    },
+    "userKeys": {
+      "columns": ["userId", "deleted"]
+    }
+  }
+}

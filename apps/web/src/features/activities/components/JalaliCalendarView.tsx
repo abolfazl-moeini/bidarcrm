@@ -4,8 +4,9 @@
  * Full monthly Jalali (Shamsi) calendar grid:
  * - Persian weekdays (شنبه تا جمعه)
  * - Month navigation (Prev/Next) with month/year banner
- * - Today highlight
- * - Day cells with activity counts and interactive inspection
+ * - Today highlight with emerald accent
+ * - Day cells with activity counts and responsive grid
+ * - Light and dark mode adaptive styling
  */
 
 import React, { useState, useMemo } from 'react';
@@ -17,11 +18,12 @@ import {
   getJalaliParts,
   jalaliToGregorian,
   getJalaliMonthLength,
+  isIranHoliday,
 } from '../../../lib/jalali';
 import { toPersianDigits } from '../../../lib/currency';
 
 export interface JalaliCalendarViewProps {
-  activities: (Task & { type?: 'Task' | 'Call' | 'Meeting' })[];
+  activities: (Task & { type?: 'Task' | 'Call' | 'Meeting'; dateStart?: string })[];
   onSelectDate?: (dateStr: string) => void;
   onSelectActivity?: (activityId: string) => void;
   className?: string;
@@ -30,7 +32,6 @@ export interface JalaliCalendarViewProps {
 export const JalaliCalendarView: React.FC<JalaliCalendarViewProps> = ({
   activities,
   onSelectDate,
-  onSelectActivity,
   className = '',
 }) => {
   const todayParts = useMemo(() => getJalaliParts(), []);
@@ -73,8 +74,9 @@ export const JalaliCalendarView: React.FC<JalaliCalendarViewProps> = ({
   const activitiesByDay = useMemo(() => {
     const map = new Map<number, (Task & { type?: 'Task' | 'Call' | 'Meeting' })[]>();
     activities.forEach((act) => {
-      if (!act.dateDue) return;
-      const parts = getJalaliParts(new Date(act.dateDue));
+      const rawDate = act.dateEnd || act.dateStart || act.dateDue;
+      if (!rawDate) return;
+      const parts = getJalaliParts(new Date(rawDate));
       if (parts.year === currentYear && parts.month === currentMonth) {
         const list = map.get(parts.day) || [];
         list.push(act);
@@ -88,20 +90,20 @@ export const JalaliCalendarView: React.FC<JalaliCalendarViewProps> = ({
 
   return (
     <div
-      className={`bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-sm ${className}`}
+      className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4 shadow-sm ${className}`}
       dir="rtl"
     >
       {/* Month Navigation Header */}
-      <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
+      <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-4">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
             <CalendarIcon className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-slate-100">
+            <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
               {monthName} {toPersianDigits(currentYear)}
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">تقویم پیگیری‌ها و برنامه‌ریزی فروش</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">تقویم پیگیری‌ها و برنامه‌ریزی فروش (با تقویم تعطیلات رسمی ایران)</p>
           </div>
         </div>
 
@@ -110,7 +112,7 @@ export const JalaliCalendarView: React.FC<JalaliCalendarViewProps> = ({
             type="button"
             onClick={handlePrevMonth}
             aria-label="ماه قبل"
-            className="p-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded-xl transition cursor-pointer"
+            className="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer"
             title="ماه قبل"
           >
             <ChevronRight className="w-4 h-4" />
@@ -121,7 +123,7 @@ export const JalaliCalendarView: React.FC<JalaliCalendarViewProps> = ({
               setCurrentYear(todayParts.year);
               setCurrentMonth(todayParts.month);
             }}
-            className="px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-800 rounded-xl border border-slate-800 transition cursor-pointer"
+            className="px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-800 transition cursor-pointer"
           >
             امروز
           </button>
@@ -129,7 +131,7 @@ export const JalaliCalendarView: React.FC<JalaliCalendarViewProps> = ({
             type="button"
             onClick={handleNextMonth}
             aria-label="ماه بعد"
-            className="p-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded-xl transition cursor-pointer"
+            className="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer"
             title="ماه بعد"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -138,19 +140,19 @@ export const JalaliCalendarView: React.FC<JalaliCalendarViewProps> = ({
       </div>
 
       {/* Weekday Labels Header */}
-      <div className="grid grid-cols-7 gap-2 text-center text-xs font-semibold text-slate-400 border-b border-slate-800/60 pb-2">
-        {PERSIAN_WEEKDAYS.map((wd) => (
-          <div key={wd} className="py-1">
+      <div className="grid grid-cols-7 gap-1.5 sm:gap-2 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800/60 pb-2">
+        {PERSIAN_WEEKDAYS.map((wd, index) => (
+          <div key={wd} className={`py-1 ${index === 6 ? 'text-rose-500 dark:text-rose-400' : ''}`}>
             {wd}
           </div>
         ))}
       </div>
 
       {/* Monthly Grid */}
-      <div className="grid grid-cols-7 gap-2">
+      <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
         {/* Leading Empty Cells */}
         {Array.from({ length: firstDayOffset }).map((_, i) => (
-          <div key={`empty-${i}`} className="min-h-20 rounded-xl bg-slate-950/20 border border-transparent" />
+          <div key={`empty-${i}`} className="min-h-16 sm:min-h-20 rounded-xl bg-slate-50/50 dark:bg-slate-950/20 border border-transparent" />
         ))}
 
         {/* Days of the Month */}
@@ -161,6 +163,9 @@ export const JalaliCalendarView: React.FC<JalaliCalendarViewProps> = ({
             todayParts.month === currentMonth &&
             todayParts.day === day;
 
+          const holidayInfo = isIranHoliday(currentYear, currentMonth, day);
+          const isHoliday = holidayInfo.isHoliday;
+
           const dayActivities = activitiesByDay.get(day) || [];
           const hasActivities = dayActivities.length > 0;
 
@@ -168,48 +173,45 @@ export const JalaliCalendarView: React.FC<JalaliCalendarViewProps> = ({
             <div
               key={day}
               onClick={() => onSelectDate?.(`${currentYear}/${currentMonth}/${day}`)}
-              className={`min-h-20 p-2 rounded-xl border flex flex-col justify-between transition cursor-pointer ${
+              title={holidayInfo.title}
+              className={`min-h-16 sm:min-h-20 p-1.5 sm:p-2 rounded-xl border flex flex-col justify-between transition cursor-pointer ${
                 isToday
-                  ? 'bg-indigo-600/10 border-indigo-500/40 text-indigo-300 shadow-sm'
+                  ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-800 dark:text-emerald-300 shadow-sm'
+                  : isHoliday
+                  ? 'bg-rose-50/60 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/40 hover:border-rose-400'
                   : hasActivities
-                  ? 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
-                  : 'bg-slate-950/30 border-slate-800/50 hover:border-slate-800 text-slate-500'
+                  ? 'bg-white dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 hover:border-emerald-400 shadow-sm'
+                  : 'bg-slate-50/50 dark:bg-slate-950/30 border-slate-100 dark:border-slate-800/50 hover:border-slate-300 dark:hover:border-slate-700 text-slate-500'
               }`}
             >
               <div className="flex items-center justify-between">
                 <span
-                  className={`text-xs font-bold font-mono ${
-                    isToday ? 'text-indigo-400' : 'text-slate-300'
+                  className={`text-xs font-bold ${
+                    isToday
+                      ? 'text-emerald-700 dark:text-emerald-400'
+                      : isHoliday
+                      ? 'text-rose-600 dark:text-rose-400'
+                      : 'text-slate-700 dark:text-slate-300'
                   }`}
                 >
                   {toPersianDigits(day)}
                 </span>
                 {hasActivities && (
-                  <span className="w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-bold flex items-center justify-center">
-                    {toPersianDigits(dayActivities.length)}
-                  </span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                 )}
               </div>
 
-              {/* Activity Preview Chips */}
-              <div className="space-y-1 mt-1 overflow-hidden">
-                {dayActivities.slice(0, 2).map((act) => (
-                  <div
-                    key={act.id}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSelectActivity?.(act.id);
-                    }}
-                    className="truncate text-[10px] px-1.5 py-0.5 rounded bg-slate-800/80 text-slate-300 hover:text-indigo-300 transition"
-                    title={act.name}
-                  >
-                    {act.name}
+              {/* Holiday indicator or activity count */}
+              <div className="space-y-0.5">
+                {isHoliday && holidayInfo.title && (
+                  <p className="text-[9px] text-rose-500 dark:text-rose-400 truncate font-medium">
+                    {holidayInfo.title}
+                  </p>
+                )}
+                {hasActivities && (
+                  <div className="text-[10px] text-emerald-700 dark:text-emerald-400 font-medium truncate">
+                    {toPersianDigits(dayActivities.length)} کار
                   </div>
-                ))}
-                {dayActivities.length > 2 && (
-                  <span className="text-[9px] text-slate-400 block text-left" dir="ltr">
-                    +{toPersianDigits(dayActivities.length - 2)}
-                  </span>
                 )}
               </div>
             </div>

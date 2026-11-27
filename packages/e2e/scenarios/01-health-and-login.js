@@ -16,21 +16,22 @@ export const name = '01-health-and-login';
  * @param {object} context.state - Shared scenario state for chaining
  * @returns {Promise<object>}
  */
-export async function run({ baseUrl, credentials = {}, state = {} }) {
+export async function run({ baseUrl, credentials = {}, state = {}, timeoutMs = 30000 }) {
   const start = performance.now();
   try {
     const username = credentials.username || 'admin';
     const password = credentials.password || 'admin';
-    const authHeader = 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64');
-    
+    const authHeader = Buffer.from(`${username}:${password}`).toString('base64');
+
     // Call EspoCRM user authentication endpoint
     const response = await fetch(`${baseUrl}/api/v1/App/user`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
-        'Authorization': authHeader,
-        'Espo-Authorization': Buffer.from(`${username}:${password}`).toString('base64'),
+        'Espo-Authorization': authHeader,
+        'Espo-Authorization-By-Token': 'true',
       },
+      signal: AbortSignal.timeout(timeoutMs),
     });
 
     if (!response.ok) {
@@ -38,7 +39,8 @@ export async function run({ baseUrl, credentials = {}, state = {} }) {
     }
 
     const data = await response.json();
-    const token = data.token || data.user?.id || 'simulated-token';
+    if (!data.token) throw new Error('Authentication response is missing data.token');
+    const token = data.token;
 
     // Store in shared state for subsequent scenarios (Chain of Responsibility)
     state.username = username;

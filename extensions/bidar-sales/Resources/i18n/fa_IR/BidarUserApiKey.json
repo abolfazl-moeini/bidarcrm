@@ -1,0 +1,18 @@
+{
+  "labels": {
+    "Create BidarUserApiKey": "ساخت کلید API کاربر",
+    "BidarUserApiKey": "کلید API کاربر"
+  },
+  "fields": {
+    "name": "نام کلید",
+    "user": "کاربر مالک",
+    "keyPrefix": "پیشوند کلید",
+    "keyHash": "هش امنیتی کلید",
+    "isActive": "فعال",
+    "expiresAt": "تاریخ انقضا",
+    "lastUsedAt": "آخرین استفاده",
+    "allowedIpList": "لیست IP‌های مجاز",
+    "createdAt": "تاریخ ایجاد",
+    "modifiedAt": "تاریخ ویرایش"
+  }
+}

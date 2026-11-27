@@ -1,0 +1,11 @@
+{
+  "labels": {
+    "My Espo": "My Dashboard",
+    "About": "About Bidar CRM",
+    "Application": "Bidar CRM"
+  },
+  "themes": {
+    "Bidar": "Bidar",
+    "Espo": "Classic"
+  }
+}

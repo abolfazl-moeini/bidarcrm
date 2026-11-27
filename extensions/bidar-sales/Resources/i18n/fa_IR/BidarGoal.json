@@ -1,0 +1,34 @@
+{
+  "fields": {
+    "name": "عنوان هدف",
+    "metricType": "نوع شاخص",
+    "scopeType": "دامنه هدف",
+    "assignedUser": "کاربر مسئول",
+    "team": "تیم",
+    "period": "دوره زمانی",
+    "dateStart": "تاریخ شروع",
+    "dateEnd": "تاریخ پایان",
+    "targetValue": "مقدار هدف"
+  },
+  "options": {
+    "metricType": {
+      "wonAmount": "مبلغ فروش موفق",
+      "wonCount": "تعداد فروش موفق",
+      "dealsCreated": "تعداد معاملات جدید",
+      "activitiesHeld": "فعالیت‌های برگزار شده"
+    },
+    "scopeType": {
+      "all": "کل تیم / شرکت",
+      "team": "یک تیم خاص",
+      "user": "یک کاربر خاص"
+    },
+    "period": {
+      "daily": "روزانه",
+      "weekly": "هفتگی",
+      "monthly": "ماهانه"
+    }
+  },
+  "labels": {
+    "Create BidarGoal": "تعریف هدف فروش جدید"
+  }
+}

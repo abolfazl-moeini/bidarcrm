@@ -1,0 +1,6 @@
+{
+  "name": "BidarBrand",
+  "version": "1.0.5",
+  "acceptableVersions": [">=10.1.0"],
+  "php": [">=8.3"]
+}

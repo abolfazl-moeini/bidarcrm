@@ -1,0 +1,16 @@
+{
+  "fields": {
+    "ldapCreateEspoUser": "ایجاد کاربر در بیدار CRM",
+    "adminNotificationsNewVersion": "نمایش اعلان زمانی که نسخه جدید بیدار CRM در دسترس است",
+    "adminNotificationsNewExtensionVersion": "نمایش اعلان نسخه جدید افزونه‌ها"
+  },
+  "tooltips": {
+    "ldapCreateEspoUser": "این گزینه به بیدار CRM اجازه می‌دهد کاربر را از LDAP ایجاد کند.",
+    "adminNotificationsNewVersion": "در صورت وجود نسخه جدیدتر بیدار CRM، به مدیر سیستم اطلاع‌رسانی می‌شود.",
+    "b2cMode": "به‌طور پیش‌فرض بیدار CRM برای B2B سازگار است. می‌توانید آن را به B2C تغییر دهید.",
+    "ldapUsername": "نام کاربری سیستم برای جستجوی سایر کاربران. به عنوان مثال: \"CN=LDAP System User,OU=users,OU=bidarcrm,DC=test,DC=lan\".",
+    "ldapBaseDn": "DN پیش‌فرض برای جستجوی کاربران. به عنوان مثال: \"OU=users,OU=bidarcrm,DC=test,DC=lan\".",
+    "ldapUserLoginFilter": "فیلتری برای محدودسازی کاربرانی که مجاز به استفاده از بیدار CRM هستند. به عنوان مثال: \"memberOf=CN=bidarGroup,OU=groups,OU=bidarcrm,DC=test,DC=lan\".",
+    "siteUrl": "آدرس این نمونه از بیدار CRM. در صورت انتقال به دامنه دیگر باید آن را تغییر دهید."
+  }
+}

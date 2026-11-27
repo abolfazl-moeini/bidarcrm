@@ -132,4 +132,68 @@ class KavenegarSenderTest extends TestCase
             $this->assertStringContainsString('Kavenegar SMS dispatch failed', $e->getMessage());
         }
     }
+
+    public function testRejectsEmptyMalformedAndIncompleteSuccessfulResponses(): void
+    {
+        foreach (['', '<html>502</html>', '{}'] as $body) {
+            $sender = new KavenegarSender('test-key', null, static fn() => ['status' => 200, 'body' => $body]);
+            try {
+                $sender->sendDirect('09123456789', 'message');
+                $this->fail('Expected malformed provider response to fail.');
+            } catch (RuntimeException) {
+                $this->assertTrue(true);
+            }
+        }
+    }
+
+    public function testDoesNotLeakApiKeyFromPreviousCurlException(): void
+    {
+        $key = 'sensitive-key-77';
+        $sender = new KavenegarSender($key, null, static function (string $url) use ($key): array {
+            throw new RuntimeException('cURL failed for ' . $url . '?key=' . $key);
+        });
+        try {
+            $sender->sendDirect('09123456789', 'message');
+            $this->fail('Expected sender failure.');
+        } catch (RuntimeException $exception) {
+            $this->assertStringNotContainsString($key, $exception->getMessage());
+            $this->assertStringNotContainsString($key, $exception->getPrevious()?->getMessage() ?? '');
+        }
+    }
+
+    public function testOmitsEmptySenderLineAndRejectsInvalidMessageOrLandline(): void
+    {
+        foreach ([null, ''] as $senderLine) {
+            $calls = [];
+            $sender = new KavenegarSender('key', $senderLine, static function ($url, $params) use (&$calls): array {
+                $calls[] = $params;
+                return ['status' => 200, 'body' => '{"return":{"status":200}}'];
+            });
+            $sender->sendDirect('09123456789', 'message');
+            $this->assertArrayNotHasKey('sender', $calls[0]);
+        }
+        $sender = new KavenegarSender('key', null, static fn() => ['status' => 200, 'body' => '{"return":{"status":200}}']);
+        foreach ([['09123456789', ''], ['09123456789', '   '], ['02188776655', 'message']] as [$phone, $message]) {
+            try {
+                $sender->sendDirect($phone, $message);
+                $this->fail('Expected invalid dispatch arguments to fail.');
+            } catch (RuntimeException) {
+                $this->assertTrue(true);
+            }
+        }
+    }
+
+    public function testDisabledKavenegarIntegrationIsRejected(): void
+    {
+        $integration = $this->createMock(\Espo\ORM\Entity::class);
+        $integration->method('get')->willReturnCallback(static fn($field) => match ($field) {
+            'apiKey' => 'configured-key', 'enabled' => false, default => null,
+        });
+        $integration->method('has')->willReturn(false);
+        $em = $this->createMock(\Espo\ORM\EntityManager::class);
+        $em->method('getEntityById')->with('Integration', 'Kavenegar')->willReturn($integration);
+        $sender = new KavenegarSender(null, null, static fn() => ['status' => 200, 'body' => '{"return":{"status":200}}'], null, $em);
+        $this->expectException(RuntimeException::class);
+        $sender->sendDirect('09123456789', 'message');
+    }
 }

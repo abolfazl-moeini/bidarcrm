@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { authStore } from '../features/auth/authStore';
-import { apiClient, API_UNAUTHORIZED_EVENT, encodeBase64Utf8 } from '../lib/api-client';
+import { apiClient, ApiError, API_UNAUTHORIZED_EVENT, encodeBase64Utf8 } from '../lib/api-client';
 import { queryClient } from '../lib/query-client';
 
 describe('authStore & Session Security', () => {
@@ -106,5 +106,53 @@ describe('authStore & Session Security', () => {
 
     // destroyAuthToken should only have been called once, recursion was prevented
     expect(callCount).toBe(1);
+  });
+
+  it('checkAuth() preserves session on 500 or network error without wiping localStorage', async () => {
+    (authStore as any).setState({
+      user: { id: 'u-1', userName: 'admin', name: 'Admin', roles: [] },
+      token: 'valid-token',
+      isAuthenticated: true,
+    });
+    localStorage.setItem('bidar_auth_token', 'valid-token');
+
+    vi.spyOn(apiClient, 'get').mockRejectedValue(new ApiError(500, 'Internal Server Error'));
+    const logoutSpy = vi.spyOn(authStore, 'logout');
+
+    const ok = await authStore.checkAuth();
+
+    expect(ok).toBe(false);
+    expect(logoutSpy).not.toHaveBeenCalled();
+    expect(authStore.getState().isAuthenticated).toBe(true);
+    expect(authStore.getState().isLoading).toBe(false);
+    expect(localStorage.getItem('bidar_auth_token')).toBe('valid-token');
+  });
+
+  it('checkAuth() logs out on 401 Unauthorized', async () => {
+    (authStore as any).setState({
+      user: { id: 'u-1', userName: 'admin', name: 'Admin', roles: [] },
+      token: 'expired-token',
+      isAuthenticated: true,
+    });
+
+    vi.spyOn(apiClient, 'get').mockRejectedValue(new ApiError(401, 'Unauthorized'));
+    const logoutSpy = vi.spyOn(authStore, 'logout');
+
+    const ok = await authStore.checkAuth();
+
+    expect(ok).toBe(false);
+    expect(logoutSpy).toHaveBeenCalledWith(true);
+    expect(authStore.getState().isAuthenticated).toBe(false);
+  });
+
+  it('login() passes skipUnauthorizedEvent: true so bad password does not broadcast logout', async () => {
+    const reqSpy = vi.spyOn(apiClient, 'request').mockRejectedValue(new ApiError(401, 'Unauthorized'));
+
+    await expect(authStore.login('admin', 'wrong')).rejects.toThrow(ApiError);
+
+    expect(reqSpy).toHaveBeenCalledWith(
+      '/App/user',
+      expect.objectContaining({ skipUnauthorizedEvent: true })
+    );
   });
 });

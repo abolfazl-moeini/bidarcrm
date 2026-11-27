@@ -14,6 +14,34 @@
       "type": "int",
       "notStorable": true,
       "readOnly": true
+    },
+    "lossReason": {
+      "type": "enum",
+      "options": ["", "PriceTooHigh", "Competitor", "NoBudget", "NoResponse", "NotQualified", "Other"],
+      "default": "",
+      "audited": true
+    },
+    "lossReasonNote": {
+      "type": "text",
+      "rowsMin": 2
+    },
+    "pipeline": {
+      "type": "link",
+      "view": "views/fields/extra/pipeline"
+    },
+    "pipelineStage": {
+      "type": "link",
+      "view": "views/fields/extra/pipeline-stage"
+    }
+  },
+  "links": {
+    "pipeline": {
+      "type": "belongsTo",
+      "entity": "Pipeline"
+    },
+    "pipelineStage": {
+      "type": "belongsTo",
+      "entity": "PipelineStage"
     }
   }
 }

@@ -8,13 +8,33 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { execFileSync, execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT_DIR = resolve(__dirname, '../..');
 
 const UI_LEVEL_CLI = process.env.UI_LEVEL_CLI || '/Users/moeini/Dev/ui-level/dist/cli.js';
+
+// BASE_URL overrides the origin (and optional path prefix) of every manifest
+// target URL, e.g. BASE_URL=http://localhost:8089.
+const BASE_URL = (process.env.BASE_URL || '').trim().replace(/\/+$/, '');
+
+function resolveTargetUrl(targetUrl) {
+  if (!BASE_URL) return targetUrl;
+  try {
+    const base = new URL(BASE_URL);
+    const target = new URL(targetUrl, base);
+    const basePath = base.pathname.replace(/\/+$/, '');
+    const pathname = basePath && target.pathname.startsWith(`${basePath}/`)
+      ? target.pathname
+      : `${basePath}${target.pathname}`;
+    return `${base.origin}${pathname}${target.search}${target.hash}`;
+  } catch {
+    // Invalid BASE_URL: fall back to the URL declared in the manifest.
+    return targetUrl;
+  }
+}
 
 // Parse arguments
 const args = process.argv.slice(2);
@@ -34,6 +54,7 @@ const manifestPath = manifestPathIndex !== -1
 console.log('==> BidarCRM ui-level Multi-Screen Verification Runner');
 console.log(`    Manifest: ${manifestPath}`);
 console.log(`    Engine:   ${UI_LEVEL_CLI}`);
+console.log(`    Base URL: ${BASE_URL || '(manifest defaults)'}`);
 console.log(`    Profile:  ${profileFilter || 'all'}`);
 console.log(`    Dry-run:  ${isDryRun ? 'YES' : 'NO'}`);
 
@@ -70,7 +91,8 @@ if (isDryRun) {
       !activeProfile || (vp.name === activeProfile)
     );
     const vpSummary = viewports.map((v) => `${v.name || 'custom'}: ${v.width}x${v.height}`).join(', ');
-    console.log(`  - [${screen.id}] "${screen.name}": target=${screen.targetUrl}, ref=${screen.ref} (${refExists ? 'EXISTS' : 'PENDING'}), viewports=[${vpSummary}]`);
+    console.log(`  - [${screen.id}] "${screen.name}": target=${resolveTargetUrl(screen.targetUrl)}, ref=${screen.ref} (${refExists ? 'EXISTS' : 'PENDING'}), viewports=[${vpSummary}]`);
+    console.log(`      colorThresholdDeltaE=${screen.colorThresholdDeltaE ?? 'n/a'} (metadata only; not supported by ui-level check)`);
     if (!screen.targetUrl || !screen.ref || !screen.selector) {
       console.error(`    ERROR: Missing required fields on screen ${screen.id}`);
       hasErrors = true;
@@ -95,7 +117,7 @@ let totalSkipped = 0;
 try {
   if (!noDaemon) {
     try {
-      execSync(`node "${UI_LEVEL_CLI}" daemon start`, { stdio: 'pipe' });
+      execFileSync('node', [UI_LEVEL_CLI, 'daemon', 'start'], { stdio: 'pipe' });
       daemonStarted = true;
       console.log('==> Warm background daemon active.');
     } catch (daemonErr) {
@@ -120,10 +142,12 @@ try {
       totalExecuted++;
       const vpName = vp.name ? ` [${vp.name}]` : '';
       console.log(`\n==> Testing screen "${screen.name}" (${screen.id})${vpName}...`);
+      // ui-level `check` accepts --threshold (pixel geometry) only; Delta-E is
+      // manifest metadata and is intentionally not forwarded to the CLI.
       const cliArgs = [
         'check',
         '--json',
-        '-t', screen.targetUrl,
+        '-t', resolveTargetUrl(screen.targetUrl),
         '-r', refPath,
         '-a', screen.adapter || 'html',
         '-s', screen.selector || '#root',
@@ -148,7 +172,7 @@ try {
 
         const result = JSON.parse(output);
         if (result.ok || result.status === 'passed') {
-          console.log(`  [PASS] Screen "${screen.name}"${vpName}: DeltaE and pixel diff within thresholds.`);
+          console.log(`  [PASS] Screen "${screen.name}"${vpName}: pixel diff within threshold.`);
           totalPassed++;
         } else {
           console.error(`  [FAIL] Screen "${screen.name}"${vpName}: Differences detected.`);
@@ -165,7 +189,7 @@ try {
 } finally {
   if (daemonStarted) {
     try {
-      execSync(`node "${UI_LEVEL_CLI}" daemon stop`, { stdio: 'pipe' });
+      execFileSync('node', [UI_LEVEL_CLI, 'daemon', 'stop'], { stdio: 'pipe' });
       console.log('==> Background daemon stopped.');
     } catch (_) {
       // Ignore error during stop

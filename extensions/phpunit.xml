@@ -11,6 +11,8 @@
         <testsuite name="unit">
             <directory>bidar-sales/tests/Unit</directory>
             <directory>bidar-iran/tests/Unit</directory>
+            <directory>bidar-brand/tests</directory>
+            <directory>bidar-theme/tests</directory>
         </testsuite>
         <testsuite name="integration">
             <directory>bidar-sales/tests/Integration</directory>
@@ -21,10 +23,12 @@
         <include>
             <directory>bidar-sales</directory>
             <directory>bidar-iran</directory>
+            <directory>bidar-brand</directory>
         </include>
         <exclude>
             <directory>bidar-sales/tests</directory>
             <directory>bidar-iran/tests</directory>
+            <directory>bidar-brand/tests</directory>
         </exclude>
     </source>
 </phpunit>

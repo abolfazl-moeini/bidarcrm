@@ -1,0 +1,28 @@
+{
+  "fields": {
+    "bidarColorScheme": "Bidar color scheme",
+    "bidarDensity": "Bidar density",
+    "bidarLayout": "Bidar layout"
+  },
+  "options": {
+    "bidarColorScheme": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "bidarDensity": {
+      "comfortable": "Comfortable",
+      "compact": "Compact"
+    },
+    "bidarLayout": {
+      "": "Default",
+      "split": "Split",
+      "classic": "Classic"
+    }
+  },
+  "labels": {
+    "bidarColorScheme": "Bidar color scheme",
+    "bidarDensity": "Bidar density",
+    "bidarLayout": "Bidar layout"
+  }
+}

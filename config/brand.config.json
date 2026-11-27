@@ -1,0 +1,31 @@
+{
+  "brandId": "bidar",
+  "name": "Bidar CRM",
+  "nameFa": "بیدار CRM",
+  "shortName": "بیدار",
+  "taglineFa": "سامانه هوشمند مدیریت فروش و ارتباط با مشتری",
+  "taglineEn": "Sales & Customer Relationship Management",
+  "websiteUrl": "https://bidarcrm.ir",
+  "supportUrl": "https://bidarcrm.ir/support",
+  "supportEmail": "support@bidarcrm.ir",
+  "outboundEmailFromName": "بیدار CRM",
+  "copyrightFa": "تمامی حقوق محفوظ است © ۱۴۰۵ بیدار CRM",
+  "copyrightEn": "© 2026 Bidar CRM. All rights reserved.",
+  "defaultDashboardTabName": "نشانگر من",
+  "assets": {
+    "logoLight": "assets/brand/bidar-logo.svg",
+    "logoDark": "assets/brand/bidar-logo-dark.svg",
+    "faviconSvg": "assets/brand/bidar-favicon.svg"
+  },
+  "colors": {
+    "primary": "#0F766E",
+    "primaryHover": "#115E59",
+    "shellRail": "#0F172A",
+    "shellTopbar": "#111827"
+  },
+  "adminHideExternalItems": [
+    "extensions",
+    "upgrade"
+  ],
+  "disableUpstreamNotifications": true
+}

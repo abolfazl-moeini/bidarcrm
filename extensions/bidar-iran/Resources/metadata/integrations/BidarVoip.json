@@ -1,8 +1,16 @@
 {
   "fields": {
     "webhookSecret": {
-      "type": "varchar",
+      "type": "password",
       "required": true
+    },
+    "hmacSecret": {
+      "type": "password",
+      "required": false
+    },
+    "allowedIps": {
+      "type": "varchar",
+      "required": false
     }
   }
 }

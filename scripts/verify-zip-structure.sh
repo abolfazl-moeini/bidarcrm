@@ -1,0 +1,1 @@
+../tests/installer/verify-zip-structure.sh

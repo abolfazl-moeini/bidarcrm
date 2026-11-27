@@ -54,6 +54,7 @@ export class ApiError extends Error {
 export interface RequestOptions extends Omit<RequestInit, 'body'> {
   params?: Record<string, string | number | boolean | null | undefined>;
   body?: unknown;
+  skipUnauthorizedEvent?: boolean;
 }
 
 export class ApiClient {
@@ -90,13 +91,10 @@ export class ApiClient {
     };
   }
 
-  /**
-   * Executes a typed HTTP request against EspoCRM REST API.
-   */
-  public async request<T = unknown>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-    const { params, body, headers: customHeaders, method = 'GET', ...fetchInit } = options;
-
-    // 1. Build destination URL
+  private buildUrl(
+    endpoint: string,
+    params?: Record<string, string | number | boolean | null | undefined>
+  ): string {
     let fullUrl = endpoint.startsWith('http://') || endpoint.startsWith('https://')
       ? endpoint
       : `${this.baseUrl}/${endpoint.replace(/^\/+/, '')}`;
@@ -114,17 +112,78 @@ export class ApiClient {
       }
     }
 
-    // 2. Prepare headers
-    const headers = new Headers(customHeaders);
-    if (!headers.has('Accept')) {
-      headers.set('Accept', 'application/json');
-    }
+    return fullUrl;
+  }
 
+  private applyAuthHeaders(headers: Headers): void {
     if (this.auth?.username && this.auth?.token) {
       const tokenHeader = encodeBase64Utf8(`${this.auth.username}:${this.auth.token}`);
       headers.set('Espo-Authorization', tokenHeader);
       headers.set('Espo-Authorization-By-Token', 'true');
     }
+  }
+
+  private async parseResponsePayload(response: Response): Promise<unknown> {
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      try {
+        return await response.json();
+      } catch {
+        return null;
+      }
+    }
+    try {
+      return await response.text();
+    } catch {
+      return null;
+    }
+  }
+
+  private handleHttpError(
+    response: Response,
+    responseData: unknown,
+    skipUnauthorizedEvent?: boolean
+  ): never {
+    const error = new ApiError(response.status, response.statusText, responseData);
+
+    if (response.status === 401 && !skipUnauthorizedEvent) {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent(API_UNAUTHORIZED_EVENT, { detail: { error } })
+        );
+      }
+
+      for (const listener of this.unauthorizedListeners) {
+        try {
+          listener(error);
+        } catch (listenerError) {
+          console.error('Error in onUnauthorized listener:', listenerError);
+        }
+      }
+    }
+
+    throw error;
+  }
+
+  /**
+   * Executes a typed HTTP request against EspoCRM REST API.
+   */
+  public async request<T = unknown>(endpoint: string, options: RequestOptions = {}): Promise<T> {
+    const {
+      params,
+      body,
+      headers: customHeaders,
+      method = 'GET',
+      skipUnauthorizedEvent,
+      ...fetchInit
+    } = options;
+
+    const fullUrl = this.buildUrl(endpoint, params);
+    const headers = new Headers(customHeaders);
+    if (!headers.has('Accept')) {
+      headers.set('Accept', 'application/json');
+    }
+    this.applyAuthHeaders(headers);
 
     let payloadBody: BodyInit | null | undefined = undefined;
     if (body !== undefined && body !== null) {
@@ -138,7 +197,6 @@ export class ApiClient {
       }
     }
 
-    // 3. Perform network call with mandatory credentials: 'include'
     const response = await fetch(fullUrl, {
       ...fetchInit,
       method,
@@ -147,55 +205,17 @@ export class ApiClient {
       credentials: 'include',
     });
 
-    // 4. Handle 204 No Content
     if (response.status === 204 || response.headers.get('content-length') === '0') {
       if (!response.ok) {
-        throw new ApiError(response.status, response.statusText);
+        this.handleHttpError(response, null, skipUnauthorizedEvent);
       }
       return null as unknown as T;
     }
 
-    // 5. Parse response body safely
-    const contentType = response.headers.get('content-type') || '';
-    let responseData: unknown = null;
+    const responseData = await this.parseResponsePayload(response);
 
-    if (contentType.includes('application/json')) {
-      try {
-        responseData = await response.json();
-      } catch {
-        responseData = null;
-      }
-    } else {
-      try {
-        responseData = await response.text();
-      } catch {
-        responseData = null;
-      }
-    }
-
-    // 6. Handle HTTP Error statuses
     if (!response.ok) {
-      const error = new ApiError(response.status, response.statusText, responseData);
-
-      if (response.status === 401) {
-        // Broadcast custom browser event
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(
-            new CustomEvent(API_UNAUTHORIZED_EVENT, { detail: { error } })
-          );
-        }
-
-        // Notify registered subscribers
-        for (const listener of this.unauthorizedListeners) {
-          try {
-            listener(error);
-          } catch (listenerError) {
-            console.error('Error in onUnauthorized listener:', listenerError);
-          }
-        }
-      }
-
-      throw error;
+      this.handleHttpError(response, responseData, skipUnauthorizedEvent);
     }
 
     return responseData as T;
@@ -219,6 +239,31 @@ export class ApiClient {
 
   public delete<T = unknown>(endpoint: string, options?: RequestOptions): Promise<T> {
     return this.request<T>(endpoint, { ...options, method: 'DELETE' });
+  }
+
+  /**
+   * Downloads a binary Blob (e.g. CSV, Excel, PDF) using authenticated headers.
+   */
+  public async getBlob(endpoint: string, options: Omit<RequestOptions, 'body'> = {}): Promise<Blob> {
+    const { params, headers: customHeaders, skipUnauthorizedEvent, ...fetchInit } = options;
+    const fullUrl = this.buildUrl(endpoint, params);
+
+    const headers = new Headers(customHeaders);
+    this.applyAuthHeaders(headers);
+
+    const response = await fetch(fullUrl, {
+      ...fetchInit,
+      method: 'GET',
+      headers,
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const responseData = await this.parseResponsePayload(response);
+      this.handleHttpError(response, responseData, skipUnauthorizedEvent);
+    }
+
+    return await response.blob();
   }
 }
 

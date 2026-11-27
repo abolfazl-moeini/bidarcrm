@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="Bidar CRM">
+  <rect width="64" height="64" rx="14" fill="#0F172A"/>
+  <path d="M13 37L29 21L35 27L41 21H35L40 16H52V28L47 33V25L31 41H24L42 23L35 30L29 24L13 40V37Z" fill="#2DD4BF"/>
+  <path d="M13 48L28 33H35L20 48H13Z" fill="#F8FAFC"/>
+  <path d="M24 48L29 43H38L43 38L39 34L43 30L50 37L39 48H24Z" fill="#F8FAFC"/>
+</svg>

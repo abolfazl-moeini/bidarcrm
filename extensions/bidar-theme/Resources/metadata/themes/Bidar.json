@@ -1,0 +1,106 @@
+{
+  "bidarStyle": "bidar",
+  "stylesheet": "client/custom/modules/bidar-theme/css/bidar.css",
+  "stylesheetIframe": "client/custom/modules/bidar-theme/css/bidar-iframe.css",
+  "logo": "client/custom/modules/bidar-theme/img/bidar-logo.svg",
+  "params": {
+    "navbar": {
+      "type": "enum",
+      "default": "side",
+      "options": [
+        "side",
+        "top"
+      ]
+    },
+    "direction": {
+      "type": "enum",
+      "default": "rtl",
+      "options": [
+        "rtl",
+        "ltr"
+      ]
+    }
+  },
+  "mappedParams": {
+    "navbarHeight": {
+      "param": "navbar",
+      "valueMap": {
+        "side": 48,
+        "top": 43
+      }
+    }
+  },
+  "dashboardCellHeight": 40,
+  "dashboardCellMargin": 16,
+  "navbarHeight": 48,
+  "modalFooterAtTheTop": true,
+  "modalFullHeight": true,
+  "fontSize": 14,
+  "textColor": "#14161f",
+  "hoverColor": "#0F766E",
+  "chartGridColor": "#e8eaee",
+  "chartTickColor": "#f0f1f4",
+  "chartSuccessColor": "#15803D",
+  "chartColorList": [
+    "#0F766E",
+    "#00b6ed",
+    "#15803D",
+    "#b45309",
+    "#b91c1c",
+    "#7a5af8",
+    "#ee46bc",
+    "#656b7c",
+    "#0b6f96"
+  ],
+  "chartColorAlternativeList": [
+    "#0F766E",
+    "#00b6ed",
+    "#b45309",
+    "#15803D",
+    "#b91c1c"
+  ],
+  "calendarColors": {
+    "": "#0F766Ea0",
+    "bg": "#e2e5f7a0",
+    "Call": "#b91c1c",
+    "Meeting": "#0F766E",
+    "Task": "#15803D"
+  },
+  "isDark": false,
+  "bidarDark": {
+    "isDark": true,
+    "stylesheetIframe": "client/custom/modules/bidar-theme/css/bidar-iframe-dark.css",
+    "stylesheetIframeFallback": "client/custom/modules/bidar-theme/css/bidar-iframe.css",
+    "textColor": "#dadced",
+    "hoverColor": "#14b8a6",
+    "chartGridColor": "#2a2e4d",
+    "chartTickColor": "#20243f",
+    "chartSuccessColor": "#47cd89",
+    "chartColorList": [
+      "#14b8a6",
+      "#00b6ed",
+      "#47cd89",
+      "#fdb022",
+      "#f97066",
+      "#b39ef7",
+      "#f670c7",
+      "#9298b5",
+      "#5ccbf5"
+    ],
+    "chartColorAlternativeList": [
+      "#14b8a6",
+      "#00b6ed",
+      "#fdb022",
+      "#47cd89",
+      "#f97066"
+    ],
+    "calendarColors": {
+      "": "#14b8a6a0",
+      "bg": "#1e293bb3",
+      "Call": "#f97066",
+      "Meeting": "#14b8a6",
+      "Task": "#47cd89"
+    },
+    "logo": "client/custom/modules/bidar-theme/img/bidar-logo-dark.svg"
+  }
+}

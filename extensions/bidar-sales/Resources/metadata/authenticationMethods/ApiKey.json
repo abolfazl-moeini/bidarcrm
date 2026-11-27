@@ -1,0 +1,5 @@
+{
+  "api": true,
+  "credentialsHeader": "X-Api-Key",
+  "implementationClassName": "Espo\\Modules\\BidarSales\\Authentication\\BidarApiKeyLogin"
+}

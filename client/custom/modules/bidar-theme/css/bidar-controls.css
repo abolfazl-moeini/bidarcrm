@@ -1,0 +1,229 @@
+/**
+ * Controls: buttons, fields, groups. Colours come from the EspoCRM variables
+ * (bidar-espo-vars.css); this file only sets shape, depth and motion.
+ */
+
+/* ===== Buttons ===== */
+.btn {
+    font-weight: 500;
+    transition: background-color var(--bidar-fast) ease,
+                border-color var(--bidar-fast) ease,
+                color var(--bidar-fast) ease,
+                box-shadow var(--bidar-fast) ease,
+                transform var(--bidar-fast) ease;
+}
+
+/* Press: the button sinks by one pixel, without any scaling that would blur its text */
+.btn:active:not(:disabled):not(.disabled) {
+    transform: translateY(1px);
+}
+
+.btn-default {
+    box-shadow: var(--bidar-shadow-xs);
+}
+
+.btn-default:hover:not(:disabled):not(.disabled) {
+    box-shadow: var(--bidar-shadow-sm);
+}
+
+.btn-default:active,
+.btn-default.active,
+.open > .dropdown-toggle.btn-default {
+    box-shadow: none;
+}
+
+.btn-primary,
+.btn-success,
+.btn-danger,
+.btn-warning {
+    box-shadow: var(--bidar-shadow-primary);
+}
+
+.btn-primary:hover:not(:disabled):not(.disabled),
+.btn-success:hover:not(:disabled):not(.disabled),
+.btn-danger:hover:not(:disabled):not(.disabled),
+.btn-warning:hover:not(:disabled):not(.disabled) {
+    box-shadow: var(--bidar-shadow-primary-hover);
+}
+
+.btn-primary:active:not(:disabled):not(.disabled),
+.btn-success:active:not(:disabled):not(.disabled),
+.btn-danger:active:not(:disabled):not(.disabled),
+.btn-warning:active:not(:disabled):not(.disabled) {
+    box-shadow: var(--bidar-shadow-primary);
+}
+
+.btn-text,
+.btn-link {
+    box-shadow: none;
+}
+
+.btn-text:hover,
+.btn-text:focus-visible {
+    background-color: var(--bidar-hover);
+    color: var(--bidar-text);
+}
+
+.btn .fas,
+.btn .far {
+    opacity: 0.9;
+}
+
+/* Active tabs and view switches: the marker of the record tabs */
+.btn-group > .btn-text.active {
+    color: var(--bidar-text);
+    font-weight: 600;
+}
+
+.btn-group > .btn-text.active::after {
+    height: var(--2px);
+    background-color: var(--bidar-brand-mark);
+}
+
+/* Field tabs of the forms: same size as those of a record */
+.record .tabs > button.btn {
+    height: var(--38px);
+    font-size: var(--14px);
+}
+
+@media screen and (min-width: 768px) {
+    .record .side.tabs-margin {
+        margin-top: var(--38px);
+    }
+}
+
+/* EspoCRM draws these in red, which means deleting or an error everywhere else */
+.btn-danger[data-name="composeEmail"],
+.btn-danger[data-name="reply"] {
+    --btn-danger-bg: var(--btn-primary-bg);
+    --btn-danger-border: var(--btn-primary-border);
+    --btn-danger-hover-bg: var(--btn-primary-hover-bg);
+    --btn-danger-hover-border: var(--btn-primary-hover-border);
+    --btn-danger-active-bg: var(--btn-primary-active-bg);
+    --btn-danger-active-border: var(--btn-primary-active-border);
+}
+
+/* Groups: detached buttons, 6px apart */
+.btn-group > .btn,
+.btn-group > .btn:first-child:not(:last-child),
+.btn-group > .btn:not(:first-child):not(:last-child),
+.btn-group > .btn:last-child:not(:first-child),
+.btn-group > .btn.dropdown-toggle {
+    border-radius: var(--bidar-radius) !important;
+}
+
+.btn-group > .btn + .btn,
+.btn-group > .btn + .btn-group,
+.btn-group > .btn-group + .btn {
+    margin-inline-start: var(--6px);
+}
+
+/* ===== Fields ===== */
+.form-control {
+    font-size: var(--15px);
+    box-shadow: var(--bidar-shadow-xs);
+    transition: border-color var(--bidar-fast) ease, box-shadow var(--bidar-fast) ease;
+}
+
+.form-control:hover:not(:focus):not([disabled]):not([readonly]) {
+    border-color: var(--bidar-n-500);
+}
+
+.form-control:focus {
+    border-color: var(--bidar-brand-ring);
+    box-shadow: var(--bidar-focus-halo);
+    outline: none;
+}
+
+.form-control::placeholder {
+    color: var(--bidar-text-faint);
+    opacity: 1;
+}
+
+.form-control[disabled],
+.form-control[readonly] {
+    box-shadow: none;
+}
+
+select.form-control {
+    background-color: var(--input-bg);
+    color: var(--bidar-text);
+}
+
+/* Grouped fields don't double the shadow */
+.input-group .form-control:not(:focus),
+.input-group-btn > .btn,
+.input-group-btn > .btn:hover:not(:disabled):not(.disabled) {
+    box-shadow: none;
+}
+
+/* A field and its side buttons read as one control: same border as the field */
+.input-group-btn > .btn:not(.btn-text),
+.input-group-addon {
+    border-color: var(--bidar-border-input);
+}
+
+.input-group-btn > .btn:not(.btn-text):hover:not(:disabled):not(.disabled) {
+    border-color: var(--bidar-n-500);
+}
+
+/*
+ * Text buttons after a field (filters and reset of the search): EspoCRM pulls them 1px over the
+ * field, which shows once their hover has a background. They stand apart, with rounded corners.
+ */
+.input-group > .input-group-btn:not(:first-child) > .btn.btn-text {
+    margin-inline-start: var(--6px);
+    /* Important: EspoCRM squares the left corners with !important */
+    border-radius: var(--bidar-radius) !important;
+}
+
+/* ===== Form labels ===== */
+.edit .cell > label.control-label,
+.modal .edit .cell > label.control-label {
+    font-size: var(--14px);
+    font-weight: 400;
+    color: var(--bidar-text-secondary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .btn,
+    .form-control {
+        transition: none;
+    }
+
+    .btn:active:not(:disabled):not(.disabled) {
+        transform: none;
+    }
+}
+
+/*
+ * Rich text editor. EspoCRM builds it as a panel and removes the background and the line of its
+ * toolbar: here it reads as one field, with the toolbar on grey above the text.
+ */
+.note-editor.note-frame.panel {
+    border: 1px solid var(--input-border);
+    border-radius: var(--bidar-radius);
+    box-shadow: var(--bidar-shadow-xs);
+}
+
+.note-editor.note-frame.panel.in-focus {
+    border-color: var(--bidar-brand-ring);
+    box-shadow: var(--bidar-focus-halo);
+}
+
+/* Important: EspoCRM removes this line with !important */
+.panel.note-editor > .note-toolbar {
+    padding: var(--6px) var(--6px) var(--1px);
+    background-color: var(--bidar-n-50);
+    border-bottom: 1px solid var(--bidar-border) !important;
+    border-radius: calc(var(--bidar-radius) - 1px) calc(var(--bidar-radius) - 1px) 0 0;
+}
+
+.note-editor.note-frame .note-editing-area .note-editable {
+    padding: var(--10px) var(--12px);
+    border-radius: 0 0 calc(var(--bidar-radius) - 1px) calc(var(--bidar-radius) - 1px);
+}
+
+.note-editor.note-frame .note-statusbar {
+    background-color: transparent;
+}

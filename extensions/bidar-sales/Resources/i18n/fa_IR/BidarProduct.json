@@ -1,0 +1,12 @@
+{
+  "fields": {
+    "name": "نام محصول / خدمت",
+    "sku": "کد کالا (SKU)",
+    "unitPrice": "قیمت واحد",
+    "category": "دسته‌بندی",
+    "isActive": "فعال"
+  },
+  "labels": {
+    "Create BidarProduct": "ایجاد محصول / خدمت"
+  }
+}

@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 import { KanbanPage } from '../pages/KanbanPage';
+import { resolveEspoStageEnum } from '../features/kanban/hooks/useKanbanDeals';
 import { apiClient, ApiError } from '../lib/api-client';
 import { Opportunity, PipelineStage } from '../types/espocrm';
 
@@ -115,7 +116,7 @@ describe('KanbanBoard Component & Deal Drag-and-Drop Operations', () => {
     const patchSpy = vi.spyOn(apiClient, 'patch').mockResolvedValue({
       id: 'deal-1',
       pipelineStageId: 'stage-2',
-      stage: 'مذاکره اولیه',
+      stage: 'Qualification',
     });
 
     renderWithClient(<KanbanPage />);
@@ -149,10 +150,10 @@ describe('KanbanBoard Component & Deal Drag-and-Drop Operations', () => {
       expect(screen.getByTestId('kanban-column-stage-1')).toHaveTextContent('۰ معامله');
     });
 
-    // Assert PATCH call
+    // Assert PATCH call sends deterministic EspoCRM enum instead of Persian label
     expect(patchSpy).toHaveBeenCalledWith('/Opportunity/deal-1', {
       pipelineStageId: 'stage-2',
-      stage: 'مذاکره اولیه',
+      stage: 'Qualification',
     });
   });
 
@@ -198,5 +199,44 @@ describe('KanbanBoard Component & Deal Drag-and-Drop Operations', () => {
       expect(screen.getByTestId('kanban-column-stage-2')).toHaveTextContent('۱ معامله');
       expect(screen.getByText(/خطا در انتقال معامله/i)).toBeInTheDocument();
     });
+  });
+
+  it('resolveEspoStageEnum handles Persian ZWNJ, Arabic glyphs, and negative keywords accurately', () => {
+    expect(resolveEspoStageEnum('تایید پیش‌فاکتور')).toBe('Proposal');
+    expect(resolveEspoStageEnum('پيش فاكتور')).toBe('Proposal');
+    expect(resolveEspoStageEnum('عدم تایید')).toBe('Closed Lost');
+    expect(resolveEspoStageEnum('تایید نهایی')).toBe('Closed Won');
+  });
+
+  it('same-column drop guard does NOT trigger PATCH', async () => {
+    vi.spyOn(apiClient, 'get').mockImplementation(async (url: string) => {
+      if (url.includes('Pipeline')) {
+        return { list: [{ id: 'pipe-1', name: 'فروش اصلی', stages: mockStages }] };
+      }
+      return { list: mockDeals, total: 2 };
+    });
+    const patchSpy = vi.spyOn(apiClient, 'patch').mockResolvedValue({});
+
+    renderWithClient(<KanbanPage />);
+
+    const dealCard = await screen.findByTestId('deal-card-deal-1');
+    const sameColumn = screen.getByTestId('kanban-column-stage-1');
+
+    const dataTransfer = {
+      data: {} as Record<string, string>,
+      setData(k: string, v: string) {
+        this.data[k] = v;
+      },
+      getData(k: string) {
+        return this.data[k] || '';
+      },
+      types: ['application/x-bidar-deal', 'text/plain'],
+    };
+
+    fireEvent.dragStart(dealCard, { dataTransfer });
+    fireEvent.dragOver(sameColumn, { dataTransfer });
+    fireEvent.drop(sameColumn, { dataTransfer });
+
+    expect(patchSpy).not.toHaveBeenCalled();
   });
 });

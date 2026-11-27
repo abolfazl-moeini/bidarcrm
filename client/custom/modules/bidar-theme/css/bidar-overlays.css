@@ -1,0 +1,223 @@
+/**
+ * Overlays: dropdown menus, modals, tooltips, popovers, alerts.
+ */
+
+/* ===== Dropdown menus ===== */
+.dropdown-menu {
+    padding: var(--4px);
+}
+
+.dropdown-menu > li > a {
+    border-radius: var(--bidar-radius-sm);
+    padding-top: var(--6px);
+    padding-bottom: var(--6px);
+    transition: background-color var(--bidar-fast) ease;
+}
+
+.dropdown-menu > li > a .item-icon,
+.dropdown-menu > li > a > .fas,
+.dropdown-menu > li > a > .far {
+    color: var(--bidar-text-faint);
+}
+
+.dropdown-menu > li > a:hover .item-icon {
+    color: var(--bidar-text-secondary);
+}
+
+.dropdown-menu > li.divider,
+.dropdown-menu .divider {
+    margin: var(--4px) calc(var(--4px) * -1);
+}
+
+.open > .dropdown-menu {
+    animation: bidar-menu-in var(--bidar-base) var(--bidar-ease);
+    transform-origin: top;
+}
+
+@keyframes bidar-menu-in {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: none; }
+}
+
+/* ===== Modals ===== */
+.modal-content {
+    border: 1px solid var(--bidar-border);
+    border-radius: var(--bidar-radius-xl);
+    box-shadow: var(--bidar-shadow-lg);
+    overflow: hidden;
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--bidar-border);
+}
+
+.modal-header .modal-title {
+    font-size: var(--16px);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.modal-footer {
+    background-color: var(--bidar-surface-sunken);
+    border-top: 1px solid var(--bidar-border);
+}
+
+.modal-footer .btn-group > .btn + .btn {
+    margin-inline-start: var(--6px);
+}
+
+.modal-dialog .modal-content {
+    overscroll-behavior: contain;
+}
+
+/* A dialog holding cards or a list: on the grey of the pages, not white on white */
+.modal-body:has(.panel, .list-container) {
+    background-color: var(--bidar-canvas);
+}
+
+/* The list keeps the dialog's margin, like the cards */
+.modal-body .list-container > .list {
+    margin-inline-start: 0;
+    margin-inline-end: 0;
+}
+
+/* Buttons under the title, above the content: white with the top, a single line below */
+.modal-header + .modal-footer {
+    background-color: var(--bidar-surface);
+    border-top: 0;
+    border-bottom: 1px solid var(--bidar-border);
+}
+
+/* EspoCRM 10 side panel (full height, docked right): rounded on the page side only */
+@media (min-width: 768px) {
+    .modal:not(.dialog-confirm):not(.dialog-centered) > .modal-dialog > .modal-content {
+        border-top: 0;
+        border-inline-end: 0;
+        border-bottom: 0;
+        border-inline-start: 1px solid var(--bidar-border);
+        border-start-start-radius: var(--bidar-radius-xl);
+        border-end-start-radius: var(--bidar-radius-xl);
+        border-start-end-radius: 0;
+        border-end-end-radius: 0;
+        /* Shadow cast towards the page: the panel stands out softly instead of a hard edge */
+        box-shadow:
+            -32px 0 64px -8px rgba(10, 12, 20, 0.32),
+            -4px 0 12px -2px rgba(10, 12, 20, 0.14);
+    }
+}
+
+/*
+ * EspoCRM stretches the record to the panel edges; Bidar draws its blocks as bordered cards,
+ * which the edge would then cut off: they keep the panel margin.
+ */
+.modal-body > .record.no-side-margin,
+.modal-body > .record-container.no-side-margin {
+    margin-inline-start: 0;
+    margin-inline-end: 0;
+}
+
+.modal-body > :is(.record, .record-container).no-side-margin .record-grid .panel:not(.note-editor),
+.modal-body > :is(.record, .record-container).no-side-margin .record-grid .left > :is(.middle, .bottom) > .panel {
+    border-inline-start: var(--panel-border-width) solid var(--panel-default-border);
+    border-inline-end: var(--panel-border-width) solid var(--panel-default-border);
+}
+
+.modal-body > :is(.record, .record-container).no-side-margin .record-grid .panel:not(.in-middle, .last, .note-editor) {
+    border-start-start-radius: var(--panel-border-radius);
+    border-start-end-radius: var(--panel-border-radius);
+}
+
+.modal-body > :is(.record, .record-container).no-side-margin .record-grid .panel:not(.in-middle, .first, .note-editor) {
+    border-end-start-radius: var(--panel-border-radius);
+    border-end-end-radius: var(--panel-border-radius);
+}
+
+.modal-backdrop.in {
+    backdrop-filter: blur(3px);
+}
+
+/* Search field of a menu: a regular field, inset from the menu's rounded edges */
+.dropdown-menu .quick-search-list-item {
+    padding: var(--2px) var(--4px) var(--4px);
+}
+
+.dropdown-menu .quick-search-list-item input {
+    border-inline-start: 1px solid var(--input-border);
+    border-inline-end: 1px solid var(--input-border);
+    border-radius: var(--bidar-radius) !important;
+}
+
+/* ===== Tooltips and popovers ===== */
+.tooltip-inner {
+    padding: var(--6px) var(--8px);
+    border-radius: var(--bidar-radius-sm);
+    font-size: var(--12px);
+    font-weight: 500;
+}
+
+.popover {
+    border: 1px solid var(--bidar-border);
+    border-radius: var(--bidar-radius-lg);
+    box-shadow: var(--bidar-shadow-lg);
+}
+
+/* ===== Alerts ===== */
+.alert {
+    border-radius: var(--bidar-radius-md);
+    border-width: 1px;
+}
+
+.alert-danger { border-color: var(--bidar-danger-border); }
+.alert-warning { border-color: var(--bidar-warning-border); }
+.alert-success { border-color: var(--bidar-success-border); }
+.alert-info { border-color: var(--bidar-info-border); }
+
+@media (prefers-reduced-motion: reduce) {
+    .open > .dropdown-menu {
+        animation: none;
+    }
+}
+
+/* ===== Jalali Datepicker Overlay ===== */
+jdp-container {
+    font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    direction: rtl !important;
+    text-align: start !important;
+    --jdp-color-0: var(--bidar-surface);
+    --jdp-color-1: var(--bidar-surface-sunken, #f8fafc);
+    --jdp-color-2: var(--bidar-border);
+    --jdp-color-3: var(--bidar-border, #cbd5e1);
+    --jdp-color-4: var(--bidar-text-secondary, #64748b);
+    --jdp-color-5: var(--bidar-text, #0f172a);
+    --jdp-primary: var(--bidar-brand);
+    --jdp-red: var(--bidar-danger, #ef4444);
+    border: 1px solid var(--bidar-border, #e2e8f0) !important;
+    box-shadow: var(--bidar-shadow-lg) !important;
+    border-radius: var(--bidar-radius-lg, 12px) !important;
+    z-index: 1060 !important;
+}
+
+jdp-container .jdp-day {
+    color: var(--bidar-text, #0f172a);
+    font-variant-numeric: tabular-nums;
+    border-radius: var(--bidar-radius-sm, 6px) !important;
+}
+
+jdp-container .jdp-day.selected {
+    background-color: var(--bidar-brand) !important;
+    color: var(--bidar-on-brand) !important;
+    font-weight: 600 !important;
+}
+
+jdp-container .jdp-day.today {
+    border: 1px solid var(--bidar-brand) !important;
+}
+
+jdp-container .jdp-btn-today,
+jdp-container .jdp-btn-empty,
+jdp-container .jdp-btn-close {
+    background: var(--bidar-brand) !important;
+    color: var(--bidar-on-brand) !important;
+    border-radius: var(--bidar-radius-sm, 6px) !important;
+    font-family: inherit !important;
+}

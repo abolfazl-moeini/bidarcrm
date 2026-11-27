@@ -9,22 +9,19 @@ services:
       - "8080:80"
     volumes:
       - .:/var/www/html
+      - ./docker/php.ini:/usr/local/etc/php/conf.d/bidar.ini:ro
     environment:
-      ESPO_SITE_URL: "http://localhost:8080"
-      DATABASE_HOST: db
-      DATABASE_NAME: bidarcrm
-      DATABASE_USER: bidar
-      DATABASE_PASSWORD: bidarpassword
+      APACHE_DOCUMENT_ROOT: /var/www/html/engine
     depends_on:
       db:
         condition: service_healthy
 
   db:
-    image: mariadb:11
+    image: mariadb:11.4
     container_name: bidar_db
     restart: unless-stopped
     ports:
-      - "3306:3306"
+      - "127.0.0.1:3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: bidarcrm

@@ -19,8 +19,8 @@ export function createQueryClient(): QueryClient {
         refetchOnWindowFocus: false,
         retry: (failureCount, error) => {
           if (error instanceof ApiError) {
-            // Do not retry authorization or not found errors
-            if ([401, 403, 404].includes(error.status)) {
+            // Do not retry 4xx client errors (400 Bad Request, 401, 403, 404, 422, etc.)
+            if (error.status >= 400 && error.status < 500) {
               return false;
             }
           }

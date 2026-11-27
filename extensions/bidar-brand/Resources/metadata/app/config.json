@@ -1,0 +1,7 @@
+{
+  "applicationName": "بیدار CRM",
+  "outboundEmailFromName": "بیدار CRM",
+  "adminNotificationsNewVersion": false,
+  "adminNotificationsNewExtensionVersion": false,
+  "adminPanelIframeDisabled": true
+}

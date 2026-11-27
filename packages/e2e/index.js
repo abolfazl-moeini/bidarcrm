@@ -26,6 +26,7 @@ async function main() {
   let brokenReason = null;
   const results = [];
 
+  try {
   for (const file of files) {
     const scenarioPath = resolve(scenariosDir, file);
     const mod = await import(pathToFileURL(scenarioPath).href);
@@ -43,6 +44,7 @@ async function main() {
         baseUrl: envConfig.baseUrl,
         credentials: envConfig.credentials,
         state: sharedState,
+        timeoutMs: config.timeoutMs,
       });
 
       results.push(res);
@@ -60,14 +62,31 @@ async function main() {
       results.push({ name: scenario.name, ok: false, error: err.message });
     }
   }
+  } finally {
+    const auth = sharedState.token
+      ? Buffer.from(`${sharedState.username || envConfig.credentials.username}:${sharedState.token}`).toString('base64')
+      : null;
+    const headers = auth ? { 'Espo-Authorization': auth, 'Espo-Authorization-By-Token': 'true' } : {};
+    for (const [entity, id] of [['Task', sharedState.taskId], ['Note', sharedState.noteId], ['Contact', sharedState.contactId], ['Opportunity', sharedState.dealId]]) {
+      if (!id) continue;
+      try {
+        const response = await fetch(`${envConfig.baseUrl}/api/v1/${entity}/${encodeURIComponent(id)}`, {
+          method: 'DELETE', headers, signal: AbortSignal.timeout(config.timeoutMs),
+        });
+        if (!response.ok && response.status !== 404) console.warn(`Cleanup ${entity}/${id} returned HTTP ${response.status}`);
+      } catch (error) {
+        console.warn(`Cleanup ${entity}/${id} failed: ${error.message}`);
+      }
+    }
+  }
 
-  const allPassed = results.every((r) => r.ok);
+  const allPassed = results.length > 0 && results.every((r) => r.ok);
   if (!allPassed) {
-    process.exit(1);
+    process.exitCode = 1;
   }
 }
 
 main().catch((err) => {
   console.error('Fatal runner error:', err);
-  process.exit(2);
+  process.exitCode = 2;
 });

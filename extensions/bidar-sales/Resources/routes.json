@@ -3,5 +3,30 @@
     "route": "/BidarDashboard/summary",
     "method": "get",
     "actionClassName": "Espo\\Modules\\BidarSales\\Api\\GetDashboardSummary"
+  },
+  {
+    "route": "/BidarApiKey",
+    "method": "get",
+    "actionClassName": "Espo\\Modules\\BidarSales\\Api\\BidarApiKeyListAction"
+  },
+  {
+    "route": "/BidarApiKey",
+    "method": "post",
+    "actionClassName": "Espo\\Modules\\BidarSales\\Api\\BidarApiKeyCreateAction"
+  },
+  {
+    "route": "/BidarApiKey/:id/rotate",
+    "method": "post",
+    "actionClassName": "Espo\\Modules\\BidarSales\\Api\\BidarApiKeyRotateAction"
+  },
+  {
+    "route": "/BidarApiKey/:id",
+    "method": "delete",
+    "actionClassName": "Espo\\Modules\\BidarSales\\Api\\BidarApiKeyDeleteAction"
+  },
+  {
+    "route": "/BidarExport/:entityType",
+    "method": "get",
+    "actionClassName": "Espo\\Modules\\BidarSales\\Api\\BidarExportAction"
   }
 ]

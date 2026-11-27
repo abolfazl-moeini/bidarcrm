@@ -27,9 +27,21 @@ class ModuleManifestTest extends TestCase
         $this->assertIsArray($data, 'manifest.json must be valid JSON');
 
         $this->assertSame('BidarSales', $data['name'] ?? null);
-        $this->assertSame('1.0.1', $data['version'] ?? null);
+        $this->assertSame('1.0.5', $data['version'] ?? null);
         $this->assertContains('>=10.1.0', $data['acceptableVersions'] ?? []);
         $this->assertContains('>=8.3', $data['php'] ?? []);
+        $this->assertStringNotContainsString('EspoCRM 10.1.4', $data['description'] ?? '');
+        $this->assertStringContainsString('BidarCRM Extension', $data['description'] ?? '');
+    }
+
+    public function testBidarIranManifestWhitelabelDescription(): void
+    {
+        $manifestFile = dirname($this->extensionPath) . '/bidar-iran/manifest.json';
+        $this->assertFileExists($manifestFile);
+        $data = json_decode((string) file_get_contents($manifestFile), true);
+        $this->assertIsArray($data);
+        $this->assertStringNotContainsString('EspoCRM 10.1.4', $data['description'] ?? '');
+        $this->assertStringContainsString('BidarCRM Extension', $data['description'] ?? '');
     }
 
     public function testModuleJsonExistsAndHasOrderFiftyOrHigher(): void

@@ -1,0 +1,1124 @@
+--- FILE: extensions/bidar-iran/Support/JalaliHelper.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace Espo\Modules\BidarIran\Support;
+
+use Morilog\Jalali\CalendarUtils;
+use Morilog\Jalali\Jalalian;
+
+final class JalaliHelper
+{
+    public static function toJalaliDate(
+        ?string $gregorianDate,
+        string $format = 'Y/m/d',
+        bool $persianDigits = false,
+        string $tz = 'Asia/Tehran'
+    ): string {
+        if ($gregorianDate === null || trim($gregorianDate) === '') {
+            return '';
+        }
+
+        try {
+            $tzObj = new \DateTimeZone($tz);
+        } catch (\Throwable) {
+            $tzObj = new \DateTimeZone('Asia/Tehran');
+        }
+
+        try {
+            $gregorianDate = trim($gregorianDate);
+            if (strlen($gregorianDate) > 10) {
+                // If timestamp contains time (stored in UTC), parse with UTC and convert to target timezone (Asia/Tehran)
+                $dt = new \DateTimeImmutable($gregorianDate, new \DateTimeZone('UTC'));
+                $dt = $dt->setTimezone($tzObj);
+            } else {
+                $dt = new \DateTimeImmutable($gregorianDate, $tzObj);
+            }
+            $j = Jalalian::fromDateTime($dt);
+            $formatted = $j->format($format);
+
+            return $persianDigits ? CalendarUtils::convertNumbers($formatted) : $formatted;
+        } catch (\Throwable) {
+            return '';
+        }
+    }
+
+    public static function toJalaliDateTime(
+        ?string $gregorianDateTime,
+        string $format = 'Y/m/d H:i',
+        string $tz = 'Asia/Tehran',
+        bool $persianDigits = false
+    ): string {
+        if ($gregorianDateTime === null || trim($gregorianDateTime) === '') {
+            return '';
+        }
+
+        try {
+            $tzObj = new \DateTimeZone($tz);
+        } catch (\Throwable) {
+            $tzObj = new \DateTimeZone('Asia/Tehran');
+        }
+
+        try {
+            $dt = new \DateTimeImmutable($gregorianDateTime);
+            $dt = $dt->setTimezone($tzObj);
+            $j = Jalalian::fromDateTime($dt);
+            $formatted = $j->format($format);
+
+            return $persianDigits ? CalendarUtils::convertNumbers($formatted) : $formatted;
+        } catch (\Throwable) {
+            return '';
+        }
+    }
+
+    public static function toGregorianDate(string $jalaliDate): ?string
+    {
+        if (trim($jalaliDate) === '') {
+            return null;
+        }
+
+        try {
+            $clean = CalendarUtils::convertNumbers(trim($jalaliDate), true);
+            if (!preg_match('/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/', $clean, $matches)) {
+                return null;
+            }
+
+            $y = (int) $matches[1];
+            $m = (int) $matches[2];
+            $d = (int) $matches[3];
+
+            if ($m < 1 || $m > 12) {
+                return null;
+            }
+
+            $maxDays = $m <= 6 ? 31 : ($m <= 11 ? 30 : (CalendarUtils::isLeapJalaliYear($y) ? 30 : 29));
+            if ($d < 1 || $d > $maxDays) {
+                return null;
+            }
+
+            $g = CalendarUtils::toGregorian($y, $m, $d);
+
+            return sprintf('%04d-%02d-%02d', $g[0], $g[1], $g[2]);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * @return array{start: string, end: string, startUtc: string, endUtc: string}
+     */
+    public static function getJalaliMonthRange(
+        int $jYear,
+        int $jMonth,
+        string $tz = 'Asia/Tehran',
+        bool $toUtc = false
+    ): array {
+        try {
+            $tzObj = new \DateTimeZone($tz);
+        } catch (\Throwable) {
+            $tzObj = new \DateTimeZone('Asia/Tehran');
+        }
+
+        $jMonth = max(1, min(12, $jMonth));
+        $maxDays = $jMonth <= 6 ? 31 : ($jMonth <= 11 ? 30 : (CalendarUtils::isLeapJalaliYear($jYear) ? 30 : 29));
+
+        $gStart = CalendarUtils::toGregorian($jYear, $jMonth, 1);
+        $gEnd = CalendarUtils::toGregorian($jYear, $jMonth, $maxDays);
+
+        $startLocalStr = sprintf('%04d-%02d-%02d 00:00:00', $gStart[0], $gStart[1], $gStart[2]);
+        $endLocalStr = sprintf('%04d-%02d-%02d 23:59:59', $gEnd[0], $gEnd[1], $gEnd[2]);
+
+        $utcTz = new \DateTimeZone('UTC');
+        $startDt = new \DateTimeImmutable($startLocalStr, $tzObj);
+        $startUtcStr = $startDt->setTimezone($utcTz)->format('Y-m-d H:i:s');
+
+        $endDt = new \DateTimeImmutable($endLocalStr, $tzObj);
+        $endUtcStr = $endDt->setTimezone($utcTz)->format('Y-m-d H:i:s');
+
+        return [
+            'start' => $toUtc ? $startUtcStr : $startLocalStr,
+            'end' => $toUtc ? $endUtcStr : $endLocalStr,
+            'startUtc' => $startUtcStr,
+            'endUtc' => $endUtcStr,
+        ];
+    }
+
+    /**
+     * @return array{start: string, end: string, startUtc: string, endUtc: string}
+     */
+    public static function getCurrentJalaliMonthRange(string $tz = 'Asia/Tehran', bool $toUtc = false): array
+    {
+        try {
+            $tzObj = new \DateTimeZone($tz);
+        } catch (\Throwable) {
+            $tzObj = new \DateTimeZone('Asia/Tehran');
+        }
+
+        $now = new \DateTimeImmutable('now', $tzObj);
+        $jNow = Jalalian::fromDateTime($now);
+
+        return self::getJalaliMonthRange($jNow->getYear(), $jNow->getMonth(), $tz, $toUtc);
+    }
+
+    /**
+     * @return array{start: string, end: string, startUtc: string, endUtc: string}
+     */
+    public static function getJalaliQuarterRange(
+        int $quarter,
+        ?int $jYear = null,
+        string $tz = 'Asia/Tehran',
+        bool $toUtc = false
+    ): array {
+        try {
+            $tzObj = new \DateTimeZone($tz);
+        } catch (\Throwable) {
+            $tzObj = new \DateTimeZone('Asia/Tehran');
+        }
+
+        if ($jYear === null) {
+            $now = new \DateTimeImmutable('now', $tzObj);
+            $jYear = Jalalian::fromDateTime($now)->getYear();
+        }
+
+        $q = max(1, min(4, $quarter));
+        $startMonth = ($q - 1) * 3 + 1;
+        $endMonth = $startMonth + 2;
+
+        $startRange = self::getJalaliMonthRange($jYear, $startMonth, $tz, $toUtc);
+        $endRange = self::getJalaliMonthRange($jYear, $endMonth, $tz, $toUtc);
+
+        return [
+            'start' => $startRange['start'],
+            'end' => $endRange['end'],
+            'startUtc' => $startRange['startUtc'],
+            'endUtc' => $endRange['endUtc'],
+        ];
+    }
+
+    public static function diffForHumans(?string $gregorianDateTime, string $tz = 'Asia/Tehran'): string
+    {
+        if ($gregorianDateTime === null || trim($gregorianDateTime) === '') {
+            return '';
+        }
+
+        try {
+            $tzObj = new \DateTimeZone($tz);
+        } catch (\Throwable) {
+            $tzObj = new \DateTimeZone('Asia/Tehran');
+        }
+
+        try {
+            $dt = new \DateTimeImmutable($gregorianDateTime);
+            $dt = $dt->setTimezone($tzObj);
+            $jalalian = Jalalian::fromDateTime($dt);
+
+            return $jalalian->ago();
+        } catch (\Throwable) {
+            return '';
+        }
+    }
+}
+
+
+--- FILE: extensions/bidar-iran/Support/IranValidators.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace Espo\Modules\BidarIran\Support;
+
+final class IranValidators
+{
+    public static function isValidNationalCode(string $code): bool
+    {
+        $code = PersianTextNormalizer::toEnglishDigits($code);
+        $code = (string) preg_replace('/[\s\-]/', '', $code);
+
+        if (!preg_match('/^\d{10}$/', $code)) {
+            return false;
+        }
+
+        // All identical digits are invalid (e.g. 1111111111, 0000000000)
+        if (count(array_unique(str_split($code))) === 1) {
+            return false;
+        }
+
+        $sum = 0;
+        for ($i = 0; $i < 9; $i++) {
+            $sum += ((int) $code[$i]) * (10 - $i);
+        }
+
+        $rem = $sum % 11;
+        $checkDigit = (int) $code[9];
+
+        return ($rem < 2 && $checkDigit === $rem) || ($rem >= 2 && $checkDigit === (11 - $rem));
+    }
+
+    public static function isValidCompanyNationalId(string $id): bool
+    {
+        $id = PersianTextNormalizer::toEnglishDigits($id);
+        $id = (string) preg_replace('/[\s\-]/', '', $id);
+
+        if (!preg_match('/^\d{11}$/', $id)) {
+            return false;
+        }
+
+        if (count(array_unique(str_split($id))) === 1) {
+            return false;
+        }
+
+        $d = array_map('intval', str_split($id));
+        $t = $d[9] + 2;
+        $weights = [29, 27, 23, 19, 17, 29, 27, 23, 19, 17];
+
+        $sum = 0;
+        for ($i = 0; $i < 10; $i++) {
+            $sum += ($d[$i] + $t) * $weights[$i];
+        }
+
+        $rem = $sum % 11;
+        $checkDigit = ($rem === 10) ? 0 : $rem;
+
+        return $d[10] === $checkDigit;
+    }
+
+    public static function isValidPostalCode(string $code): bool
+    {
+        $code = PersianTextNormalizer::toEnglishDigits($code);
+        $code = (string) preg_replace('/[\s\-]/', '', $code);
+
+        if (!preg_match('/^[13-9][0-9]{9}$/', $code)) {
+            return false;
+        }
+
+        // First 5 digits cannot be all repetitive
+        if (count(array_unique(str_split(substr($code, 0, 5)))) === 1) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public static function isValidSheba(string $iban): bool
+    {
+        $iban = PersianTextNormalizer::toEnglishDigits($iban);
+        $iban = strtoupper((string) preg_replace('/[\s\-]/', '', $iban));
+
+        if (!preg_match('/^IR\d{24}$/', $iban)) {
+            return false;
+        }
+
+        $checkDigits = substr($iban, 2, 2);
+        $bban = substr($iban, 4);
+        $numeric = $bban . '1827' . $checkDigits;
+
+        // Mod-97 without bcmath dependency
+        $remainder = 0;
+        $len = strlen($numeric);
+        for ($i = 0; $i < $len; $i++) {
+            $remainder = ($remainder * 10 + (int) $numeric[$i]) % 97;
+        }
+
+        return $remainder === 1;
+    }
+}
+
+
+--- FILE: extensions/bidar-iran/Support/IranPhoneNormalizer.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace Espo\Modules\BidarIran\Support;
+
+class IranPhoneNormalizer
+{
+    private const PERSIAN_DIGITS = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+    private const ARABIC_DIGITS  = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    private const ASCII_DIGITS   = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+
+    public function toAsciiDigits(string $input): string
+    {
+        $converted = str_replace(self::PERSIAN_DIGITS, self::ASCII_DIGITS, $input);
+        return str_replace(self::ARABIC_DIGITS, self::ASCII_DIGITS, $converted);
+    }
+
+    public function toLocal(string $phone): ?string
+    {
+        $clean = preg_replace('/[^\d+]/', '', $this->toAsciiDigits($phone)) ?? '';
+
+        if (preg_match('/^(?:\+98|0098|98)?(9\d{9})$/', $clean, $matches)) {
+            return '0' . $matches[1];
+        }
+
+        if (preg_match('/^0(9\d{9})$/', $clean, $matches)) {
+            return '0' . $matches[1];
+        }
+
+        return null;
+    }
+
+    public function toE164(string $phone): ?string
+    {
+        $local = $this->toLocal($phone);
+        if ($local === null) {
+            return null;
+        }
+
+        return '+98' . substr($local, 1);
+    }
+}
+
+
+--- FILE: extensions/bidar-iran/Support/PersianTextNormalizer.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace Espo\Modules\BidarIran\Support;
+
+final class PersianTextNormalizer
+{
+    private const PERSIAN_DIGITS = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+    private const ARABIC_DIGITS  = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    private const ENGLISH_DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+
+    public static function toEnglishDigits(string $input): string
+    {
+        $text = str_replace(self::PERSIAN_DIGITS, self::ENGLISH_DIGITS, $input);
+        return str_replace(self::ARABIC_DIGITS, self::ENGLISH_DIGITS, $text);
+    }
+
+    public static function toPersianDigits(string $input): string
+    {
+        $text = str_replace(self::ARABIC_DIGITS, self::PERSIAN_DIGITS, $input);
+        return str_replace(self::ENGLISH_DIGITS, self::PERSIAN_DIGITS, $text);
+    }
+
+    public static function normalizeCharacters(string $input): string
+    {
+        // 1. Unify Arabic Yeh to Persian Yeh: ي (\u{064A}) and ى (\u{0649}) -> ی (\u{06CC})
+        $text = str_replace(["\u{064A}", "\u{0649}"], "\u{06CC}", $input);
+
+        // 2. Unify Arabic Keheh to Persian Keheh: ك (\u{0643}) -> ک (\u{06A9})
+        $text = str_replace("\u{0643}", "\u{06A9}", $text);
+
+        // 3. Normalize heh with yeh: ۀ (\u{06C0}) -> ه
+        $text = str_replace("\u{06C0}", 'ه', $text);
+
+        // 4. Remove Tatweel / Kashida: ـ (\u{0640})
+        $text = str_replace("\u{0640}", '', $text);
+
+        // 5. Convert digits to English
+        $text = self::toEnglishDigits($text);
+
+        // 6. Collapse duplicate horizontal spaces
+        $text = (string) preg_replace('/[^\S\r\n]{2,}/u', ' ', $text);
+
+        return trim($text);
+    }
+}
+
+
+--- FILE: extensions/bidar-iran/Support/PersianCsvExporter.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace Espo\Modules\BidarIran\Support;
+
+final class PersianCsvExporter
+{
+    private const FORMULA_PREFIXES = ['=', '+', '-', '@'];
+
+    /**
+     * @param array<int|string, string> $headers
+     * @param array<int, array<int|string, mixed>> $rows
+     * @param array<int, int|string> $dateColumns Column names or 0-based indices to format to Jalali
+     */
+    public static function export(array $headers, array $rows, array $dateColumns = []): string
+    {
+        $stream = fopen('php://temp', 'r+');
+        if ($stream === false) {
+            return "\xEF\xBB\xBF";
+        }
+
+        // 1. Sanitize headers against formula injection
+        $sanitizedHeaders = [];
+        foreach ($headers as $header) {
+            $hStr = (string) $header;
+            if ($hStr !== '' && in_array($hStr[0], self::FORMULA_PREFIXES, true)) {
+                $hStr = "'" . $hStr;
+            }
+            $sanitizedHeaders[] = $hStr;
+        }
+
+        if (!empty($sanitizedHeaders)) {
+            fputcsv($stream, $sanitizedHeaders, ',', '"', '\\');
+        }
+
+        // 2. Format rows
+        foreach ($rows as $row) {
+            $sanitizedRow = [];
+            $colIdx = 0;
+            foreach ($row as $key => $val) {
+                $isDateCol = in_array($key, $dateColumns, true) || in_array($colIdx, $dateColumns, true);
+
+                if ($val === null) {
+                    $cell = '';
+                } elseif ($isDateCol && is_string($val) && $val !== '') {
+                    $cell = JalaliHelper::toJalaliDate($val);
+                } else {
+                    $cell = (string) $val;
+                }
+
+                // Prevent CSV formula injection (including leading whitespace/tabs)
+                $trimmed = ltrim($cell);
+                if ($trimmed !== '' && in_array($trimmed[0], self::FORMULA_PREFIXES, true)) {
+                    $cell = "'" . $cell;
+                }
+
+                $sanitizedRow[] = $cell;
+                $colIdx++;
+            }
+
+            fputcsv($stream, $sanitizedRow, ',', '"', '\\');
+        }
+
+        rewind($stream);
+        $csvContent = (string) stream_get_contents($stream);
+        fclose($stream);
+
+        // Prepend UTF-8 BOM for Windows Excel compatibility
+        return "\xEF\xBB\xBF" . $csvContent;
+    }
+}
+
+
+--- FILE: extensions/bidar-iran/Sms/KavenegarSender.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace Espo\Modules\BidarIran\Sms;
+
+use Closure;
+use RuntimeException;
+use Espo\Core\Sms\Sender;
+use Espo\Core\Sms\Sms;
+use Espo\Modules\BidarIran\Support\IranPhoneNormalizer;
+use Espo\ORM\EntityManager;
+
+class KavenegarSender implements Sender
+{
+    private string $apiKey;
+    private ?string $senderLine;
+    private IranPhoneNormalizer $normalizer;
+    /** @var Closure(string, array<string, mixed>): array{status: int, body: string} */
+    private Closure $httpClient;
+
+    /**
+     * @param ?Closure(string, array<string, mixed>): array{status: int, body: string} $httpClient
+     */
+    public function __construct(
+        ?string $apiKey = null,
+        ?string $senderLine = null,
+        ?Closure $httpClient = null,
+        ?IranPhoneNormalizer $normalizer = null,
+        ?EntityManager $entityManager = null
+    ) {
+        if (($apiKey === null || $apiKey === '') && $entityManager !== null) {
+            $integration = $entityManager->getEntityById('Integration', 'Kavenegar');
+            if ($integration !== null) {
+                $apiKey = (string) ($integration->get('apiKey') ?? '');
+                $senderLine = $senderLine ?? ($integration->has('senderLine') ? (string) $integration->get('senderLine') : null);
+            }
+        }
+
+        $this->apiKey = $apiKey ?? '';
+        $this->senderLine = $senderLine;
+        $this->normalizer = $normalizer ?? new IranPhoneNormalizer();
+        $this->httpClient = $httpClient ?? self::defaultHttpClient();
+    }
+
+    public function send(Sms $sms): void
+    {
+        $numbers = $sms->getToNumberList();
+        $body = $sms->getBody();
+
+        if (empty($numbers)) {
+            return;
+        }
+
+        foreach ($numbers as $number) {
+            $this->sendDirect($number, $body);
+        }
+    }
+
+    public function sendDirect(string $phone, string $message): bool
+    {
+        if ($this->apiKey === '') {
+            throw new RuntimeException('Kavenegar SMS dispatch failed: API key is not configured.');
+        }
+
+        $localPhone = $this->normalizer->toLocal($phone);
+        if ($localPhone === null) {
+            throw new RuntimeException("Invalid Iranian phone number: {$phone}");
+        }
+
+        $url = "https://api.kavenegar.com/v1/{$this->apiKey}/sms/send.json";
+        $params = [
+            'receptor' => $localPhone,
+            'message' => $message,
+            'sender' => $this->senderLine ?? '',
+        ];
+
+        try {
+            $response = ($this->httpClient)($url, $params);
+            $statusCode = $response['status'] ?? 0;
+            if ($statusCode !== 200) {
+                throw new RuntimeException("Kavenegar SMS dispatch failed with HTTP {$statusCode}");
+            }
+
+            $rawBody = (string) ($response['body'] ?? '');
+            if ($rawBody !== '') {
+                $decoded = json_decode($rawBody, true);
+                if (is_array($decoded) && isset($decoded['return']['status'])) {
+                    $returnStatus = (int) $decoded['return']['status'];
+                    if ($returnStatus !== 200) {
+                        $msg = (string) ($decoded['return']['message'] ?? "Status {$returnStatus}");
+                        throw new RuntimeException("Kavenegar SMS dispatch failed with API code {$returnStatus}: {$msg}");
+                    }
+                }
+            }
+
+            return true;
+        } catch (\Throwable $e) {
+            $msg = $e->getMessage();
+            if ($this->apiKey !== '') {
+                $msg = str_replace($this->apiKey, '***', $msg);
+            }
+            if (str_contains($msg, 'Kavenegar SMS dispatch failed')) {
+                throw new RuntimeException($msg, (int) $e->getCode(), $e);
+            }
+            throw new RuntimeException('Kavenegar SMS dispatch failed: connection error', 0, $e);
+        }
+    }
+
+    private static function defaultHttpClient(): Closure
+    {
+        return function (string $url, array $params): array {
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+            $body = curl_exec($ch);
+            $errno = curl_errno($ch);
+            $error = curl_error($ch);
+            $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($errno !== 0) {
+                throw new RuntimeException("cURL error ({$errno}): {$error}");
+            }
+
+            return [
+                'status' => $status,
+                'body' => is_string($body) ? $body : '',
+            ];
+        };
+    }
+}
+
+
+--- FILE: extensions/bidar-iran/Services/SmsCampaignService.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace Espo\Modules\BidarIran\Services;
+
+use Espo\Modules\BidarIran\Sms\KavenegarSender;
+use Espo\ORM\EntityManager;
+use Throwable;
+
+class SmsCampaignService
+{
+    private KavenegarSender $sender;
+    private ?EntityManager $entityManager;
+
+    public function __construct(
+        ?KavenegarSender $sender = null,
+        ?EntityManager $entityManager = null
+    ) {
+        $this->entityManager = $entityManager;
+        $this->sender = $sender ?? new KavenegarSender(null, null, null, null, $entityManager);
+    }
+
+    public function getSender(): KavenegarSender
+    {
+        return $this->sender;
+    }
+
+    /**
+     * Replaces {contactName}, {accountName}, {dealName} and custom {variables} in template string.
+     *
+     * @param array<string, mixed> $variables
+     */
+    public function renderTemplate(string $template, array $variables = []): string
+    {
+        $map = [];
+        foreach ($variables as $key => $value) {
+            $cleanedKey = trim((string) $key, '{}');
+            $map['{' . $cleanedKey . '}'] = (string) $value;
+        }
+
+        return strtr($template, $map);
+    }
+
+    /**
+     * Retrieve SMS template body by ID from metadata/database.
+     */
+    public function getTemplateBody(string $templateId): ?string
+    {
+        if ($this->entityManager === null) {
+            return null;
+        }
+
+        $template = $this->entityManager->getEntityById('BidarSmsTemplate', $templateId);
+        if ($template === null) {
+            return null;
+        }
+
+        return (string) ($template->get('body') ?? '');
+    }
+
+    /**
+     * Send single SMS and log result into BidarSmsMessage.
+     *
+     * @return array{
+     *     success: bool,
+     *     status: string,
+     *     phoneNumber: string,
+     *     message: string,
+     *     id: ?string,
+     *     error?: string
+     * }
+     */
+    public function sendSms(
+        string $phoneNumber,
+        string $message,
+        ?string $contactId = null,
+        ?string $opportunityId = null
+    ): array {
+        $status = 'failed';
+        $error = null;
+        $smsRecordId = null;
+
+        try {
+            $dispatched = $this->sender->sendDirect($phoneNumber, $message);
+            if ($dispatched) {
+                $status = 'sent';
+            }
+        } catch (Throwable $e) {
+            $status = 'failed';
+            $error = $e->getMessage();
+        }
+
+        if ($this->entityManager !== null) {
+            try {
+                $smsRecord = $this->entityManager->getNewEntity('BidarSmsMessage');
+                $smsRecord->set('phoneNumber', $phoneNumber);
+                $smsRecord->set('body', $message);
+                $smsRecord->set('status', $status);
+                if ($contactId !== null) {
+                    $smsRecord->set('contactId', $contactId);
+                }
+                if ($opportunityId !== null) {
+                    $smsRecord->set('opportunityId', $opportunityId);
+                }
+
+                $this->entityManager->saveEntity($smsRecord);
+                $smsRecordId = $smsRecord->getId();
+            } catch (Throwable) {
+                // Log failure should not override dispatch outcome
+            }
+        }
+
+        $result = [
+            'success' => $status === 'sent',
+            'status' => $status,
+            'phoneNumber' => $phoneNumber,
+            'message' => $message,
+            'id' => $smsRecordId,
+        ];
+
+        if ($error !== null) {
+            $result['error'] = $error;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Broadcast SMS campaign to a group of recipients with individualized variable rendering.
+     *
+     * @param list<array<string, mixed>> $recipients
+     * @param array<string, mixed> $defaultVariables
+     * @return array{
+     *     total: int,
+     *     sent: int,
+     *     failed: int,
+     *     results: list<array<string, mixed>>
+     * }
+     */
+    public function sendCampaign(
+        array $recipients,
+        string $templateBody,
+        array $defaultVariables = []
+    ): array {
+        $sentCount = 0;
+        $failedCount = 0;
+        $results = [];
+
+        foreach ($recipients as $recipient) {
+            $phone = (string) ($recipient['phoneNumber'] ?? $recipient['phone'] ?? '');
+            if ($phone === '') {
+                continue;
+            }
+
+            $variables = array_merge($defaultVariables, [
+                'contactName' => (string) ($recipient['contactName'] ?? $recipient['name'] ?? ''),
+                'accountName' => (string) ($recipient['accountName'] ?? ''),
+                'dealName' => (string) ($recipient['dealName'] ?? ''),
+            ]);
+
+            if (isset($recipient['variables']) && is_array($recipient['variables'])) {
+                $variables = array_merge($variables, $recipient['variables']);
+            }
+
+            $renderedMessage = $this->renderTemplate($templateBody, $variables);
+            $contactId = isset($recipient['contactId']) ? (string) $recipient['contactId'] : null;
+            $opportunityId = isset($recipient['opportunityId']) ? (string) $recipient['opportunityId'] : null;
+
+            $sendResult = $this->sendSms($phone, $renderedMessage, $contactId, $opportunityId);
+            $results[] = $sendResult;
+
+            if ($sendResult['success']) {
+                $sentCount++;
+            } else {
+                $failedCount++;
+            }
+        }
+
+        return [
+            'total' => count($recipients),
+            'sent' => $sentCount,
+            'failed' => $failedCount,
+            'results' => $results,
+        ];
+    }
+}
+
+
+--- FILE: extensions/bidar-iran/Services/VoipLookupService.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace Espo\Modules\BidarIran\Services;
+
+use Espo\Modules\BidarIran\Support\IranPhoneNormalizer;
+
+class VoipLookupService
+{
+    private IranPhoneNormalizer $normalizer;
+
+    public function __construct(
+        private string $webhookSecret,
+        ?IranPhoneNormalizer $normalizer = null
+    ) {
+        $this->normalizer = $normalizer ?? new IranPhoneNormalizer();
+    }
+
+    public function authenticate(?string $receivedSecret): bool
+    {
+        if ($this->webhookSecret === '' || $receivedSecret === null || $receivedSecret === '') {
+            return false;
+        }
+
+        return hash_equals($this->webhookSecret, $receivedSecret);
+    }
+
+    /**
+     * @param list<array<string, mixed>> $contacts
+     * @param list<array<string, mixed>> $deals
+     * @return array<string, mixed>
+     */
+    public function lookup(string $rawPhone, array $contacts, array $deals): array
+    {
+        $normalized = $this->normalizer->toE164($rawPhone);
+        $local = $this->normalizer->toLocal($rawPhone);
+
+        $matchedContact = null;
+        foreach ($contacts as $contact) {
+            $cPhone = (string) ($contact['phone'] ?? '');
+            $cNormalized = $this->normalizer->toE164($cPhone);
+            if ($cNormalized !== null && ($cNormalized === $normalized || $this->normalizer->toLocal($cPhone) === $local)) {
+                $matchedContact = $contact;
+                break;
+            }
+        }
+
+        if ($matchedContact === null) {
+            return [
+                'found' => false,
+                'normalizedPhone' => $normalized ?? $rawPhone,
+                'contact' => null,
+                'deals' => [],
+            ];
+        }
+
+        $matchedDeals = [];
+        $contactId = $matchedContact['id'] ?? '';
+        foreach ($deals as $deal) {
+            if (($deal['contactId'] ?? '') === $contactId) {
+                $matchedDeals[] = $deal;
+            }
+        }
+
+        return [
+            'found' => true,
+            'normalizedPhone' => $normalized,
+            'contact' => $matchedContact,
+            'deals' => $matchedDeals,
+        ];
+    }
+}
+
+
+--- FILE: extensions/bidar-iran/Api/PostSendSms.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace Espo\Modules\BidarIran\Api;
+
+use Espo\Core\Api\Action;
+use Espo\Core\Api\Request;
+use Espo\Core\Api\Response;
+use Espo\Core\Api\ResponseComposer;
+use Espo\Core\Exceptions\BadRequest;
+use Espo\Modules\BidarIran\Services\SmsCampaignService;
+use Espo\ORM\EntityManager;
+
+class PostSendSms implements Action
+{
+    private ?SmsCampaignService $service;
+    private ?EntityManager $entityManager;
+
+    public function __construct(
+        ?SmsCampaignService $service = null,
+        ?EntityManager $entityManager = null
+    ) {
+        $this->service = $service;
+        $this->entityManager = $entityManager;
+    }
+
+    public function getService(): SmsCampaignService
+    {
+        if ($this->service === null) {
+            $this->service = new SmsCampaignService(null, $this->entityManager);
+        }
+
+        return $this->service;
+    }
+
+    public function process(Request $request): Response
+    {
+        $service = $this->getService();
+        $body = (array) $request->getParsedBody();
+
+        $recipients = $body['recipients'] ?? null;
+        $templateId = (string) ($body['templateId'] ?? '');
+        $message = (string) ($body['message'] ?? $body['body'] ?? '');
+        $variables = (array) ($body['variables'] ?? []);
+
+        if ($message === '' && $templateId !== '') {
+            $tplBody = $service->getTemplateBody($templateId);
+            if ($tplBody !== null) {
+                $message = $tplBody;
+            }
+        }
+
+        // Campaign / Batch send mode
+        if (is_array($recipients) && !empty($recipients)) {
+            if ($message === '') {
+                throw new BadRequest('Missing SMS template or message body for campaign.');
+            }
+
+            /** @var list<array<string, mixed>> $recipients */
+            $result = $service->sendCampaign($recipients, $message, $variables);
+
+            return ResponseComposer::json($result);
+        }
+
+        // Single SMS send mode
+        $phone = (string) ($body['phone'] ?? $body['phoneNumber'] ?? $body['recipient'] ?? '');
+        if ($phone === '') {
+            throw new BadRequest('Recipient phone number is required.');
+        }
+
+        if ($message === '') {
+            throw new BadRequest('SMS message body or valid templateId is required.');
+        }
+
+        if (!empty($variables)) {
+            $message = $service->renderTemplate($message, $variables);
+        }
+
+        $contactId = isset($body['contactId']) ? (string) $body['contactId'] : null;
+        $opportunityId = isset($body['opportunityId']) ? (string) $body['opportunityId'] : null;
+
+        $result = $service->sendSms($phone, $message, $contactId, $opportunityId);
+
+        return ResponseComposer::json($result);
+    }
+}
+
+
+--- FILE: extensions/bidar-iran/Api/PostVoipWebhook.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace Espo\Modules\BidarIran\Api;
+
+use Espo\Core\Api\Action;
+use Espo\Core\Api\Request;
+use Espo\Core\Api\Response;
+use Espo\Core\Api\ResponseComposer;
+use Espo\Core\Exceptions\Forbidden;
+use Espo\Modules\BidarIran\Services\VoipLookupService;
+use Espo\ORM\EntityManager;
+
+class PostVoipWebhook implements Action
+{
+    private ?VoipLookupService $service;
+    private ?EntityManager $entityManager;
+
+    public function __construct(
+        ?VoipLookupService $service = null,
+        ?EntityManager $entityManager = null
+    ) {
+        $this->service = $service;
+        $this->entityManager = $entityManager;
+    }
+
+    public function getService(): ?VoipLookupService
+    {
+        return $this->service;
+    }
+
+    public function process(Request $request): Response
+    {
+        $service = $this->service;
+
+        if ($service === null) {
+            $secret = '';
+            if ($this->entityManager !== null) {
+                $integration = $this->entityManager->getEntityById('Integration', 'BidarVoip');
+                if ($integration !== null) {
+                    $secret = (string) ($integration->get('webhookSecret') ?? '');
+                }
+            }
+            $service = new VoipLookupService($secret);
+        }
+
+        $receivedSecret = $request->getHeader('X-Bidar-Voip-Secret')
+            ?? $request->getHeader('X-Voip-Token');
+
+        if (!$service->authenticate($receivedSecret)) {
+            throw new Forbidden('Invalid or missing VoIP webhook secret.');
+        }
+
+        $body = (array) $request->getParsedBody();
+        $rawPhone = (string) ($body['phone'] ?? $body['caller'] ?? $body['caller_id'] ?? $request->getQueryParam('phone') ?? '');
+
+        $contacts = [];
+        $deals = [];
+
+        if ($this->entityManager !== null) {
+            $contactCollection = $this->entityManager->getRDBRepository('Contact')->find();
+            foreach ($contactCollection as $c) {
+                $contacts[] = [
+                    'id' => $c->getId(),
+                    'name' => $c->get('name'),
+                    'phone' => $c->get('phoneNumber') ?? $c->get('phone'),
+                    'accountId' => $c->get('accountId'),
+                    'accountName' => $c->get('accountName'),
+                ];
+            }
+
+            $dealCollection = $this->entityManager->getRDBRepository('Opportunity')
+                ->where([
+                    'stageProbability!=' => ['Closed Won', 'Closed Lost'],
+                ])
+                ->find();
+            foreach ($dealCollection as $d) {
+                $deals[] = [
+                    'id' => $d->getId(),
+                    'name' => $d->get('name'),
+                    'amount' => $d->get('amountConverted') ?? $d->get('amount') ?? 0,
+                    'stage' => $d->get('stage'),
+                    'contactId' => $d->get('contactId'),
+                ];
+            }
+        }
+
+        $result = $service->lookup($rawPhone, $contacts, $deals);
+
+        return ResponseComposer::json($result);
+    }
+}
+
+
+--- FILE: extensions/bidar-iran/Hooks/Common/NormalizePersianInput.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace Espo\Modules\BidarIran\Hooks\Common;
+
+use Espo\Core\Hook\Hook\BeforeSave;
+use Espo\ORM\Entity;
+use Espo\ORM\Repository\Option\SaveOptions;
+use Espo\Modules\BidarIran\Support\PersianTextNormalizer;
+
+/**
+ * @implements BeforeSave<Entity>
+ */
+class NormalizePersianInput implements BeforeSave
+{
+    private const ALLOWED_ENTITIES = ['Account', 'Contact', 'Lead', 'Opportunity', 'Task', 'Call', 'Meeting'];
+    private const TEXT_FIELDS = ['name', 'firstName', 'lastName', 'accountName', 'description'];
+
+    public function beforeSave(Entity $entity, SaveOptions $options): void
+    {
+        if (!in_array($entity->getEntityType(), self::ALLOWED_ENTITIES, true)) {
+            return;
+        }
+
+        foreach (self::TEXT_FIELDS as $field) {
+            if ($entity->has($field)) {
+                $val = $entity->get($field);
+                if (is_string($val) && $val !== '') {
+                    $entity->set($field, PersianTextNormalizer::normalizeCharacters($val));
+                }
+            }
+        }
+    }
+}
+

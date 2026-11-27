@@ -11,7 +11,7 @@ class VoipLookupService
     private IranPhoneNormalizer $normalizer;
 
     public function __construct(
-        private string $webhookSecret,
+        private string $webhookSecret = '',
         ?IranPhoneNormalizer $normalizer = null
     ) {
         $this->normalizer = $normalizer ?? new IranPhoneNormalizer();
@@ -38,25 +38,37 @@ class VoipLookupService
 
         $matchedContact = null;
         foreach ($contacts as $contact) {
-            $cPhone = (string) ($contact['phone'] ?? '');
-            $cNormalized = $this->normalizer->toE164($cPhone);
-            if ($cNormalized !== null && ($cNormalized === $normalized || $this->normalizer->toLocal($cPhone) === $local)) {
-                $matchedContact = $contact;
-                break;
+            $candidates = [
+                (string) ($contact['matchedPhone'] ?? ''),
+                (string) ($contact['phone'] ?? ''),
+            ];
+            foreach ($candidates as $cPhone) {
+                if ($cPhone === '') {
+                    continue;
+                }
+                $cNormalized = $this->normalizer->toE164($cPhone);
+                if ($cNormalized !== null && ($cNormalized === $normalized || $this->normalizer->toLocal($cPhone) === $local)) {
+                    $matchedContact = $contact;
+                    unset($matchedContact['matchedPhone']);
+                    break 2;
+                }
             }
         }
 
         if ($matchedContact === null) {
             return [
                 'found' => false,
-                'normalizedPhone' => $normalized ?? $rawPhone,
+                'normalizedPhone' => $normalized,
                 'contact' => null,
                 'deals' => [],
             ];
         }
 
         $matchedDeals = [];
-        $contactId = $matchedContact['id'] ?? '';
+        $contactId = $matchedContact['id'] ?? null;
+        if (!is_string($contactId) || $contactId === '') {
+            return ['found' => true, 'normalizedPhone' => $normalized, 'contact' => $matchedContact, 'deals' => []];
+        }
         foreach ($deals as $deal) {
             if (($deal['contactId'] ?? '') === $contactId) {
                 $matchedDeals[] = $deal;

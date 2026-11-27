@@ -4,5 +4,10 @@
     "method": "post",
     "actionClassName": "Espo\\Modules\\BidarIran\\Api\\PostVoipWebhook",
     "noAuth": true
+  },
+  {
+    "route": "/BidarSms/send",
+    "method": "post",
+    "actionClassName": "Espo\\Modules\\BidarIran\\Api\\PostSendSms"
   }
 ]

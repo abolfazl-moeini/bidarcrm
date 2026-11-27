@@ -267,4 +267,74 @@ describe('ApiClient & EspoCRM 10.1.4 Auth/Error Handling', () => {
       expect(mockFetch.mock.calls[1][1].method).toBe('PATCH');
     });
   });
+
+  describe('getBlob & skipUnauthorizedEvent', () => {
+    it('getBlob broadcasts API_UNAUTHORIZED_EVENT and parses JSON error detail on 401', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({ message: 'Blob token expired' }),
+      });
+
+      const eventListener = vi.fn();
+      window.addEventListener(API_UNAUTHORIZED_EVENT, eventListener);
+      const callbackListener = vi.fn();
+      const unsubscribe = apiClient.onUnauthorized(callbackListener);
+
+      let caught: unknown;
+      try {
+        await apiClient.getBlob('/BidarExport/Lead');
+      } catch (err) {
+        caught = err;
+      }
+
+      expect(caught).toBeInstanceOf(ApiError);
+      expect((caught as ApiError).status).toBe(401);
+      expect((caught as ApiError).data).toEqual({ message: 'Blob token expired' });
+      expect(eventListener).toHaveBeenCalledTimes(1);
+      expect(callbackListener).toHaveBeenCalledTimes(1);
+
+      unsubscribe();
+      window.removeEventListener(API_UNAUTHORIZED_EVENT, eventListener);
+    });
+
+    it('getBlob handles non-JSON error responses (e.g. HTML 502) without throwing SyntaxError', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 502,
+        statusText: 'Bad Gateway',
+        headers: new Headers({ 'content-type': 'text/html' }),
+        text: async () => '<html><body>502 Bad Gateway</body></html>',
+      });
+
+      await expect(apiClient.getBlob('/BidarExport/Lead')).rejects.toThrow(ApiError);
+    });
+
+    it('skips API_UNAUTHORIZED_EVENT when skipUnauthorizedEvent is true', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({ message: 'Invalid credentials' }),
+      });
+
+      const eventListener = vi.fn();
+      window.addEventListener(API_UNAUTHORIZED_EVENT, eventListener);
+      const callbackListener = vi.fn();
+      const unsubscribe = apiClient.onUnauthorized(callbackListener);
+
+      await expect(
+        apiClient.request('/App/user', { method: 'GET', skipUnauthorizedEvent: true })
+      ).rejects.toThrow(ApiError);
+
+      expect(eventListener).not.toHaveBeenCalled();
+      expect(callbackListener).not.toHaveBeenCalled();
+
+      unsubscribe();
+      window.removeEventListener(API_UNAUTHORIZED_EVENT, eventListener);
+    });
+  });
 });

@@ -6,7 +6,7 @@
  */
 
 import { EspoUser } from '../../types/espocrm';
-import { apiClient, API_UNAUTHORIZED_EVENT, encodeBase64Utf8 } from '../../lib/api-client';
+import { apiClient, ApiError, API_UNAUTHORIZED_EVENT, encodeBase64Utf8 } from '../../lib/api-client';
 import { queryClient } from '../../lib/query-client';
 
 export interface AuthState {
@@ -68,6 +68,7 @@ export class AuthStore {
   private state: AuthState;
   private listeners = new Set<Listener>();
   private isLoggingOut = false;
+  private checkAuthPromise: Promise<boolean> | null = null;
 
   constructor() {
     const initial = loadStoredAuth();
@@ -125,6 +126,7 @@ export class AuthStore {
       const basicAuth = encodeBase64Utf8(`${username}:${password}`);
       const response = await apiClient.request<{ user: EspoUser; token: string }>('/App/user', {
         method: 'GET',
+        skipUnauthorizedEvent: true,
         headers: {
           'Espo-Authorization': basicAuth,
           'Espo-Authorization-Create-Token-Secret': 'true',
@@ -196,23 +198,47 @@ export class AuthStore {
 
   /**
    * Verifies existing session validity with the backend.
+   * Deduplicates concurrent calls and preserves session on transient 5xx/network failures.
    */
   public checkAuth = async (): Promise<boolean> => {
     if (!this.state.token) {
       return false;
     }
 
-    try {
-      const response = await apiClient.get<{ user: EspoUser }>('/App/user');
-      if (response && response.user) {
-        this.setState({ user: response.user, isAuthenticated: true });
-        return true;
-      }
-      return false;
-    } catch {
-      await this.logout(true);
-      return false;
+    if (this.checkAuthPromise) {
+      return this.checkAuthPromise;
     }
+
+    const tokenAtStart = this.state.token;
+    this.checkAuthPromise = (async () => {
+      try {
+        const response = await apiClient.get<{ user: EspoUser }>('/App/user');
+        if (this.state.token !== tokenAtStart) {
+          return Boolean(this.state.isAuthenticated);
+        }
+        if (response && response.user) {
+          this.setState({ user: response.user, isAuthenticated: true, isLoading: false, error: null });
+          return true;
+        }
+        this.setState({ isLoading: false });
+        return false;
+      } catch (err: unknown) {
+        if (this.state.token !== tokenAtStart) {
+          return Boolean(this.state.isAuthenticated);
+        }
+        if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+          await this.logout(true);
+          return false;
+        }
+        const message = err instanceof Error ? err.message : 'خطا در بررسی نشست کاربری';
+        this.setState({ isLoading: false, error: message });
+        return false;
+      } finally {
+        this.checkAuthPromise = null;
+      }
+    })();
+
+    return this.checkAuthPromise;
   };
 }
 

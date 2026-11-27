@@ -1,0 +1,44 @@
+{
+  "fields": {
+    "nationalId": "شناسه ملی شرکت",
+    "economicCode": "کد اقتصادی",
+    "registrationNumber": "شماره ثبت",
+    "iranProvince": "استان",
+    "iranCity": "شهر"
+  },
+  "options": {
+    "iranProvince": {
+      "Alborz": "البرز",
+      "Ardabil": "اردبیل",
+      "East Azerbaijan": "آذربایجان شرقی",
+      "West Azerbaijan": "آذربایجان غربی",
+      "Bushehr": "بوشهر",
+      "Chaharmahal and Bakhtiari": "چهارمحال و بختیاری",
+      "Fars": "فارس",
+      "Gilan": "گیلان",
+      "Golestan": "گلستان",
+      "Hamadan": "همدان",
+      "Hormozgan": "هرمزگان",
+      "Ilam": "ایلام",
+      "Isfahan": "اصفهان",
+      "Kerman": "کرمان",
+      "Kermanshah": "کرمانشاه",
+      "North Khorasan": "خراسان شمالی",
+      "Razavi Khorasan": "خراسان رضوی",
+      "South Khorasan": "خراسان جنوبی",
+      "Khuzestan": "خوزستان",
+      "Kohgiluyeh and Boyer-Ahmad": "کهگیلویه و بویراحمد",
+      "Kurdistan": "کردستان",
+      "Lorestan": "لرستان",
+      "Markazi": "مرکزی",
+      "Mazandaran": "مازندران",
+      "Qazvin": "قزوین",
+      "Qom": "قم",
+      "Semnan": "سمنان",
+      "Sistan and Baluchestan": "سیستان و بلوچستان",
+      "Tehran": "تهران",
+      "Yazd": "یزد",
+      "Zanjan": "زنجان"
+    }
+  }
+}

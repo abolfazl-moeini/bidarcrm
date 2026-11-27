@@ -3,24 +3,14 @@
  *
  * Creates a contact with Iran phone format validation and queries the directory.
  */
-import { ok, fail } from '../lib/scenario.js';
+import { ok, fail, createEspoAuthHeaders } from '../lib/scenario.js';
 
 export const name = '05-contacts-and-accounts';
 
-export async function run({ baseUrl, state = {} }) {
+export async function run({ baseUrl, state = {}, timeoutMs = 30000 }) {
   const start = performance.now();
   try {
-    const headers = {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    };
-    if (state.token) {
-      const username = state.username || 'admin';
-      const authVal = Buffer.from(`${username}:${state.token}`).toString('base64');
-      headers['Espo-Authorization'] = authVal;
-      headers['Espo-Authorization-By-Token'] = 'true';
-      headers['Authorization'] = `Bearer ${state.token}`;
-    }
+    const headers = createEspoAuthHeaders(state);
 
     // 1. Create Contact with Iran mobile format
     const contactPayload = {
@@ -40,6 +30,7 @@ export async function run({ baseUrl, state = {} }) {
       method: 'POST',
       headers,
       body: JSON.stringify(contactPayload),
+      signal: AbortSignal.timeout(timeoutMs),
     });
 
     if (!createRes.ok) {
@@ -47,17 +38,25 @@ export async function run({ baseUrl, state = {} }) {
     }
 
     const contactData = await createRes.json();
-    const contactId = contactData.id || 'contact-e2e-301';
+    if (!contactData.id) throw new Error('Contact creation response is missing contactData.id');
+    const contactId = contactData.id;
     state.contactId = contactId;
 
     // 2. Search & Query Contacts
     const queryRes = await fetch(`${baseUrl}/api/v1/Contact?maxSize=20&search=09121234567`, {
       method: 'GET',
       headers,
+      signal: AbortSignal.timeout(timeoutMs),
     });
 
     if (!queryRes.ok) {
       throw new Error(`Contacts search query failed with HTTP ${queryRes.status}`);
+    }
+    const queryData = await queryRes.json();
+    const contacts = Array.isArray(queryData.list) ? queryData.list : [];
+    const found = contacts.some((contact) => contact.id === contactId && contact.phoneNumber === contactPayload.phoneNumber);
+    if (!found) {
+      throw new Error(`Created contact ${contactId} is missing from GET /api/v1/Contact search results`);
     }
 
     const duration = performance.now() - start;

@@ -1,0 +1,15 @@
+{
+  "fields": {
+    "name": {
+      "type": "varchar",
+      "required": true
+    },
+    "body": {
+      "type": "text"
+    },
+    "isActive": {
+      "type": "bool",
+      "default": true
+    }
+  }
+}

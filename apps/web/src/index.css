@@ -2,11 +2,104 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Vazirmatn';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('/fonts/vazirmatn/Vazirmatn-Variable.woff2') format('woff2');
+}
+
 @layer base {
   :root {
-    --font-sans: 'Vazirmatn', system-ui, -apple-system, sans-serif;
+    --font-sans: 'Vazirmatn', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --bidar-dark-canvas: #090d16;
+    --bidar-dark-sidebar: #0f172a;
+    --bidar-dark-card: #1e293b;
+    --bidar-dark-divider: 1px solid rgba(255, 255, 255, 0.08);
   }
+
+  html {
+    font-family: var(--font-sans);
+    direction: rtl;
+    -webkit-tap-highlight-color: transparent;
+  }
+
   body {
     font-family: var(--font-sans);
+    letter-spacing: normal !important;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+
+  /* Prevent letter-spacing in Persian/Arabic glyphs to preserve cursive ligatures */
+  [dir="rtl"], [lang="fa"] {
+    letter-spacing: normal !important;
+  }
+}
+
+/* THM-DARK-01: 3-Tier Depth for Dark Mode */
+.dark body,
+.dark .bidar-canvas {
+  background-color: #090d16;
+}
+
+.dark .bidar-sidebar {
+  background-color: #020617;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark .bidar-card,
+.dark .report-card {
+  background-color: #1e293b;
+}
+
+/* THM-FONT-01: Vazirmatn typography across reports, KPI cards, and data tables */
+.font-vazirmatn,
+th,
+td,
+.report-card,
+.kpi-value {
+  font-family: 'Vazirmatn', var(--font-sans);
+}
+
+/* Custom modern scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.7);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(71, 85, 105, 0.5);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.8);
+}
+
+/* Pipeline Stage Chevron Arrow in RTL (Pointing Left) */
+.stage-chevron-rtl {
+  clip-path: polygon(12px 50%, 0 0, 100% 0, calc(100% - 10px) 50%, 100% 100%, 0 100%);
+}
+
+.stage-chevron-first-rtl {
+  clip-path: polygon(12px 50%, 0 0, 100% 0, 100% 100%, 0 100%);
+}
+
+.stage-chevron-last-rtl {
+  clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 50%, 100% 100%, 0 100%);
 }

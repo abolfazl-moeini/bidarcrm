@@ -1,0 +1,1667 @@
+--- FILE: extensions/bidar-theme/Resources/metadata/themes/Bidar.json ---
+{
+  "bidarStyle": "bidar",
+  "stylesheet": "client/custom/modules/bidar-theme/css/bidar.css",
+  "stylesheetIframe": "client/custom/modules/bidar-theme/css/bidar-iframe.css",
+  "logo": "client/custom/modules/bidar-theme/img/bidar-logo.svg",
+  "params": {
+    "navbar": {
+      "type": "enum",
+      "default": "side",
+      "options": [
+        "side",
+        "top"
+      ]
+    },
+    "direction": {
+      "type": "enum",
+      "default": "rtl",
+      "options": [
+        "rtl",
+        "ltr"
+      ]
+    }
+  },
+  "mappedParams": {
+    "navbarHeight": {
+      "param": "navbar",
+      "valueMap": {
+        "side": 48,
+        "top": 43
+      }
+    }
+  },
+  "dashboardCellHeight": 40,
+  "dashboardCellMargin": 16,
+  "navbarHeight": 48,
+  "modalFooterAtTheTop": true,
+  "modalFullHeight": true,
+  "fontSize": 14,
+  "textColor": "#14161f",
+  "hoverColor": "#0F766E",
+  "chartGridColor": "#e8eaee",
+  "chartTickColor": "#f0f1f4",
+  "chartSuccessColor": "#15803D",
+  "chartColorList": [
+    "#0F766E",
+    "#00b6ed",
+    "#15803D",
+    "#b45309",
+    "#b91c1c",
+    "#7a5af8",
+    "#ee46bc",
+    "#656b7c",
+    "#0b6f96"
+  ],
+  "chartColorAlternativeList": [
+    "#0F766E",
+    "#00b6ed",
+    "#b45309",
+    "#15803D",
+    "#b91c1c"
+  ],
+  "calendarColors": {
+    "": "#0F766Ea0",
+    "bg": "#e2e5f7a0",
+    "Call": "#b91c1c",
+    "Meeting": "#0F766E",
+    "Task": "#15803D"
+  },
+  "isDark": false,
+  "bidarDark": {
+    "isDark": true,
+    "stylesheetIframe": "client/custom/modules/bidar-theme/css/bidar-iframe-dark.css",
+    "stylesheetIframeFallback": "client/custom/modules/bidar-theme/css/bidar-iframe.css",
+    "textColor": "#dadced",
+    "hoverColor": "#14b8a6",
+    "chartGridColor": "#2a2e4d",
+    "chartTickColor": "#20243f",
+    "chartSuccessColor": "#47cd89",
+    "chartColorList": [
+      "#14b8a6",
+      "#00b6ed",
+      "#47cd89",
+      "#fdb022",
+      "#f97066",
+      "#b39ef7",
+      "#f670c7",
+      "#9298b5",
+      "#5ccbf5"
+    ],
+    "chartColorAlternativeList": [
+      "#14b8a6",
+      "#00b6ed",
+      "#fdb022",
+      "#47cd89",
+      "#f97066"
+    ],
+    "calendarColors": {
+      "": "#14b8a6a0",
+      "bg": "#1e293bb3",
+      "Call": "#f97066",
+      "Meeting": "#14b8a6",
+      "Task": "#47cd89"
+    }
+  }
+}
+
+
+--- FILE: extensions/bidar-theme/Resources/metadata/clientDefs/Global.json ---
+{
+  "viewSetupHandlers": {
+    "record/detail": ["__APPEND__", "bidar-theme:handlers/record-detail"],
+    "list": ["__APPEND__", "bidar-theme:handlers/page-a11y"],
+    "detail": ["__APPEND__", "bidar-theme:handlers/page-a11y"],
+    "edit": ["__APPEND__", "bidar-theme:handlers/page-a11y"],
+    "login": ["__APPEND__", "bidar-theme:handlers/page-a11y"]
+  }
+}
+
+
+--- FILE: extensions/bidar-theme/scripts/AfterInstall.php ---
+<?php
+
+use Espo\Core\Container;
+use Espo\Core\InjectableFactory;
+use Espo\Core\Utils\Config;
+use Espo\Core\Utils\Config\ConfigWriter;
+use Espo\ORM\EntityManager;
+
+class AfterInstall
+{
+    private const THEME = 'Bidar';
+    private const LAYOUT = 'bidarLayout';
+
+    public function run(Container $container): void
+    {
+        $config = $container->getByClass(Config::class);
+        $configWriter = $container->getByClass(InjectableFactory::class)->create(ConfigWriter::class);
+
+        $systemTheme = $config->get('theme');
+        if (empty($systemTheme) || $systemTheme === 'Espo' || $systemTheme === 'Lucid') {
+            $configWriter->set('theme', self::THEME);
+        }
+
+        if (!$config->get(self::LAYOUT)) {
+            $configWriter->set(self::LAYOUT, 'split');
+        }
+    }
+}
+
+
+--- FILE: client/custom/modules/bidar-theme/css/bidar-login.css ---
+/**
+ * Login: a centred card on a neutral background, with a very light brand glow.
+ * Only visible when Bidar is the system theme.
+ */
+body:has(#login) {
+    background:
+        radial-gradient(60rem 28rem at 50% -8rem, rgba(0, 182, 237, 0.10), transparent 70%),
+        radial-gradient(40rem 24rem at 15% -6rem, rgba(41, 43, 107, 0.10), transparent 70%),
+        var(--bidar-canvas);
+}
+
+#login.panel {
+    position: relative;
+    border: 1px solid var(--bidar-border);
+    border-radius: var(--bidar-radius-xl);
+    box-shadow: var(--bidar-shadow-lg);
+    overflow: hidden;
+}
+
+#login.panel > .panel-heading {
+    background: var(--bidar-surface);
+    border-bottom: none;
+    padding: var(--24px) var(--24px) var(--8px);
+}
+
+#login.panel > .panel-body {
+    padding: var(--8px) var(--24px) var(--24px);
+}
+
+#login.panel .logo-container {
+    text-align: center;
+}
+
+#login.panel .logo-container img {
+    display: inline-block;
+    margin: 0 auto;
+}
+
+/* RTL Login Layout & Alignment */
+html[dir="rtl"] #login.panel,
+body[data-direction="rtl"] #login.panel {
+    direction: rtl;
+    text-align: right;
+}
+
+html[dir="rtl"] #login.panel .form-group label,
+body[data-direction="rtl"] #login.panel .form-group label {
+    text-align: right;
+}
+
+/* Cyan corner, the Bidar card signature */
+#login.panel::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    width: 25px;
+    height: 25px;
+    border-top: 3px solid var(--bidar-signature);
+    border-left: 3px solid var(--bidar-signature);
+    border-top-left-radius: calc(var(--bidar-radius-xl) - 1px);
+    pointer-events: none;
+}
+
+html[dir="rtl"] #login.panel::before,
+body[data-direction="rtl"] #login.panel::before {
+    left: auto;
+    right: 0;
+    border-left: none;
+    border-right: 3px solid var(--bidar-signature);
+    border-top-left-radius: 0;
+    border-top-right-radius: calc(var(--bidar-radius-xl) - 1px);
+}
+
+
+--- FILE: client/custom/modules/bidar-theme/css/bidar-rtl.css ---
+/**
+ * Bidar RTL Layer for EspoCRM Backbone UI
+ * Guarantees 100% natural Right-to-Left experience with Vazirmatn typography
+ */
+
+html[dir="rtl"],
+body[data-direction="rtl"],
+.bidar-rtl {
+    direction: rtl;
+    text-align: right;
+}
+
+/* Base text and alignment */
+html[dir="rtl"] body {
+    direction: rtl;
+    text-align: right;
+}
+
+/* Layout Grid - In Split view: Inspector (Details) on the Right, Timeline on the Left */
+html[dir="rtl"] .bidar-record-grid {
+    direction: rtl;
+}
+
+html[dir="rtl"] .bidar-record-grid > .bidar-inspector {
+    order: 1;
+}
+
+html[dir="rtl"] .bidar-record-grid > .bidar-resizer {
+    order: 2;
+    cursor: col-resize;
+}
+
+html[dir="rtl"] .bidar-record-grid > .bidar-content-card {
+    order: 3;
+}
+
+/* Classic layout mirroring */
+html[dir="rtl"] .bidar-record-grid.bidar-layout-classic > .bidar-content-card {
+    order: 1;
+}
+
+html[dir="rtl"] .bidar-record-grid.bidar-layout-classic > .bidar-resizer {
+    order: 2;
+}
+
+html[dir="rtl"] .bidar-record-grid.bidar-layout-classic > .bidar-inspector {
+    order: 3;
+}
+
+/* Pipeline Stage Ribbon - Right to Left Flow */
+html[dir="rtl"] .bidar-band-stages,
+html[dir="rtl"] .pipeline-stages,
+html[dir="rtl"] .stage-nav {
+    direction: rtl;
+    display: flex;
+    flex-direction: row;
+}
+
+html[dir="rtl"] .bidar-band-stages > *:first-child {
+    border-top-right-radius: var(--bidar-radius-sm);
+    border-bottom-right-radius: var(--bidar-radius-sm);
+}
+
+html[dir="rtl"] .bidar-band-stages > *:last-child {
+    border-top-left-radius: var(--bidar-radius-sm);
+    border-bottom-left-radius: var(--bidar-radius-sm);
+}
+
+/* Mirror chevron navigation icons in RTL */
+html[dir="rtl"] .fas.fa-chevron-left,
+html[dir="rtl"] .fa.fa-chevron-left {
+    transform: scaleX(-1);
+}
+
+html[dir="rtl"] .fas.fa-chevron-right,
+html[dir="rtl"] .fa.fa-chevron-right {
+    transform: scaleX(-1);
+}
+
+html[dir="rtl"] .fas.fa-angle-left,
+html[dir="rtl"] .fa.fa-angle-left {
+    transform: scaleX(-1);
+}
+
+html[dir="rtl"] .fas.fa-angle-right,
+html[dir="rtl"] .fa.fa-angle-right {
+    transform: scaleX(-1);
+}
+
+html[dir="rtl"] .fas.fa-arrow-left,
+html[dir="rtl"] .fa.fa-arrow-left {
+    transform: scaleX(-1);
+}
+
+html[dir="rtl"] .fas.fa-arrow-right,
+html[dir="rtl"] .fa.fa-arrow-right {
+    transform: scaleX(-1);
+}
+
+/* Form Controls & Labels */
+html[dir="rtl"] .form-group label,
+html[dir="rtl"] .control-label {
+    text-align: right;
+}
+
+html[dir="rtl"] .form-control {
+    text-align: right;
+}
+
+html[dir="rtl"] input[type="tel"],
+html[dir="rtl"] input[type="email"],
+html[dir="rtl"] input[type="url"],
+html[dir="rtl"] .ltr-input,
+html[dir="rtl"] .dir-ltr {
+    direction: ltr !important;
+    text-align: right !important;
+}
+
+/* Tables and Data */
+html[dir="rtl"] .table th,
+html[dir="rtl"] .table td,
+html[dir="rtl"] .list-table th,
+html[dir="rtl"] .list-table td {
+    text-align: right;
+}
+
+html[dir="rtl"] .pull-left {
+    float: right !important;
+}
+
+html[dir="rtl"] .pull-right {
+    float: left !important;
+}
+
+/* Modals */
+html[dir="rtl"] .modal-header .close {
+    float: left;
+    margin-right: auto;
+    margin-left: 0;
+}
+
+html[dir="rtl"] .modal-header .modal-title {
+    text-align: right;
+}
+
+html[dir="rtl"] .modal-footer {
+    text-align: left;
+}
+
+/* Dropdown Menus */
+html[dir="rtl"] .dropdown-menu {
+    right: 0;
+    left: auto;
+    text-align: right;
+}
+
+html[dir="rtl"] .dropdown-menu-right {
+    right: auto;
+    left: 0;
+}
+
+/* Tabs */
+html[dir="rtl"] .nav-tabs > li {
+    float: right;
+}
+
+html[dir="rtl"] .nav-tabs > li > a {
+    margin-right: 0;
+    margin-left: 2px;
+}
+
+/* Breadcrumbs */
+html[dir="rtl"] .breadcrumb > li + li:before {
+    content: "/\00a0";
+    padding: 0 5px;
+}
+
+/* Badges & Counters */
+html[dir="rtl"] .badge {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Table/List card corner signature accent in RTL */
+html[dir="rtl"] #main > .list-container > .list::before {
+    left: auto;
+    right: 0;
+    border-left: none;
+    border-right: 3px solid var(--bidar-signature);
+    border-top-left-radius: 0;
+    border-top-right-radius: calc(var(--bidar-radius-lg) - 1px);
+}
+
+/* Native Kanban RTL */
+html[dir="rtl"] .list-kanban-container {
+    direction: rtl;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+html[dir="rtl"] div.list-kanban {
+    direction: rtl;
+}
+
+html[dir="rtl"] div.list-kanban table.kanban-columns td.group-column {
+    text-align: right;
+}
+
+html[dir="rtl"] div.list-kanban th.group-header {
+    text-align: right;
+}
+
+html[dir="rtl"] div.list-kanban .item-menu-container {
+    float: left !important;
+}
+
+/* RTL Rotten Deal visual indicator */
+html[dir="rtl"] div.list-kanban .item[data-is-rotten="true"] .panel.panel-default,
+html[dir="rtl"] div.list-kanban .item.is-rotten .panel.panel-default,
+html[dir="rtl"] div.list-kanban .item:has(.field[data-name="isRotten"]:not(:empty)) .panel.panel-default {
+    border-left: 1px solid var(--bidar-border, #e2e8f0);
+    border-right: 3px solid var(--bidar-danger, #ef4444);
+    background: linear-gradient(to left, rgba(239, 68, 68, 0.04) 0%, var(--bidar-surface, #ffffff) 24px);
+}
+
+/* ==========================================================================
+   Side Navbar RTL Docking (Right-side Navbar for Classic UI)
+   ========================================================================== */
+
+html[dir="rtl"] body[data-navbar="side"] #navbar > .navbar,
+body[data-direction="rtl"][data-navbar="side"] #navbar > .navbar,
+html[dir="rtl"] body[data-navbar="side"] #navbar .navbar,
+body[data-direction="rtl"][data-navbar="side"] #navbar .navbar {
+    left: auto !important;
+    right: 0 !important;
+    border-right-width: 0 !important;
+    border-left: var(--navbar-border-width, 1px) solid var(--bidar-sidebar-line, var(--navbar-inverse-border)) !important;
+}
+
+/* Content offset: push content from right instead of left */
+html[dir="rtl"] body[data-navbar="side"]:not(.minimized) #content,
+body[data-direction="rtl"][data-navbar="side"]:not(.minimized) #content,
+html[dir="rtl"] body[data-navbar="side"]:not(.minimized) #main,
+body[data-direction="rtl"][data-navbar="side"]:not(.minimized) #main {
+    margin-left: 0 !important;
+    margin-right: var(--navbar-width) !important;
+    padding-left: var(--container-padding, 15px) !important;
+    padding-right: var(--container-padding, 15px) !important;
+}
+
+html[dir="rtl"] body[data-navbar="side"].minimized #content,
+body[data-direction="rtl"][data-navbar="side"].minimized #content,
+html[dir="rtl"] body[data-navbar="side"].minimized #main,
+body[data-direction="rtl"][data-navbar="side"].minimized #main {
+    margin-left: 0 !important;
+    margin-right: var(--navbar-minimized-width) !important;
+    padding-left: var(--container-padding, 15px) !important;
+    padding-right: var(--container-padding, 15px) !important;
+}
+
+/* Top bar (navbar-right) in RTL: dock to top-left, gap on the right for sidebar */
+html[dir="rtl"] body[data-navbar="side"]:not(.minimized) #navbar .navbar-right,
+body[data-direction="rtl"][data-navbar="side"]:not(.minimized) #navbar .navbar-right {
+    left: 0 !important;
+    right: auto !important;
+    margin-left: 0 !important;
+    margin-right: var(--navbar-width) !important;
+    padding-left: 0 !important;
+    padding-right: var(--navbar-width) !important;
+    width: calc(100vw - var(--navbar-width)) !important;
+}
+
+html[dir="rtl"] body[data-navbar="side"].minimized #navbar .navbar-right,
+body[data-direction="rtl"][data-navbar="side"].minimized #navbar .navbar-right {
+    left: 0 !important;
+    right: auto !important;
+    margin-left: 0 !important;
+    margin-right: var(--navbar-minimized-width) !important;
+    padding-left: 0 !important;
+    padding-right: var(--navbar-minimized-width) !important;
+    width: calc(100vw - var(--navbar-minimized-width)) !important;
+}
+
+/* Active tab indicator on the right edge */
+html[dir="rtl"] body[data-navbar="side"] #navbar ul.tabs > li.tab.active > a::before,
+body[data-direction="rtl"][data-navbar="side"] #navbar ul.tabs > li.tab.active > a::before {
+    left: auto !important;
+    right: 0 !important;
+    border-radius: 3px 0 0 3px !important;
+}
+
+/* Ensure footer respects right sidebar margin in RTL */
+html[dir="rtl"] body[data-navbar="side"] > footer,
+body[data-direction="rtl"][data-navbar="side"] > footer {
+    margin-left: 0 !important;
+    margin-right: var(--navbar-width) !important;
+}
+
+html[dir="rtl"] body[data-navbar="side"].minimized > footer,
+body[data-direction="rtl"][data-navbar="side"].minimized > footer {
+    margin-left: 0 !important;
+    margin-right: var(--navbar-minimized-width) !important;
+}
+
+
+--- FILE: client/custom/modules/bidar-theme/css/bidar-shell.css ---
+/**
+ * Shell: light side menu, translucent top bar, page header.
+ * Signature: an indigo-to-cyan gradient line marks the active tab.
+ */
+
+/* ===== Side menu: same variables as the record band (palette) ===== */
+body[data-navbar="side"] #navbar > .navbar {
+    background: var(--bidar-sidebar-glow), var(--bidar-sidebar-bg);
+    border-right-color: var(--bidar-sidebar-line);
+}
+
+body[data-navbar="side"] #navbar > .navbar .navbar-header {
+    padding-left: var(--8px);
+}
+
+/* Default EspoCRM logo (blue-grey): filtered to suit the palette; a company logo stays as is */
+body[data-navbar="side"] #navbar .navbar-brand img[src*="img/logo-light.svg"] {
+    filter: var(--bidar-sidebar-logo-filter);
+    opacity: var(--bidar-sidebar-logo-opacity);
+}
+
+body[data-navbar="side"] #navbar ul.tabs {
+    scrollbar-color: var(--bidar-sidebar-scroll) transparent;
+}
+
+body[data-navbar="side"] #navbar ul.tabs > li.tab > a,
+body[data-navbar="side"] #navbar ul.tabs > li.more > a {
+    position: relative;
+    margin: var(--1px) var(--8px);
+    border-radius: var(--bidar-radius);
+    color: var(--bidar-sidebar-text);
+    font-weight: 500;
+    transition: background-color var(--bidar-fast) ease, color var(--bidar-fast) ease;
+}
+
+body[data-navbar="side"] #navbar ul.tabs > li.tab > a:hover,
+body[data-navbar="side"] #navbar ul.tabs > li.more > a:hover {
+    background-color: var(--bidar-sidebar-hover);
+    color: var(--bidar-sidebar-strong);
+}
+
+body[data-navbar="side"] #navbar ul.tabs > li.tab.active > a,
+body[data-navbar="side"] #navbar ul.tabs > li.tab.active > a:hover {
+    font-weight: 600;
+    background-color: var(--bidar-sidebar-active);
+    color: var(--bidar-sidebar-strong);
+}
+
+body[data-navbar="side"] #navbar ul.tabs > li.tab.active > a::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: var(--8px);
+    bottom: var(--8px);
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--bidar-signature);
+}
+
+body[data-navbar="side"] #navbar ul.tabs > li.tab-divider > div {
+    padding-left: calc(var(--navbar-tab-left-padding) + var(--8px));
+    padding-top: var(--16px);
+    padding-bottom: var(--4px);
+}
+
+body[data-navbar="side"] #navbar ul.tabs > li.tab-divider > div > .label-text {
+    color: var(--bidar-sidebar-muted);
+    font-size: var(--12px);
+    font-weight: 500;
+    letter-spacing: 0;
+}
+
+/* Collapsible groups (js/nav-groups.js): the whole title row folds the items below it */
+body[data-navbar="side"] #navbar ul.tabs > li.tab-divider:has(.bidar-nav-toggle) {
+    float: none;
+    display: block;
+    width: 100%;
+}
+
+body[data-navbar="side"] #navbar ul.tabs > li.tab-divider:has(.bidar-nav-toggle) > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-sizing: border-box;
+    width: 100%;
+    padding-right: var(--12px);
+    cursor: pointer;
+}
+
+body[data-navbar="side"] #navbar ul.tabs > li.tab-divider:has(.bidar-nav-toggle) > div:hover > .label-text {
+    color: var(--bidar-sidebar-text);
+}
+
+.bidar-nav-toggle {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--bidar-radius-sm);
+    background: transparent;
+    color: var(--bidar-sidebar-muted);
+    cursor: pointer;
+}
+
+.bidar-nav-toggle .fas {
+    font-size: 10px;
+    transition: transform var(--bidar-fast) var(--bidar-ease);
+}
+
+.bidar-nav-collapsed .bidar-nav-toggle .fas {
+    transform: rotate(-90deg);
+}
+
+/* Open group: chevron on hover or keyboard focus. Touch screens have no hover: it stays visible. */
+@media (hover: hover) {
+    .tab-divider:not(.bidar-nav-collapsed) > div > .bidar-nav-toggle {
+        opacity: 0;
+        transition: opacity var(--bidar-fast) ease;
+    }
+
+    .tab-divider:not(.bidar-nav-collapsed) > div:hover > .bidar-nav-toggle,
+    .tab-divider:not(.bidar-nav-collapsed) > div > .bidar-nav-toggle:focus-visible {
+        opacity: 1;
+    }
+}
+
+body[data-navbar="side"]:not(.minimized) #navbar ul.tabs > li.bidar-nav-hidden {
+    display: none;
+}
+
+/* Icons-only menu: every item stays available */
+body.minimized .bidar-nav-toggle {
+    display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tab-divider > div > .bidar-nav-toggle,
+    .bidar-nav-toggle .fas {
+        transition: none;
+    }
+}
+
+/*
+ * Side menu submenus (tab groups, "…"): EspoCRM removes the top and bottom padding, so the
+ * highlight of the first and last items touched the frame.
+ */
+body[data-navbar="side"] #navbar .navbar .nav.tabs > li.tab-group > .dropdown-menu,
+body[data-navbar="side"] #navbar .navbar .nav.tabs > li.more > .dropdown-menu,
+body[data-navbar="side"] #navbar .navbar .nav.tabs > li.more > .dropdown-menu > li.tab-group > ul.dropdown-menu {
+    padding: var(--4px);
+}
+
+body[data-navbar="side"] #navbar a.minimizer {
+    color: var(--bidar-sidebar-muted);
+}
+
+body[data-navbar="side"] #navbar a.minimizer:hover {
+    color: var(--bidar-sidebar-strong);
+}
+
+/* ===== Top bar ===== */
+body[data-navbar="side"] #navbar .navbar-right {
+    align-items: center;
+    background: var(--bidar-topbar-bg);
+    background-attachment: fixed;
+    border-bottom: 1px solid var(--bidar-band-divider);
+}
+
+body[data-navbar="side"] #navbar .navbar-right > li {
+    align-items: center;
+}
+
+body[data-navbar="side"] #navbar .navbar-right > li > a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: var(--32px);
+    width: var(--32px);
+    padding: 0;
+    margin: 0 var(--1px);
+    border-radius: var(--bidar-radius);
+    color: var(--bidar-n-500);
+    transition: background-color var(--bidar-fast) ease, color var(--bidar-fast) ease;
+}
+
+body[data-navbar="side"] #navbar .navbar-right > li > a:hover,
+body[data-navbar="side"] #navbar .navbar-right > li.open > a {
+    background-color: var(--bidar-hover);
+    color: var(--bidar-text);
+}
+
+/* Global search */
+body[data-navbar="side"] #navbar .navbar-right input.global-search-input {
+    width: var(--300px);
+}
+
+:is(body[data-navbar="side"], body[data-navbar="top"]) #navbar .navbar-right input.global-search-input {
+    min-height: var(--34px);
+    max-height: var(--34px);
+    padding-left: var(--12px);
+    background-color: var(--input-bg);
+    border: 1px solid var(--bidar-border-strong);
+    border-radius: var(--bidar-radius) !important;
+    box-shadow: var(--bidar-shadow-xs);
+    font-size: var(--13px);
+}
+
+:is(body[data-navbar="side"], body[data-navbar="top"]) #navbar .navbar-right input.global-search-input:hover {
+    border-color: var(--bidar-n-300);
+}
+
+
+:is(body[data-navbar="side"], body[data-navbar="top"]) #navbar .navbar-right input.global-search-input:focus {
+    border-color: var(--bidar-brand-ring);
+    box-shadow: var(--bidar-focus-halo);
+}
+
+:is(body[data-navbar="side"], body[data-navbar="top"]) #navbar .navbar-right .global-search-container a.global-search-button {
+    display: flex;
+    align-items: center;
+    height: var(--34px);
+    color: var(--bidar-text-faint);
+}
+
+/* ===== Top bar (top navbar mode) ===== */
+body[data-navbar="top"] #navbar .navbar {
+    background: var(--bidar-topbar-bg);
+    background-attachment: fixed;
+    border-bottom: 1px solid var(--bidar-band-divider);
+    box-shadow: none;
+}
+
+body[data-navbar="top"] #navbar .navbar ul.tabs li.tab-group {
+    background-color: transparent;
+}
+
+/* ===== Page header ===== */
+.page-header {
+    margin-top: var(--20px);
+    margin-bottom: var(--16px);
+}
+
+.page-header h3,
+.page-header .header-title {
+    font-size: var(--22px);
+    font-weight: 600;
+    letter-spacing: var(--bidar-tracking-tight);
+    color: var(--bidar-text);
+}
+
+/* The start of a trail is always grey: a link in the administration, plain text in Preferences */
+.page-header .header-breadcrumbs .breadcrumb-item a,
+.page-header .header-breadcrumbs .breadcrumb-item:not(:last-child),
+.page-header h3 > a {
+    color: var(--bidar-text-muted);
+    font-weight: 400;
+    text-decoration: none;
+}
+
+.page-header .header-breadcrumbs .breadcrumb-item a:hover,
+.page-header h3 > a:hover {
+    color: var(--bidar-text);
+}
+
+/* EspoCRM writes "create" in lower case; record names (.title) stay as typed */
+.page-header .header-breadcrumbs .breadcrumb-item:last-child > span:not(.title) {
+    display: inline-block;
+}
+
+.page-header .header-breadcrumbs .breadcrumb-item:last-child > span:not(.title)::first-letter {
+    text-transform: uppercase;
+}
+
+/* Side lists (email folders): the active item looks like the active item of the menu */
+.list-group-side {
+    --brand-danger: var(--bidar-signature);
+    --state-danger-text: var(--bidar-brand-text);
+}
+
+.list-group-side > .list-group-item.selected {
+    background-color: var(--bidar-sidebar-active);
+}
+
+.page-header .header-breadcrumbs .breadcrumb-separator > span {
+    border-color: var(--bidar-n-300);
+}
+
+.page-header .header-title .color-icon {
+    font-size: 0.45em;
+    vertical-align: middle;
+    position: relative;
+    top: -0.15em;
+}
+
+/* Only Create is a primary action in the header */
+.page-header .header-buttons .btn[data-name="create"] {
+    background-color: var(--bidar-brand);
+    border-color: var(--bidar-brand);
+    color: var(--brand-primary-text);
+    box-shadow: var(--bidar-shadow-primary);
+}
+
+.page-header .header-buttons .btn[data-name="create"]:hover {
+    background-color: var(--bidar-brand-hover);
+    border-color: var(--bidar-brand-hover);
+    box-shadow: var(--bidar-shadow-primary-hover);
+}
+
+.page-header .header-buttons .btn[data-name="create"]:active {
+    box-shadow: var(--bidar-shadow-primary);
+}
+
+.page-header .header-buttons .btn[data-name="create"] .fas {
+    color: inherit;
+}
+
+/*
+ * EspoCRM's wait message, a spinner icon in a warning alert at the top of the page, becomes a small
+ * white pill with a cyan ring, the Bidar signature, inside the top bar. It shows after a short delay
+ * so that quick actions don't flash it. The ring only turns (transform): the browser animates it
+ * without the page's main thread.
+ */
+#notification:has(> .message > .fa-spinner) {
+    /* EspoCRM places it with an inline style */
+    top: var(--6px) !important;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    padding: var(--8px);
+    background-color: var(--bidar-surface);
+    border: 1px solid var(--bidar-border);
+    border-radius: var(--bidar-radius-pill);
+    box-shadow: var(--bidar-shadow-md);
+    animation: bidar-wait-in 160ms ease-out 120ms both;
+}
+
+#notification:has(> .message > .fa-spinner) > .message {
+    display: flex;
+    line-height: 0;
+}
+
+#notification > .message > .fa-spinner {
+    width: var(--18px);
+    height: var(--18px);
+    border-radius: 50%;
+    background: conic-gradient(from 90deg, transparent 10%, var(--bidar-signature));
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
+    animation: bidar-spin 750ms linear infinite;
+}
+
+#notification > .message > .fa-spinner::before {
+    content: none;
+}
+
+/* On a phone the centre of the top bar holds the logo: the pill goes just below the bar */
+@media (max-width: 767px) {
+    #notification:has(> .message > .fa-spinner) {
+        top: calc(var(--top-bar-height) + var(--6px)) !important;
+    }
+}
+
+@keyframes bidar-wait-in {
+    from { opacity: 0; transform: translate(-50%, -4px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@keyframes bidar-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Appearance button of the top bar: style, palette and density, the current choices ticked */
+.bidar-scheme-menu {
+    min-width: var(--240px);
+}
+
+.bidar-scheme-menu > li > a {
+    display: flex;
+    align-items: center;
+    gap: var(--10px);
+    cursor: pointer;
+}
+
+.bidar-scheme-menu .bidar-scheme-icon {
+    width: 1.15em;
+    text-align: center;
+    color: var(--bidar-text-muted);
+}
+
+.bidar-scheme-menu .bidar-scheme-check {
+    margin-left: auto;
+    padding-left: var(--20px);
+    color: var(--bidar-brand-text);
+}
+
+/* A small swatch shows each style */
+.bidar-scheme-menu .bidar-style-swatch {
+    flex: none;
+    width: 1.15em;
+    height: 1.15em;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+}
+
+.bidar-scheme-menu .bidar-style-swatch[data-style="bidar"] {
+    background: linear-gradient(135deg, #292b6b 50%, #00b6ed 50%);
+}
+
+.bidar-scheme-menu .bidar-style-swatch[data-style="monochrome"] {
+    background: linear-gradient(135deg, #1c1d1f 50%, #ffffff 50%);
+}
+
+.bidar-scheme-menu .bidar-style-swatch[data-style="brut"] {
+    background: linear-gradient(135deg, #ffd23f 50%, #ff5ca8 50%);
+    box-shadow: inset 0 0 0 2px #111111;
+}
+
+.bidar-scheme-menu .bidar-scheme-note {
+    color: var(--bidar-text-muted);
+    font-size: var(--12px);
+}
+
+
+--- FILE: client/custom/modules/bidar-theme/css/bidar-dark.css ---
+/**
+ * Dark palette ("Nuit indigo"): surfaces tinted towards the brand indigo, periwinkle for actions
+ * with dark text on it, cyan kept for the signature and links.
+ *
+ * It applies when js/color-scheme.js sets data-bidar-scheme="dark" on the document, from the
+ * user's choice (Light, Dark or System). The attribute sits on the root element because the
+ * EspoCRM variables are declared there from the Bidar tokens: redefining the tokens on the same
+ * element makes every variable follow. Text contrast is at least 4.5:1 and field borders at
+ * least 3:1, as in the light palette.
+ */
+:root[data-bidar-scheme="dark"] {
+    color-scheme: dark;
+
+    /* Neutrals: from the card (0) to the text (900); the page itself is darker than the cards */
+    --bidar-n-0: #161930;
+    --bidar-n-25: #141729;
+    --bidar-n-50: #0d0f1e;
+    --bidar-n-100: #20243f;
+    --bidar-n-150: #2a2e4d;
+    --bidar-n-200: #343958;
+    --bidar-n-300: #454b6c;
+    --bidar-n-400: #6b7194;
+    --bidar-n-500: #9298b5;
+    --bidar-n-600: #b1b6cf;
+    --bidar-n-700: #c9cde0;
+    --bidar-n-800: #dadced;
+    --bidar-n-900: #eceef7;
+
+    /* Brand: periwinkle, the indigo lightened, readable as text and as a button with dark text */
+    --bidar-brand: #8f93ff;
+    --bidar-brand-hover: #a3a6ff;
+    --bidar-brand-active: #7c80f0;
+    --bidar-brand-subtle: #252a55;
+    --bidar-brand-border: #3d4380;
+    --bidar-brand-subtle-hover: #2c3263;
+    --bidar-brand-ring: #9da1ff;
+    --bidar-on-brand: #0d0f1e;
+    --bidar-on-signature: #07131a;
+    --bidar-selection: rgba(143, 147, 255, 0.35);
+    --bidar-link: #5ccbf5;
+    --bidar-link-hover: #8ad9f8;
+
+    /* States: light text on a translucent tint; solid colours keep white text */
+    --bidar-success: #47cd89;
+    --bidar-success-bg: rgba(7, 148, 85, 0.16);
+    --bidar-success-border: rgba(71, 205, 137, 0.35);
+    --bidar-success-solid: #079455;
+    --bidar-warning: #fdb022;
+    --bidar-warning-bg: rgba(247, 144, 9, 0.14);
+    --bidar-warning-border: rgba(253, 176, 34, 0.35);
+    --bidar-warning-solid: #bb5806;
+    --bidar-danger: #f97066;
+    --bidar-danger-bg: rgba(217, 45, 32, 0.16);
+    --bidar-danger-border: rgba(249, 112, 102, 0.38);
+    --bidar-danger-solid: #d92d20;
+    --bidar-info: #b39ef7;
+    --bidar-info-bg: rgba(122, 90, 248, 0.16);
+    --bidar-info-border: rgba(179, 158, 247, 0.35);
+
+    /* Surfaces and text */
+    --bidar-canvas: #0d0f1e;
+    --bidar-surface: #161930;
+    --bidar-surface-sunken: #141729;
+    --bidar-border-input: #6e7499;
+    --bidar-text-faint: #8d93b0;
+
+    /* Shadows: darker, the page being dark */
+    --bidar-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --bidar-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.2);
+    --bidar-shadow-md: 0 6px 16px -2px rgba(0, 0, 0, 0.45), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+    --bidar-shadow-lg: 0 18px 44px -8px rgba(0, 0, 0, 0.6), 0 4px 10px -4px rgba(0, 0, 0, 0.35);
+    --bidar-shadow-primary: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 1px 2px rgba(0, 0, 0, 0.4);
+    --bidar-shadow-primary-hover: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 3px 10px -1px rgba(0, 0, 0, 0.55);
+    --bidar-focus-halo: 0 0 0 3px rgba(143, 147, 255, 0.28);
+
+    /* Record band and top bar: deep indigo with the cyan glow */
+    --bidar-band-bg: #181b38;
+    --bidar-band-text: #eceef7;
+    --bidar-band-muted: #a9aec8;
+    --bidar-band-line: rgba(255, 255, 255, 0.14);
+    --bidar-band-gradient: linear-gradient(90deg, #15182f 0%, #1a1e3d 55%, #1d2347 100%);
+    --bidar-band-glow: radial-gradient(60rem 22rem at 100% 0%, rgba(0, 182, 237, 0.2), transparent 60%);
+    --bidar-topbar-bg: linear-gradient(rgba(21, 24, 47, 0.82), rgba(21, 24, 47, 0.82)), var(--bidar-band-glow), var(--bidar-band-gradient);
+    --bidar-band-divider: rgba(255, 255, 255, 0.08);
+    --bidar-band-fill-1: rgba(255, 255, 255, 0.04);
+    --bidar-band-fill-2: rgba(255, 255, 255, 0.07);
+    --bidar-band-fill-3: rgba(255, 255, 255, 0.11);
+    --bidar-band-fill-4: rgba(255, 255, 255, 0.16);
+    --bidar-band-line-strong: rgba(255, 255, 255, 0.3);
+
+    /* Tables */
+    --bidar-table-head-bg: #1b1e38;
+    --bidar-table-head-line: #30355a;
+    --bidar-table-head-hover: #15324d;
+    --bidar-table-row-hover: #1c2040;
+
+    /* Side menu */
+    --bidar-sidebar-bg: #12152a;
+    --bidar-sidebar-text: #c9cde0;
+    --bidar-sidebar-muted: #9298b5;
+    --bidar-sidebar-glow: radial-gradient(28rem 20rem at 0% 100%, rgba(0, 182, 237, 0.1), transparent 65%);
+    --bidar-sidebar-scroll: rgba(255, 255, 255, 0.18);
+    --bidar-sidebar-logo-filter: brightness(0) invert(1);
+    --bidar-sidebar-logo-opacity: 0.88;
+
+    /* EspoCRM variables that the light palette sets with fixed values */
+    --brand-primary-lighten-10: #a3a6ff;
+    --brand-primary-lighten-30: #3d4380;
+    --brand-primary-lighten-50: #252a55;
+    --brand-info-10: #c7b7fa;
+    --navbar-bg: #181b38;
+    --input-bg: #11142a;
+    --input-bg-disabled: #141729;
+    --input-border-focus-rgba: rgba(143, 147, 255, 0.28);
+    --btn-default-bg: #1d2140;
+    --btn-default-hover-bg: var(--bidar-n-150);
+    --btn-default-active-bg: var(--bidar-n-200);
+    --modal-backdrop-bg: rgba(3, 4, 10, 0.62);
+    --modal-border-width: var(--1px);
+    --tooltip-bg: var(--bidar-n-800);
+    --tooltip-color: #0d0f1e;
+    --main-gray-lighten-40: var(--bidar-surface);
+    --select-item-active-text-color: var(--bidar-brand-text);
+    /* Text on coloured badges, and the light box behind e-mails that bring their own colours */
+    --white-color: #ffffff;
+
+    /* EspoCRM variables the light palette leaves to EspoCRM's light values */
+    --table-bg: var(--bidar-surface);
+    --text-white-color: var(--bidar-n-900);
+    --text-solid-color: var(--bidar-n-700);
+    --label-color: var(--bidar-n-900);
+    --code-color: var(--bidar-n-700);
+    --blockquote-border-color: var(--bidar-n-300);
+    --gray-light-5: #656b8c;
+    --gray-light-7: #5f6585;
+    --gray-light-10: #585e7d;
+    --gray-light-12: #525776;
+    --gray-light-17: #474c6a;
+    --gray-light-25: #383d5a;
+    --gray-light-40: #10132a;
+    --navbar-inverse-toggle-hover-bg: var(--bidar-n-100);
+    --navbar-inverse-bg-7: var(--bidar-n-25);
+    --panel-primary-bg: var(--bidar-brand-subtle);
+    --panel-primary-border: var(--bidar-brand-subtle);
+    --panel-success-bg: var(--bidar-success-bg);
+    --panel-success-border: var(--bidar-success-bg);
+    --panel-warning-bg: var(--bidar-warning-bg);
+    --panel-warning-border: var(--bidar-warning-bg);
+    --panel-danger-bg: var(--bidar-danger-bg);
+    --panel-danger-border: var(--bidar-danger-bg);
+    --panel-info-bg: var(--bidar-info-bg);
+    --panel-info-border: var(--bidar-info-bg);
+    --state-danger-bg-5: rgba(217, 45, 32, 0.24);
+    --state-danger-bg-10: rgba(217, 45, 32, 0.32);
+    --state-danger-text-10: #fda29b;
+    --state-danger-text-10l: #fecdca;
+    --state-info-bg-5: rgba(122, 90, 248, 0.24);
+    --state-info-bg-10: rgba(122, 90, 248, 0.32);
+    --state-info-text-10: #d9d0fb;
+    --state-success-bg-5: rgba(7, 148, 85, 0.24);
+    --state-success-text-10: #75e0a7;
+    --state-success-text-10l: #abefc6;
+    --state-warning-bg-5: rgba(247, 144, 9, 0.22);
+    --state-warning-bg-10: rgba(247, 144, 9, 0.3);
+    --state-warning-text-10: #fec84b;
+    --state-warning-text-10l: #fedf89;
+    --btn-info-bg: #7a5af8;
+    --btn-info-border: #7a5af8;
+    --btn-info-hover-bg: #6941c6;
+    --btn-info-hover-border: #6941c6;
+    --btn-info-active-bg: #5b37b7;
+    --btn-info-active-border: #5b37b7;
+    --calendar-busy-bg: rgba(249, 112, 102, 0.22);
+    --collapsed-modal-bg: var(--bidar-n-100);
+    --collapsed-modal-text-color: var(--bidar-n-900);
+}
+
+/* The default EspoCRM logo turns white, in the side menu, the top menu and on the login page */
+:root[data-bidar-scheme="dark"] :is(#navbar .navbar-brand, #login) img[src*="img/logo-light.svg"] {
+    filter: var(--bidar-sidebar-logo-filter);
+    opacity: var(--bidar-sidebar-logo-opacity);
+}
+
+/* Kanban Dark Mode Palette */
+:root[data-bidar-scheme="dark"] div.list-kanban table.kanban-columns td.group-column {
+    background-color: var(--bidar-n-50, #0d0f1e);
+    border-color: var(--bidar-n-150, #2a2e4d);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+:root[data-bidar-scheme="dark"] div.list-kanban .group-column-list .item .panel.panel-default {
+    background: var(--bidar-n-0, #161930);
+    border-color: var(--bidar-n-150, #2a2e4d);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+:root[data-bidar-scheme="dark"] div.list-kanban .group-column-list .item:hover .panel.panel-default {
+    border-color: var(--bidar-n-300, #454b6c);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+:root[data-bidar-scheme="dark"] div.list-kanban .ui-sortable-placeholder,
+:root[data-bidar-scheme="dark"] div.list-kanban .drag-placeholder {
+    border-color: var(--bidar-brand, #8f93ff) !important;
+    background: rgba(143, 147, 255, 0.12) !important;
+}
+
+:root[data-bidar-scheme="dark"] div.list-kanban .item[data-is-rotten="true"] .panel.panel-default,
+:root[data-bidar-scheme="dark"] div.list-kanban .item.is-rotten .panel.panel-default,
+:root[data-bidar-scheme="dark"] div.list-kanban .item:has(.field[data-name="isRotten"]:not(:empty)) .panel.panel-default {
+    border-left-color: var(--bidar-danger, #f97066);
+    background: linear-gradient(to right, rgba(249, 112, 102, 0.1) 0%, var(--bidar-n-0, #161930) 24px);
+}
+
+html[dir="rtl"]:root[data-bidar-scheme="dark"] div.list-kanban .item[data-is-rotten="true"] .panel.panel-default,
+html[dir="rtl"]:root[data-bidar-scheme="dark"] div.list-kanban .item.is-rotten .panel.panel-default,
+html[dir="rtl"]:root[data-bidar-scheme="dark"] div.list-kanban .item:has(.field[data-name="isRotten"]:not(:empty)) .panel.panel-default {
+    border-left-color: var(--bidar-n-150, #2a2e4d);
+    border-right-color: var(--bidar-danger, #f97066);
+    background: linear-gradient(to left, rgba(249, 112, 102, 0.1) 0%, var(--bidar-n-0, #161930) 24px);
+}
+
+
+--- FILE: client/custom/modules/bidar-theme/src/bidar.js ---
+/**
+ * Shared settings of the Bidar record view.
+ */
+
+/** Bottom panels of the Activity tab, below the quick actions. */
+export const ACTIVITY_PANELS = ['stream'];
+
+/**
+ * Record view layouts: `split` puts the fields on the left and the activity on the right;
+ * `classic` keeps fields and bottom panels on the left and side panels on the right, as EspoCRM.
+ */
+export const LAYOUTS = ['split', 'classic'];
+
+/**
+ * Whether the theme in use is a Bidar theme (Bidar, Bidar Monochrome, Bidar Brut): those declare
+ * their style in the `bidarStyle` theme parameter.
+ *
+ * @param {import('view').default} view
+ * @return {boolean}
+ */
+export function isBidarTheme(view) {
+    return !!getStyle(view);
+}
+
+/**
+ * The style of the theme in use (`bidar`, `monochrome`, `brut`), or null under another theme.
+ *
+ * @param {import('view').default} view
+ * @return {string|null}
+ */
+export function getStyle(view) {
+    const style = view.getThemeManager().getParam('bidarStyle');
+
+    return typeof style === 'string' && style ? style : null;
+}
+
+/**
+ * The record view layout: the user's choice (`bidarLayout` preference), else the administrator's
+ * default (`bidarLayout` setting), else Split.
+ *
+ * @param {import('view').default} view
+ * @return {'split'|'classic'}
+ */
+export function getLayout(view) {
+    const chosen = view.getPreferences().get('bidarLayout');
+
+    if (LAYOUTS.includes(chosen)) {
+        return chosen;
+    }
+
+    const byDefault = view.getConfig().get('bidarLayout');
+
+    return LAYOUTS.includes(byDefault) ? byDefault : LAYOUTS[0];
+}
+
+/**
+ * @param {import('view').default} view
+ * @return {boolean}
+ */
+export function isClassicLayout(view) {
+    return getLayout(view) === 'classic';
+}
+
+/**
+ * @param {string} tag
+ * @param {string} [className]
+ * @param {string} [text]
+ * @return {HTMLElement}
+ */
+export function el(tag, className, text) {
+    const element = document.createElement(tag);
+
+    if (className) {
+        element.className = className;
+    }
+
+    if (text !== undefined) {
+        element.textContent = text;
+    }
+
+    return element;
+}
+
+
+--- FILE: client/custom/modules/bidar-theme/src/handlers/user-interface.js ---
+/**
+ * Administration > User Interface: adds the default record layout of the Bidar themes (Split or
+ * Classic) right below the theme. It applies to the users who have not chosen their own in the
+ * Appearance menu of the top bar. The style is the theme itself, chosen in the Theme field.
+ *
+ * The field is inserted into EspoCRM's own layout of the page instead of replacing it, so the page
+ * keeps what a later EspoCRM version adds to it: in the free cell of the row below the theme, else
+ * on a row of its own below it, else in a block of its own after the first one. If anything
+ * fails, the page stays as EspoCRM made it.
+ */
+
+/** The settings field. */
+const FIELD = 'bidarLayout';
+
+export default class BidarUserInterfaceHandler {
+
+    /**
+     * @param {import('views/record/edit').default} view
+     */
+    constructor(view) {
+        this.view = view;
+    }
+
+    process() {
+        const view = /** @type {Object.<string, *>} */ this.view;
+
+        if (view.layoutName !== 'userInterface') {
+            return;
+        }
+
+        try {
+            if (view.detailLayout) {
+                // The layout was read before this handler ran (it was cached): the fields are
+                // built again with the defaults, before the page is first shown.
+                const layout = Espo.Utils.cloneDeep(view.detailLayout);
+
+                if (!insertField(layout)) {
+                    return;
+                }
+
+                view.detailLayout = layout;
+                view.gridLayout = null;
+                view.createMiddleView();
+
+                return;
+            }
+
+            const modify = view.modifyDetailLayout.bind(view);
+
+            view.hasModifyDetailLayout = true;
+
+            view.modifyDetailLayout = layout => {
+                modify(layout);
+                insertField(layout);
+            };
+        } catch (e) {
+            console.warn('Bidar: the appearance defaults could not be added to the page.', e);
+        }
+    }
+}
+
+/**
+ * @param {Object[]} layout Panels of a record layout.
+ * @return {boolean} Whether the field was added.
+ */
+function insertField(layout) {
+    if (!Array.isArray(layout)) {
+        return false;
+    }
+
+    const isCell = (cell, name) => !!cell && typeof cell === 'object' && cell.name === name;
+    const hasCell = (row, name) => Array.isArray(row) && row.some(cell => isCell(cell, name));
+
+    if (layout.some(panel => (panel.rows || []).some(row => hasCell(row, FIELD)))) {
+        return false;
+    }
+
+    const cell = {name: FIELD};
+
+    for (const panel of layout) {
+        const rows = panel.rows || [];
+        const index = rows.findIndex(row => hasCell(row, 'theme'));
+
+        if (index === -1) {
+            continue;
+        }
+
+        const next = rows[index + 1];
+
+        // EspoCRM 10 leaves the first cell of that row free (Disable avatars is on the right)
+        if (Array.isArray(next) && next.length === 2 && next[0] === false) {
+            next[0] = cell;
+        } else {
+            rows.splice(index + 1, 0, [cell, false]);
+        }
+
+        return true;
+    }
+
+    layout.splice(Math.min(1, layout.length), 0, {rows: [[cell, false]]});
+
+    return true;
+}
+
+
+--- FILE: client/custom/modules/bidar-theme/js/appearance.js ---
+/**
+ * Appearance of the Bidar themes: style (Bidar, Monochrome, Brut: one per theme), palette (light,
+ * dark, or the one of the operating system) and density (comfortable, compact).
+ *
+ * A plain script, loaded before the stylesheet, so that a page opens directly in the right style
+ * and palette instead of flashing the default ones. It sets on the root element:
+ * - data-bidar-style: the style, read by css/bidar-style-*.css;
+ * - data-bidar-scheme="light|dark": the resolved palette, read by css/bidar-dark.css;
+ * - data-bidar-density: the density, read by css/bidar-density.css.
+ *
+ * The style is the one of the theme: its stylesheet is css/bidar.css or css/bidar-<style>.css, and
+ * EspoCRM swaps it for the user's own theme once it has loaded the preferences. The palette and the
+ * density are the user's preferences; the browser remembers all three, so that they apply before
+ * EspoCRM has loaded, login page included. The top bar button announces a new choice with the
+ * `bidar:appearance` event. Under another theme the attributes have no effect.
+ */
+(() => {
+    const MODES = ['light', 'dark', 'system'];
+    const DENSITIES = ['comfortable', 'compact'];
+    // Styles are open-ended: a value without its stylesheet simply leaves the default look.
+    const STYLE_PATTERN = /^[a-z][a-z-]{0,30}$/;
+
+    const KEYS = {
+        mode: 'bidar-color-scheme',
+        style: 'bidar-style',
+        density: 'bidar-density',
+    };
+
+    const isValid = {
+        mode: value => MODES.includes(value),
+        style: value => typeof value === 'string' && STYLE_PATTERN.test(value),
+        density: value => DENSITIES.includes(value),
+    };
+
+    const DEFAULTS = {
+        mode: 'light',
+        style: 'bidar',
+        density: 'comfortable',
+    };
+
+    // The stylesheet of a Bidar theme: css/bidar.css (Bidar) or css/bidar-<style>.css.
+    const STYLESHEET = /\/bidar-theme\/css\/bidar(?:-([a-z]+))?\.css(?:[?#]|$)/;
+
+    const media = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+
+    const read = name => {
+        try {
+            const stored = localStorage.getItem(KEYS[name]);
+
+            return isValid[name](stored) ? stored : DEFAULTS[name];
+        } catch (e) {
+            return DEFAULTS[name];
+        }
+    };
+
+    const store = (name, value) => {
+        try {
+            localStorage.setItem(KEYS[name], value);
+        } catch (e) {
+            // Blocked storage: the choice still applies until the next page load.
+        }
+    };
+
+    const state = {
+        mode: read('mode'),
+        style: read('style'),
+        density: read('density'),
+    };
+
+    const apply = () => {
+        const root = document.documentElement;
+        const isDark = state.mode === 'dark' || (state.mode === 'system' && !!media && media.matches);
+
+        root.dataset.bidarScheme = isDark ? 'dark' : 'light';
+        root.dataset.bidarStyle = state.style;
+        root.dataset.bidarDensity = state.density;
+    };
+
+    apply();
+
+    // System: follows the operating system when it switches, at nightfall for instance.
+    if (media && media.addEventListener) {
+        media.addEventListener('change', () => {
+            if (state.mode === 'system') {
+                apply();
+            }
+        });
+    }
+
+    // The style follows the theme's stylesheet, also when EspoCRM swaps it for the user's theme.
+    const followStylesheet = link => {
+        const update = () => {
+            const match = (link.getAttribute('href') || '').match(STYLESHEET);
+            const style = match ? (match[1] || DEFAULTS.style) : null;
+
+            if (style && isValid.style(style) && style !== state.style) {
+                state.style = style;
+                store('style', style);
+                apply();
+            }
+        };
+
+        update();
+
+        new MutationObserver(update).observe(link, {attributes: true, attributeFilter: ['href']});
+    };
+
+    const stylesheet = document.getElementById('main-stylesheet');
+
+    if (stylesheet) {
+        followStylesheet(stylesheet);
+    } else if (window.MutationObserver) {
+        // The page declares the stylesheet right after the scripts.
+        const observer = new MutationObserver(() => {
+            const link = document.getElementById('main-stylesheet');
+
+            if (link) {
+                observer.disconnect();
+                followStylesheet(link);
+            }
+        });
+
+        observer.observe(document.documentElement, {childList: true, subtree: true});
+    }
+
+    document.addEventListener('bidar:appearance', event => {
+        const detail = event.detail || {};
+
+        Object.keys(KEYS).forEach(name => {
+            if (name in detail && isValid[name](detail[name])) {
+                state[name] = detail[name];
+                store(name, detail[name]);
+            }
+        });
+
+        apply();
+    });
+})();
+
+
+--- FILE: client/custom/modules/bidar-theme/js/nav-groups.js ---
+/**
+ * Collapsible groups in the side menu: a click on a title (CRM, Activities…) folds the items below
+ * it, up to the next title. The state is remembered per user, in the browser.
+ *
+ * A plain script rather than a module: EspoCRM's navbar view has no setup handler, and this only
+ * relies on the menu's markup. If that markup changes in another version, the menu stays as it is.
+ */
+(() => {
+    const MENU_SELECTOR = '#navbar ul.tabs';
+    // The stylesheet of a Bidar theme: css/bidar.css (Bidar) or css/bidar-<style>.css (Bidar
+    // Monochrome, Bidar Brut…), the same rule as js/appearance.js.
+    const THEME_STYLESHEET = /\/bidar-theme\/css\/bidar(?:-[a-z]+)?\.css(?:[?#]|$)/;
+    // The user's own link, in the top right menu. The Last Viewed panel, also in the navbar, can
+    // hold links to other users, whose stored state must not be read.
+    const USER_SELECTOR = '#navbar .menu-container a[href^="#User/view/"]';
+    const STORAGE_PREFIX = 'bidar-nav-groups-';
+
+    let scheduled = false;
+    let observed = null;
+
+    const storageKey = () => {
+        const link = document.querySelector(USER_SELECTOR);
+
+        return STORAGE_PREFIX + (link ? link.getAttribute('href').split('/').pop() : 'default');
+    };
+
+    const load = () => {
+        try {
+            const stored = JSON.parse(localStorage.getItem(storageKey()));
+
+            return Array.isArray(stored) ? stored : [];
+        } catch (e) {
+            return [];
+        }
+    };
+
+    const save = collapsed => {
+        try {
+            localStorage.setItem(storageKey(), JSON.stringify(collapsed));
+        } catch (e) {
+            // Blocked storage: the group still folds until the next page load.
+        }
+    };
+
+    const toggle = label => {
+        const collapsed = load();
+
+        save(collapsed.includes(label) ? collapsed.filter(item => item !== label) : [...collapsed, label]);
+        update();
+    };
+
+    const decorate = (title, label, isCollapsed) => {
+        let button = title.querySelector(':scope > div > .bidar-nav-toggle');
+
+        if (!button) {
+            const row = title.firstElementChild;
+            const icon = document.createElement('span');
+
+            button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'bidar-nav-toggle';
+            icon.className = 'fas fa-chevron-down';
+            icon.setAttribute('aria-hidden', 'true');
+            button.append(icon);
+            row.append(button);
+            row.addEventListener('click', () => toggle(label));
+        }
+
+        button.setAttribute('aria-label', label);
+        button.setAttribute('aria-expanded', String(!isCollapsed));
+        title.classList.toggle('bidar-nav-collapsed', isCollapsed);
+    };
+
+    function isBidarTheme() {
+        return [...document.querySelectorAll('link[rel="stylesheet"]')]
+            .some(link => THEME_STYLESHEET.test(link.getAttribute('href') || ''));
+    }
+
+    function update() {
+        watch();
+
+        const menu = document.querySelector(MENU_SELECTOR);
+
+        if (!menu || !isBidarTheme()) {
+            return;
+        }
+
+        const collapsed = load();
+        let isFolding = false;
+
+        [...menu.children].forEach(item => {
+            if (item.classList.contains('tab-divider')) {
+                const text = item.querySelector('.label-text');
+                const label = text ? text.textContent.trim() : '';
+
+                // A separator without text has no title to click: it just ends the group above.
+                isFolding = !!label && collapsed.includes(label);
+
+                if (label) {
+                    decorate(item, label, isFolding);
+                }
+
+                return;
+            }
+
+            if (item.classList.contains('more')) {
+                isFolding = false;
+            }
+
+            // The page in progress stays visible, so that the user always sees where they are.
+            const isCurrent = item.classList.contains('active') || !!item.querySelector('.active');
+
+            item.classList.toggle('bidar-nav-hidden', isFolding && !isCurrent);
+        });
+    }
+
+    const schedule = () => {
+        if (scheduled) {
+            return;
+        }
+
+        scheduled = true;
+
+        requestAnimationFrame(() => {
+            scheduled = false;
+            update();
+        });
+    };
+
+    // EspoCRM redraws the menu and moves the current page marker without any event to listen to.
+    const observer = new MutationObserver(schedule);
+
+    // Only the header holds the menu: the rest of the page changes far more often. Until it exists
+    // (and if it gets replaced), the whole document is watched.
+    function watch() {
+        const header = document.querySelector('#header');
+        const target = header || document.documentElement;
+
+        if (target !== observed) {
+            observer.disconnect();
+            observer.observe(target, {childList: true, subtree: true});
+            observed = target;
+        }
+    }
+
+    watch();
+    window.addEventListener('hashchange', schedule);
+})();
+

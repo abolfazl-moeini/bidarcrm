@@ -1,4 +1,4 @@
-FROM node:22-alpine
+FROM mcr.microsoft.com/playwright:v1.50.0-noble
 
 WORKDIR /app
 
@@ -7,5 +7,4 @@ RUN npm ci --omit=dev
 
 COPY . .
 
-ENV MONITOR_ENV=prod
 CMD ["npm", "start"]

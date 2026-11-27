@@ -1,0 +1,23 @@
+{
+  "themes": {
+    "Bidar": "Bidar"
+  },
+  "labels": {
+    "bidarShowEmptyOne": "Show empty field",
+    "bidarShowEmptyMany": "Show {count} empty fields",
+    "bidarHideEmpty": "Hide empty fields",
+    "bidarRecordInfo": "Record details",
+    "bidarScheme": "Appearance",
+    "bidarSchemeLight": "Light",
+    "bidarSchemeDark": "Dark",
+    "bidarSchemeSystem": "Match system",
+    "bidarMode": "Mode",
+    "bidarDensity": "Density",
+    "bidarDensityComfortable": "Comfortable",
+    "bidarDensityCompact": "Compact",
+    "bidarDefault": "Default",
+    "bidarLayout": "Layout",
+    "bidarLayoutSplit": "Split",
+    "bidarLayoutClassic": "Classic"
+  }
+}

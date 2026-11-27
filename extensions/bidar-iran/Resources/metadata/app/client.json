@@ -1,0 +1,13 @@
+{
+  "scriptList": [
+    "__APPEND__",
+    "client/custom/modules/bidar-iran/lib/jalalidatepicker.min.js",
+    "client/custom/modules/bidar-iran/lib/bidar-jalali-utils.js",
+    "client/custom/modules/bidar-iran/lib/bidar-jalali-init.js"
+  ],
+  "cssList": [
+    "__APPEND__",
+    "client/custom/modules/bidar-iran/lib/jalalidatepicker.min.css",
+    "client/custom/modules/bidar-iran/css/jalali-datepicker.css"
+  ]
+}

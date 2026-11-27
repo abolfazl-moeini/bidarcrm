@@ -1,0 +1,1 @@
+../tests/installer/clean-install-smoke.sh

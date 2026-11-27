@@ -1,0 +1,79 @@
+{
+  "system": {
+    "itemList": [
+      {
+        "url": "#Admin/settings",
+        "label": "Settings",
+        "iconClass": "fas fa-cog",
+        "description": "settings",
+        "recordView": "views/admin/settings"
+      },
+      {
+        "url": "#Admin/userInterface",
+        "label": "User Interface",
+        "iconClass": "fas fa-desktop",
+        "description": "userInterface",
+        "recordView": "views/admin/user-interface"
+      },
+      {
+        "url": "#Admin/authentication",
+        "label": "Authentication",
+        "iconClass": "fas fa-sign-in-alt",
+        "description": "authentication",
+        "recordView": "views/admin/authentication"
+      },
+      {
+        "url": "#ScheduledJob",
+        "label": "Scheduled Jobs",
+        "iconClass": "fas fa-clock",
+        "description": "scheduledJob"
+      },
+      {
+        "url": "#Admin/currency",
+        "label": "Currency",
+        "iconClass": "fas fa-coins",
+        "description": "currency",
+        "recordView": "views/admin/currency",
+        "view": "views/admin/currency-main"
+      },
+      {
+        "url": "#Admin/notifications",
+        "label": "Notifications",
+        "iconClass": "fas fa-bell",
+        "description": "notifications",
+        "recordView": "views/admin/notifications"
+      },
+      {
+        "url": "#Admin/integrations",
+        "label": "Integrations",
+        "iconClass": "fas fa-network-wired",
+        "description": "integrations"
+      },
+      {
+        "url": "#Admin/systemRequirements",
+        "label": "System Requirements",
+        "iconClass": "fas fa-server",
+        "description": "systemRequirements"
+      },
+      {
+        "url": "#Admin/jobsSettings",
+        "label": "Job Settings",
+        "iconClass": "fas fa-list-ul",
+        "description": "jobsSettings",
+        "recordView": "views/admin/jobs-settings"
+      },
+      {
+        "action": "clearCache",
+        "label": "Clear Cache",
+        "iconClass": "fas fa-broom",
+        "description": "clearCache"
+      },
+      {
+        "action": "rebuild",
+        "label": "Rebuild",
+        "iconClass": "fas fa-database",
+        "description": "rebuild"
+      }
+    ]
+  }
+}

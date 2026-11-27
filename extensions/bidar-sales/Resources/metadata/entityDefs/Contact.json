@@ -1,0 +1,9 @@
+{
+  "fields": {
+    "customerGroups": {
+      "type": "multiEnum",
+      "options": ["VIP", "Reseller", "Loyal", "Exhibition", "FirstPurchase"],
+      "default": []
+    }
+  }
+}

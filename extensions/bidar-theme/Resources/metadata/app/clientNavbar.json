@@ -1,0 +1,10 @@
+{
+  "items": {
+    "bidarAppearance": {
+      "view": "bidar-theme:views/navbar/appearance",
+      "class": "dropdown bidar-scheme-container",
+      "order": 12,
+      "disabled": false
+    }
+  }
+}

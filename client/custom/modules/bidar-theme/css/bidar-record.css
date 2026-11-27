@@ -1,0 +1,124 @@
+/**
+ * Records: panels as cards, sentence-case titles, labels as large as values, underlined tabs.
+ */
+
+/* ===== Panels ===== */
+.panel {
+    border: 1px solid var(--bidar-border);
+    border-radius: var(--bidar-radius-lg);
+    box-shadow: var(--bidar-shadow-xs);
+}
+
+.panel > .panel-heading {
+    padding-left: var(--panel-padding);
+    padding-right: var(--10px);
+    background-color: transparent;
+    border-bottom: 1px solid var(--bidar-n-100);
+    border-radius: var(--bidar-radius-lg) var(--bidar-radius-lg) 0 0;
+}
+
+.panel > .panel-heading .panel-title {
+    color: var(--bidar-text);
+    font-size: var(--14px);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    text-transform: none;
+}
+
+.panel > .panel-heading .panel-title .action {
+    color: inherit;
+}
+
+/* Panel coloured by the administrator: the title takes the colour, as in EspoCRM */
+.panel:is(.panel-danger, .panel-warning, .panel-success, .panel-info, .panel-primary) > .panel-heading .panel-title {
+    color: inherit;
+}
+
+/* Panel actions: ghost buttons */
+.panel-heading .panel-actions-container .btn,
+.panel-heading .btn-group > .btn {
+    background-color: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    color: var(--bidar-text-muted);
+}
+
+.panel-heading .panel-actions-container .btn:hover,
+.panel-heading .btn-group > .btn:hover,
+.panel-heading .btn-group.open > .btn {
+    background-color: var(--bidar-hover);
+    box-shadow: none;
+    color: var(--bidar-text);
+}
+
+/* ===== Read-only fields ===== */
+.detail .cell > label.control-label,
+.record .side .cell > label.control-label {
+    color: var(--bidar-text-secondary);
+    font-size: var(--14px);
+    font-weight: 400;
+    letter-spacing: 0;
+    margin-bottom: var(--4px);
+}
+
+.detail .cell > .field {
+    color: var(--bidar-text);
+}
+
+.detail .cell .none-value {
+    color: var(--bidar-text-faint);
+}
+
+/* ===== Tabs ===== */
+.nav-tabs {
+    border-bottom: 1px solid var(--bidar-border);
+}
+
+.nav-tabs > li > a {
+    margin-bottom: -1px;
+    padding: var(--8px) var(--12px);
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    color: var(--bidar-text-muted);
+    font-weight: 500;
+}
+
+.nav-tabs > li > a:hover,
+.nav-tabs > li > a:focus {
+    border-bottom-color: var(--bidar-n-300);
+    background: transparent;
+    color: var(--bidar-text);
+}
+
+.nav-tabs > li.active > a,
+.nav-tabs > li.active > a:hover,
+.nav-tabs > li.active > a:focus {
+    border: none;
+    border-bottom: 2px solid var(--bidar-brand-mark);
+    background: transparent;
+    color: var(--bidar-text);
+}
+
+/* ===== Stream ===== */
+.panel-stream .list > ul > li,
+.stream-list .list-group-item {
+    border-color: var(--bidar-n-100);
+}
+
+/* ===== Dashboard: a dashlet lifts on hover ===== */
+.dashlets .dashlet.panel {
+    transition: box-shadow var(--bidar-base) var(--bidar-ease), border-color var(--bidar-base) var(--bidar-ease);
+}
+
+.dashlets .dashlet.panel:hover {
+    border-color: var(--bidar-border-strong);
+    box-shadow: var(--bidar-shadow-md);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dashlets .dashlet.panel {
+        transition: none;
+    }
+}

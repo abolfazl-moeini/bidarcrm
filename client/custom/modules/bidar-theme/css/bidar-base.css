@@ -1,0 +1,98 @@
+/**
+ * Base: typography (Lexend), links, keyboard focus, selection, scrollbars.
+ */
+:root, body { --theme-name: Bidar !important; }
+
+body {
+    letter-spacing: var(--bidar-tracking-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5 {
+    letter-spacing: var(--bidar-tracking-tight);
+    text-wrap: balance;
+}
+
+::selection {
+    background: var(--bidar-selection);
+}
+
+a {
+    transition: color var(--bidar-fast) ease;
+}
+
+/*
+ * Focus: a visible ring for keyboard users only. The selectors repeat EspoCRM's own, which
+ * would otherwise win with a barely visible ring.
+ */
+a:focus-visible,
+a.btn:focus-visible,
+button:focus-visible,
+button.btn:focus-visible,
+button.btn.active:focus-visible,
+.btn:focus-visible,
+.dropdown-toggle:focus:focus-visible,
+input[type="radio"]:focus-visible,
+input[type="checkbox"]:focus-visible,
+input[type="file"]:focus-visible,
+label.attach-file-label:focus-visible,
+.iti__selected-flag:focus-visible,
+[tabindex]:focus-visible,
+.nav-link:focus-visible {
+    outline: var(--bidar-focus-outline);
+    outline-offset: 2px;
+}
+
+/* Side menu and record top bar: the ring takes the sidebar focus colour */
+body[data-navbar="side"] #navbar > .navbar a:focus-visible,
+body[data-navbar="side"] #navbar > .navbar button:focus-visible,
+body.bidar-band-page #navbar .navbar-right a:focus-visible,
+body.bidar-band-page #navbar .navbar-right input:focus-visible {
+    outline-color: var(--bidar-sidebar-focus);
+}
+
+a:focus:not(:focus-visible),
+button:focus:not(:focus-visible),
+.btn:focus:not(:focus-visible) {
+    outline: none;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+    accent-color: var(--bidar-brand);
+}
+
+/* Proportional: a fixed radius makes the small list checkboxes look like radio buttons */
+input[type="checkbox"] {
+    --border-radius: 27%;
+    --border-radius-small: 27%;
+}
+
+/* Thin scrollbars */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+    background: var(--bidar-n-300);
+    border-radius: var(--bidar-radius-pill);
+    border: 3px solid transparent;
+    background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background-color: var(--bidar-n-400); }
+
+#footer {
+    font-size: var(--12px);
+}
+
+/* Reduced motion when the system asks for it (RGAA 13.8) */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

@@ -1,0 +1,280 @@
+/**
+ * Monochrome style: white and near-black, actions in black (white in the dark palette), tables in
+ * a full grid, a grey side menu where the current page stands out as a small raised card, and the
+ * Inter typeface. It applies when js/appearance.js sets data-bidar-style="monochrome" on the root
+ * element, from the user's choice or the administrator's default.
+ *
+ * The light block does not apply in the dark palette: the dark block then sets every value on top
+ * of css/bidar-dark.css. Text contrast is at least 4.5:1 and field borders at least 3:1.
+ */
+:root[data-bidar-style="monochrome"] {
+    --bidar-font: "Bidar Inter", -apple-system, "Segoe UI", sans-serif;
+    --bidar-radius-sm: 6px;
+    --bidar-radius: 8px;
+    --bidar-radius-md: 10px;
+    --bidar-radius-lg: 12px;
+}
+
+:root[data-bidar-style="monochrome"]:not([data-bidar-scheme="dark"]) {
+    --bidar-n-0: #ffffff;
+    --bidar-n-25: #fbfbfb;
+    --bidar-n-50: #f9f9fa;
+    --bidar-n-100: #f3f3f4;
+    --bidar-n-150: #ececee;
+    --bidar-n-200: #e2e2e5;
+    --bidar-n-300: #cfcfd4;
+    --bidar-n-400: #9a9ba1;
+    --bidar-n-500: #66686f;
+    --bidar-n-600: #4e5057;
+    --bidar-n-700: #36383d;
+    --bidar-n-800: #232529;
+    --bidar-n-900: #1c1d1f;
+
+    --bidar-canvas: #ffffff;
+    --bidar-surface: #ffffff;
+    --bidar-surface-sunken: #fbfbfb;
+    --bidar-border: #ececee;
+    --bidar-border-strong: #e2e2e5;
+    --bidar-border-input: #8e9097;
+    --bidar-text-faint: #66686f;
+
+    --bidar-brand: #1c1d1f;
+    --bidar-brand-hover: #000000;
+    --bidar-brand-active: #000000;
+    --bidar-brand-subtle: #f0f0f2;
+    --bidar-brand-border: #d9d9de;
+    --bidar-brand-subtle-hover: #e8e8eb;
+    --bidar-brand-ring: #266df0;
+    --bidar-signature: #1c1d1f;
+    --bidar-on-signature: #ffffff;
+    --bidar-on-brand: #ffffff;
+    --bidar-selection: rgba(38, 109, 240, 0.16);
+    --bidar-link: #1c1d1f;
+    --bidar-link-hover: #1f5fd6;
+
+    --bidar-success: #0f7a3d;
+    --bidar-success-bg: #e3f6ea;
+    --bidar-success-border: #bfe8cf;
+    --bidar-warning: #8f5400;
+    --bidar-warning-bg: #fff2d9;
+    --bidar-warning-border: #f6d9a3;
+    --bidar-danger: #c0262d;
+    --bidar-danger-bg: #fde8e8;
+    --bidar-danger-border: #f6c5c5;
+    --bidar-info: #5b3cc4;
+    --bidar-info-bg: #efe9fd;
+    --bidar-info-border: #d9cdf8;
+
+    --bidar-shadow-xs: 0 1px 2px rgba(16, 17, 19, 0.04);
+    --bidar-shadow-sm: 0 1px 3px rgba(16, 17, 19, 0.06);
+    --bidar-shadow-primary: 0 1px 2px rgba(0, 0, 0, 0.2);
+    --bidar-shadow-primary-hover: 0 2px 6px rgba(0, 0, 0, 0.25);
+    --bidar-focus-halo: 0 0 0 3px rgba(38, 109, 240, 0.18);
+
+    --bidar-band-bg: #ffffff;
+    --bidar-band-text: #1c1d1f;
+    --bidar-band-muted: #66686f;
+    --bidar-band-line: #ececee;
+    --bidar-band-gradient: linear-gradient(#ffffff, #ffffff);
+    --bidar-band-glow: linear-gradient(transparent, transparent);
+    --bidar-topbar-bg: #ffffff;
+    --bidar-band-divider: #ececee;
+    --bidar-band-fill-1: #f6f6f7;
+    --bidar-band-fill-2: #f0f0f2;
+    --bidar-band-fill-3: #eaeaed;
+    --bidar-band-fill-4: #dfdfe3;
+    --bidar-band-line-strong: #cfcfd4;
+    --bidar-band-avatar-bg: #1c1d1f;
+    --bidar-band-primary-bg: #1c1d1f;
+    --bidar-band-primary-hover: #000000;
+
+    --bidar-table-head-bg: #fbfbfb;
+    --bidar-table-head-line: #ececee;
+    --bidar-table-head-hover: #f3f3f4;
+    --bidar-table-row-hover: #f8f8f9;
+
+    --bidar-sidebar-bg: #f7f7f8;
+    --bidar-sidebar-glow: linear-gradient(transparent, transparent);
+    --bidar-sidebar-line: #ececee;
+    --bidar-sidebar-text: #36383d;
+    --bidar-sidebar-muted: #66686f;
+    --bidar-sidebar-hover: #eeeef0;
+    --bidar-sidebar-active: #ffffff;
+    --bidar-sidebar-strong: #1c1d1f;
+    --bidar-sidebar-logo-filter: grayscale(1) brightness(0.35);
+    --bidar-sidebar-logo-opacity: 1;
+
+    --navbar-bg: #ffffff;
+    --input-border-focus-rgba: rgba(38, 109, 240, 0.18);
+
+    /* The style's own values */
+    --bidar-mono-line: #ececee;
+    --bidar-mono-grid: #ececee;
+    --bidar-mono-icon: #66686f;
+    --bidar-mono-active-shadow: 0 1px 2px rgba(16, 17, 19, 0.06), 0 0 0 1px #e2e2e5;
+}
+
+:root[data-bidar-style="monochrome"][data-bidar-scheme="dark"] {
+    --bidar-n-0: #161618;
+    --bidar-n-25: #141416;
+    --bidar-n-50: #0f0f11;
+    --bidar-n-100: #1e1e21;
+    --bidar-n-150: #26262a;
+    --bidar-n-200: #303035;
+    --bidar-n-300: #3d3d43;
+    --bidar-n-400: #6b6b73;
+    --bidar-n-500: #9a9aa3;
+    --bidar-n-600: #b8b8c0;
+    --bidar-n-700: #d4d4d9;
+    --bidar-n-800: #e6e6ea;
+    --bidar-n-900: #f2f2f4;
+
+    --bidar-canvas: #0f0f11;
+    --bidar-surface: #161618;
+    --bidar-surface-sunken: #141416;
+    --bidar-border-input: #75757e;
+    --bidar-text-faint: #9a9aa3;
+
+    --bidar-brand: #f2f2f4;
+    --bidar-brand-hover: #ffffff;
+    --bidar-brand-active: #dcdce0;
+    --bidar-brand-subtle: #232327;
+    --bidar-brand-border: #3d3d43;
+    --bidar-brand-subtle-hover: #2a2a2f;
+    --bidar-brand-ring: #6f9bff;
+    --bidar-on-brand: #0f0f11;
+    --bidar-signature: #f2f2f4;
+    --bidar-on-signature: #0f0f11;
+    --bidar-selection: rgba(111, 155, 255, 0.3);
+    --bidar-link: #f2f2f4;
+    --bidar-link-hover: #8fb2ff;
+
+    --bidar-success: #4ade80;
+    --bidar-success-bg: rgba(34, 197, 94, 0.14);
+    --bidar-success-border: rgba(74, 222, 128, 0.32);
+    --bidar-warning: #fbbf24;
+    --bidar-warning-bg: rgba(245, 158, 11, 0.14);
+    --bidar-warning-border: rgba(251, 191, 36, 0.32);
+    --bidar-danger: #f87171;
+    --bidar-danger-bg: rgba(239, 68, 68, 0.15);
+    --bidar-danger-border: rgba(248, 113, 113, 0.36);
+    --bidar-info: #a78bfa;
+    --bidar-info-bg: rgba(139, 92, 246, 0.16);
+    --bidar-info-border: rgba(167, 139, 250, 0.34);
+
+    --bidar-shadow-xs: none;
+    --bidar-shadow-sm: none;
+    --bidar-shadow-primary: none;
+    --bidar-shadow-primary-hover: none;
+    --bidar-focus-halo: 0 0 0 3px rgba(111, 155, 255, 0.28);
+
+    --bidar-band-bg: #0f0f11;
+    --bidar-band-text: #f2f2f4;
+    --bidar-band-muted: #9a9aa3;
+    --bidar-band-line: #26262a;
+    --bidar-band-gradient: linear-gradient(#0f0f11, #0f0f11);
+    --bidar-band-glow: linear-gradient(transparent, transparent);
+    --bidar-topbar-bg: #0f0f11;
+    --bidar-band-avatar-bg: #f2f2f4;
+    --bidar-band-avatar-text: #0f0f11;
+
+    --bidar-table-head-bg: #141416;
+    --bidar-table-head-line: #26262a;
+    --bidar-table-head-hover: #1e1e21;
+    --bidar-table-row-hover: #19191c;
+
+    --bidar-sidebar-bg: #0b0b0c;
+    --bidar-sidebar-glow: linear-gradient(transparent, transparent);
+    --bidar-sidebar-line: #1e1e21;
+    --bidar-sidebar-text: #d4d4d9;
+    --bidar-sidebar-muted: #8b8b94;
+    --bidar-sidebar-hover: #17171a;
+    --bidar-sidebar-active: #1e1e21;
+    --bidar-sidebar-strong: #f2f2f4;
+
+    --navbar-bg: #0f0f11;
+    --input-bg: #121214;
+    --input-border-focus-rgba: rgba(111, 155, 255, 0.28);
+    --btn-default-bg: #1a1a1d;
+    --tooltip-bg: #f2f2f4;
+    --tooltip-color: #0f0f11;
+
+    --bidar-mono-line: #26262a;
+    --bidar-mono-grid: #222226;
+    --bidar-mono-icon: #9a9aa3;
+    --bidar-mono-active-shadow: 0 0 0 1px #303035;
+}
+
+/* No cyan corner on the cards: the style relies on lines and greys alone */
+:root[data-bidar-style="monochrome"] :is(.bidar-layout-classic .bidar-content-card, .bidar-record .bidar-inspector-card, #main > .list-container > .list)::before {
+    display: none;
+}
+
+/* Tables: column headers in plain case, a full grid like a spreadsheet */
+:root[data-bidar-style="monochrome"] :is(.list > table > thead > tr > th, :where(#main) .table > thead > tr > th) {
+    color: var(--bidar-text-secondary);
+    font-size: var(--13px);
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+:root[data-bidar-style="monochrome"] #main > .list-container > .list > table > tbody > tr > td {
+    border-right: 1px solid var(--bidar-mono-grid);
+}
+
+:root[data-bidar-style="monochrome"] .bidar-identity-name {
+    font-size: var(--26px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+:root[data-bidar-style="monochrome"] .label.label-state {
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+:root[data-bidar-style="monochrome"] .bidar-step .bidar-step-inner {
+    font-weight: 500;
+}
+
+:root[data-bidar-style="monochrome"] #navbar {
+    border-bottom: 1px solid var(--bidar-mono-line);
+}
+
+/* Side menu: grey column, grey icons, the current page raised like a small card */
+:root[data-bidar-style="monochrome"] body[data-navbar="side"] #navbar > .navbar {
+    border-right: 1px solid var(--bidar-mono-line);
+}
+
+:root[data-bidar-style="monochrome"] body[data-navbar="side"] #navbar ul.tabs > li:is(.tab, .more) > a {
+    margin: 1px 10px;
+    border-radius: 8px;
+    font-size: var(--13px);
+    font-weight: 500;
+}
+
+/* Important: EspoCRM sets the entity colour on the icon itself */
+:root[data-bidar-style="monochrome"] body[data-navbar="side"] #navbar ul.tabs > li.tab > a .short-label,
+:root[data-bidar-style="monochrome"] body[data-navbar="side"] #navbar ul.tabs > li.tab > a .short-label :is(.fas, .far) {
+    color: var(--bidar-mono-icon) !important;
+}
+
+:root[data-bidar-style="monochrome"] body[data-navbar="side"] #navbar ul.tabs > li.tab.active > a,
+:root[data-bidar-style="monochrome"] body[data-navbar="side"] #navbar ul.tabs > li.tab.active > a:hover {
+    box-shadow: var(--bidar-mono-active-shadow);
+}
+
+:root[data-bidar-style="monochrome"] body[data-navbar="side"] #navbar ul.tabs > li.tab.active > a .short-label,
+:root[data-bidar-style="monochrome"] body[data-navbar="side"] #navbar ul.tabs > li.tab.active > a .short-label :is(.fas, .far) {
+    color: var(--bidar-sidebar-strong) !important;
+}
+
+:root[data-bidar-style="monochrome"] body[data-navbar="side"] #navbar ul.tabs > li.tab.active > a::before {
+    display: none;
+}
+
+:root[data-bidar-style="monochrome"] body[data-navbar="side"] #navbar ul.tabs > li.tab-divider > div > .label-text {
+    font-size: var(--12px);
+    font-weight: 500;
+}

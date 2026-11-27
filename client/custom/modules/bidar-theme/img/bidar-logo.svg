@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="Bidar CRM">
+  <!-- Upper teal ribbon & upward growth arrow -->
+  <path d="M12 37L29 20L35 26L41 20H35L40 15H53V28L48 33V24L31 41H24L42 23L35 30L29 24L12 41V37Z" fill="#0F766E"/>
+  <!-- Lower slate navy geometric B loop -->
+  <path d="M12 49L28 33H35L19 49H12Z" fill="#0F172A"/>
+  <path d="M23 49L28 44H38L44 38L40 34L44 30L51 37L39 49H23Z" fill="#0F172A"/>
+</svg>

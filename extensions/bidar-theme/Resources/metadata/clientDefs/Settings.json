@@ -1,0 +1,5 @@
+{
+  "viewSetupHandlers": {
+    "record/edit": ["__APPEND__", "bidar-theme:handlers/user-interface"]
+  }
+}

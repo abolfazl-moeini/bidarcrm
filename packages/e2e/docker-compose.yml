@@ -6,5 +6,6 @@ services:
     env_file:
       - .env
     environment:
-      MONITOR_ENV: local
-    network_mode: "host"
+      MONITOR_ENV: ${MONITOR_ENV:-local}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

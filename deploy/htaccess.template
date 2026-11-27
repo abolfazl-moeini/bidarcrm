@@ -1,72 +1,58 @@
-# ==============================================================================
-# BidarCRM - Root Apache .htaccess Template (Same-Origin Routing)
-# Compatible with EspoCRM 10.1.4 & React Front-Office SPA
-# ==============================================================================
+# BidarCRM root Apache rules (application files live under public/).
+
+Options -Indexes
+
+<IfModule mod_headers.c>
+    Header unset X-Powered-By
+    Header always unset X-Powered-By
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+</IfModule>
+
+<IfModule mod_headers.c>
+    <If "%{REQUEST_URI} !~ m#^/(app/)?lead-capture(/|$)#">
+        Header always set X-Frame-Options "SAMEORIGIN"
+    </If>
+</IfModule>
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteBase /
 
-    # --------------------------------------------------------------------------
-    # 1. Security: Block direct HTTP access to internal/sensitive directories
-    # --------------------------------------------------------------------------
-    RewriteRule ^(application|data|custom|vendor|logs|engine|packages|extensions)/ - [F,L,NC]
-    RewriteRule ^(\.git|\.env|\.ui-level|composer\.(json|lock)|package(-lock)?\.json|engine\.version) - [F,L,NC]
+    # Deny access to private directories, dotfiles, sensitive data, and root tools.
+    RewriteRule ^(application|data|custom|vendor|logs|engine|packages|extensions|scripts|config|tests|docs|build|dist|docker|deploy|apps)/ - [F,L,NC]
+    RewriteRule (^|/)\.(?!well-known) - [F,L,NC]
+    RewriteRule (^|/)(composer|package(-lock)?|tsconfig)\.json$ - [F,L,NC]
+    RewriteRule (^|/)engine\.version$ - [F,L,NC]
+    RewriteRule \.(log|sql|bak|swp|env|ini|sh|md|yml|yaml|lock)$ - [F,L,NC]
+    RewriteRule ^(bootstrap|command|cron|daemon|websocket|rebuild|upgrade|clear_cache|extension|preload)\.php$ - [F,L,NC]
 
-    # --------------------------------------------------------------------------
-    # 2. Authentication Headers Preservation (FastCGI / CGI support)
-    # --------------------------------------------------------------------------
+    # Preserve authentication and integration headers for PHP entrypoints.
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
     RewriteRule .* - [E=HTTP_ESPO_CGI_AUTH:%{HTTP:Espo-Authorization}]
+    RewriteRule .* - [E=HTTP_X_API_KEY:%{HTTP:X-Api-Key}]
     RewriteRule .* - [E=HTTP_X_BIDAR_VOIP_SECRET:%{HTTP:X-Bidar-Voip-Secret}]
     RewriteRule .* - [E=HTTP_X_VOIP_TOKEN:%{HTTP:X-Voip-Token}]
 
-    # --------------------------------------------------------------------------
-    # 3. EspoCRM Native API v1 Routes
-    # Route /api/v1/* to public/api/v1/index.php
-    # --------------------------------------------------------------------------
-    RewriteCond %{REQUEST_URI} ^/api/v1/(.*)$ [NC]
+    # EspoCRM API, native entrypoints, and administrative routes.
     RewriteRule ^api/v1/(.*)$ public/api/v1/index.php [QSA,L]
-
-    # --------------------------------------------------------------------------
-    # 4. EspoCRM Native Assets & Entry Points
-    # Pass directly to client/, install/, oauth callback, or entryPoint requests
-    # --------------------------------------------------------------------------
     RewriteCond %{QUERY_STRING} (^|&)entryPoint= [NC]
     RewriteRule ^.*$ public/index.php [QSA,L]
-
-    RewriteRule ^client/ - [L]
     RewriteRule ^install$ install/ [R=301,L]
     RewriteRule ^install/?(.*)$ public/install/$1 [QSA,L]
     RewriteRule ^oauth-callback\.php$ public/oauth-callback.php [L]
+    RewriteRule ^admin(/.*)?$ public/index.php [QSA,L]
+    RewriteRule ^client/ - [L]
 
-    # --------------------------------------------------------------------------
-    # 5. EspoCRM Native Admin Panel (Backbone)
-    # Route /admin and /admin/* to EspoCRM native public/index.php
-    # --------------------------------------------------------------------------
-    RewriteRule ^admin/?(.*)$ public/index.php [QSA,L]
-
-    # --------------------------------------------------------------------------
-    # 6. BidarCRM Front-Office React SPA Static Assets
-    # Serve assets under /app/* directly if existing, else fallback to app/index.html
-    # --------------------------------------------------------------------------
-    RewriteCond %{DOCUMENT_ROOT}/public/app/$1 -f
-    RewriteRule ^app/(.*)$ public/app/$1 [L]
-
+    # Root and /app routes open the front-office React application.
+    RewriteRule ^$ public/app/index.html [L]
+    RewriteCond %{DOCUMENT_ROOT}/public/app$1 -f
+    RewriteRule ^app(/.*)$ public/app$1 [L]
     RewriteRule ^app(/.*)?$ public/app/index.html [L]
 
-    # --------------------------------------------------------------------------
-    # 7. Public static files (favicon, manifest, public assets)
-    # --------------------------------------------------------------------------
+    # Serve existing public assets. Unmatched front-office routes use the SPA.
     RewriteCond %{DOCUMENT_ROOT}/public/$1 -f
     RewriteRule ^(.*)$ public/$1 [L]
-
-    # --------------------------------------------------------------------------
-    # 8. Front-Office SPA Route Fallback
-    # All other routes (/, /login, /deals/*, /contacts/*, /accounts/*, /activities, /calendar)
-    # fallback to the Front-Office React SPA
-    # --------------------------------------------------------------------------
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^.*$ public/app/index.html [L]
 </IfModule>

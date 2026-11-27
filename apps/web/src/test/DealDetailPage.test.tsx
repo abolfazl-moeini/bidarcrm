@@ -201,4 +201,64 @@ describe('DealDetailPage - 360 Degree Deal Detail & Stream Timeline', () => {
       });
     });
   });
+
+  it('handleUpdateStage resolves Persian stage name to Espo enum and updates pipelineStageId', async () => {
+    vi.spyOn(apiClient, 'get').mockImplementation(async (url: string) => {
+      if (url.includes('/Note') || url.includes('/stream')) {
+        return { list: mockNotes, total: 2 };
+      }
+      if (url.includes('PipelineStage')) {
+        return {
+          list: [
+            { id: 'stage-1', name: 'سرنخ جدید', order: 1 },
+            { id: 'stage-2', name: 'مذاکره اولیه', order: 2 },
+            { id: 'stage-3', name: 'مذاکره نهایی', order: 3 },
+          ],
+        };
+      }
+      return { ...mockDeal, pipelineId: 'pipe-1' };
+    });
+
+    const patchSpy = vi.spyOn(apiClient, 'patch').mockResolvedValue({
+      ...mockDeal,
+      pipelineStageId: 'stage-2',
+      stage: 'Qualification',
+    });
+
+    renderWithClient(<DealDetailPage dealId="deal-101" />);
+
+    const stageBtn = await screen.findByTestId('stepper-stage-stage-2');
+    fireEvent.click(stageBtn);
+
+    await waitFor(() => {
+      expect(patchSpy).toHaveBeenCalledWith('/Opportunity/deal-101', {
+        pipelineStageId: 'stage-2',
+        stage: 'Qualification',
+      });
+    });
+  });
+
+  it('reverts optimistic isRotten and note state when handleAddNote fails', async () => {
+    vi.spyOn(apiClient, 'get').mockImplementation(async (url: string) => {
+      if (url.includes('/Note') || url.includes('/stream')) {
+        return { list: mockNotes, total: 2 };
+      }
+      return mockDeal;
+    });
+    vi.spyOn(apiClient, 'post').mockRejectedValue(new Error('خطا در ثبت یادداشت'));
+
+    renderWithClient(<DealDetailPage dealId="deal-101" />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/۸ روز بدون پیگیری/)).toBeInTheDocument();
+    });
+
+    const textarea = screen.getByPlaceholderText(/یادداشت جدید|متن فعالیت/i);
+    fireEvent.change(textarea, { target: { value: 'یادداشت ناموفق' } });
+    fireEvent.click(screen.getByRole('button', { name: /ثبت یادداشت|ثبت فعالیت/i }));
+
+    expect(await screen.findByText(/خطا در ثبت یادداشت/i)).toBeInTheDocument();
+    expect(screen.getByText(/۸ روز بدون پیگیری/)).toBeInTheDocument();
+    expect(screen.queryByText('یادداشت ناموفق')).not.toBeInTheDocument();
+  });
 });

@@ -6,6 +6,7 @@ import { ActivitiesPage } from '../pages/ActivitiesPage';
 import { ActivityItemRow } from '../features/activities/components/ActivityItemRow';
 import { JalaliCalendarView } from '../features/activities/components/JalaliCalendarView';
 import { ActivityCreateModal } from '../features/activities/components/ActivityCreateModal';
+import { TaskKanbanBoard } from '../features/activities/components/TaskKanbanBoard';
 import { apiClient } from '../lib/api-client';
 import { Task } from '../types/espocrm';
 
@@ -207,6 +208,65 @@ describe('Activities & Jalali Calendar Management', () => {
       const reopenedInput = screen.getByPlaceholderText(/عنوان کار یا فعالیت/i) as HTMLInputElement;
       expect(reopenedInput.value).toBe('');
       expect(screen.queryByText(/عنوان فعالیت الزامی است/i)).not.toBeInTheDocument();
+    });
+  });
+
+  describe('TaskKanbanBoard Component & Drag-and-Drop', () => {
+    it('renders 3 columns with draggable cards and handles drop status transition', () => {
+      const onUpdateStatus = vi.fn();
+      render(
+        <TaskKanbanBoard
+          tasks={mockTasks as Task[]}
+          onUpdateStatus={onUpdateStatus}
+        />
+      );
+
+      // Verify columns
+      expect(screen.getByText('انجام‌نشده')).toBeInTheDocument();
+      expect(screen.getByText('در حال انجام')).toBeInTheDocument();
+      expect(screen.getByText('تکمیل‌شده')).toBeInTheDocument();
+
+      // Find draggable card
+      const card = screen.getByText('تماس با مدیر خرید پتروشیمی').closest('[draggable="true"]');
+      expect(card).toBeInTheDocument();
+      expect(card).toHaveAttribute('draggable', 'true');
+
+      // Simulate dragStart
+      const dataTransfer = {
+        setData: vi.fn(),
+        getData: vi.fn().mockReturnValue('task-1'),
+        dropEffect: 'move',
+        effectAllowed: 'move',
+      };
+
+      fireEvent.dragStart(card!, { dataTransfer });
+      expect(dataTransfer.setData).toHaveBeenCalledWith('text/plain', 'task-1');
+
+      // Find 'در حال انجام' column container
+      const targetColumn = screen.getByText('در حال انجام').closest('.rounded-2xl');
+      expect(targetColumn).toBeInTheDocument();
+
+      // Simulate dragOver and drop
+      fireEvent.dragOver(targetColumn!, { dataTransfer });
+      fireEvent.drop(targetColumn!, { dataTransfer });
+
+      expect(onUpdateStatus).toHaveBeenCalledWith('task-1', 'Started');
+    });
+
+    it('supports arrow button progression between stages', () => {
+      const onUpdateStatus = vi.fn();
+      render(
+        <TaskKanbanBoard
+          tasks={mockTasks as Task[]}
+          onUpdateStatus={onUpdateStatus}
+        />
+      );
+
+      const nextButtons = screen.getAllByTitle('انتقال به مرحله بعد');
+      expect(nextButtons.length).toBeGreaterThan(0);
+
+      fireEvent.click(nextButtons[0]!);
+      expect(onUpdateStatus).toHaveBeenCalledWith('task-1', 'Started');
     });
   });
 

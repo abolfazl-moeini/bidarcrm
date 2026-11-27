@@ -6,6 +6,7 @@
  * - CRM core workflow prompt ("تعریف کار بعدی") upon completion
  * - Activity type badge (Call, Meeting, Task)
  * - Due date (Jalali) and priority indicator
+ * - Light and dark mode adaptive styling
  */
 
 import React from 'react';
@@ -42,19 +43,19 @@ export const ActivityItemRow: React.FC<ActivityItemRowProps> = ({
         return {
           icon: PhoneCall,
           label: 'تماس',
-          color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+          color: 'text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-500/10 border-sky-200 dark:border-sky-500/20',
         };
       case 'Meeting':
         return {
           icon: Users,
           label: 'جلسه',
-          color: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
+          color: 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20',
         };
       default:
         return {
           icon: CheckSquare,
           label: 'وظیفه',
-          color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
+          color: 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/20',
         };
     }
   };
@@ -63,20 +64,20 @@ export const ActivityItemRow: React.FC<ActivityItemRowProps> = ({
     switch (priority) {
       case 'Urgent':
         return (
-          <span className="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px] font-medium inline-flex items-center gap-1">
+          <span className="px-2 py-0.5 rounded-md bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20 text-[10px] font-medium whitespace-nowrap inline-flex items-center shrink-0 gap-1">
             <AlertCircle className="w-3 h-3" />
             <span>فوری</span>
           </span>
         );
       case 'High':
         return (
-          <span className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-medium">
+          <span className="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20 text-[10px] font-medium whitespace-nowrap inline-flex items-center shrink-0">
             بالا
           </span>
         );
       default:
         return (
-          <span className="px-2 py-0.5 rounded-md bg-slate-800 text-slate-400 text-[10px]">
+          <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] whitespace-nowrap inline-flex items-center shrink-0">
             عادی
           </span>
         );
@@ -93,8 +94,8 @@ export const ActivityItemRow: React.FC<ActivityItemRowProps> = ({
   return (
     <div
       data-testid={`activity-row-${activity.id}`}
-      className={`bidar-activity-row flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-slate-900/80 hover:bg-slate-800/80 border border-slate-800 hover:border-slate-700/80 rounded-2xl transition duration-150 shadow-sm ${
-        isCompleted ? 'opacity-70 bg-slate-950/40' : ''
+      className={`bidar-activity-row flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 bg-slate-50/80 dark:bg-slate-800/80 hover:bg-slate-100/90 dark:hover:bg-slate-700 border border-slate-200/90 dark:border-slate-700/80 rounded-xl transition duration-150 shadow-sm ${
+        isCompleted ? 'opacity-65 bg-slate-100/40 dark:bg-slate-950/40' : ''
       } ${className}`}
       dir="rtl"
     >
@@ -106,13 +107,13 @@ export const ActivityItemRow: React.FC<ActivityItemRowProps> = ({
             type="checkbox"
             checked={isCompleted}
             onChange={(e) => onToggleComplete?.(activity.id, e.target.checked)}
-            className="w-4 h-4 rounded-md border-slate-700 bg-slate-950 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-0 transition cursor-pointer"
+            className="w-4 h-4 rounded-md border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-emerald-600 focus:ring-emerald-500 focus:ring-offset-0 transition cursor-pointer"
           />
         </label>
 
         {/* Activity Type Badge */}
         <span
-          className={`flex-shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border text-[11px] font-medium ${typeColor}`}
+          className={`flex-shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border text-[11px] font-medium whitespace-nowrap shrink-0 ${typeColor}`}
         >
           <TypeIcon className="w-3.5 h-3.5" />
           <span>{typeLabel}</span>
@@ -121,16 +122,16 @@ export const ActivityItemRow: React.FC<ActivityItemRowProps> = ({
         {/* Details: Title & Associated Entity */}
         <div className="flex-1 min-w-0">
           <h4
-            className={`text-xs font-semibold text-slate-100 truncate ${
-              isCompleted ? 'line-through text-slate-400' : ''
+            className={`text-xs font-semibold text-slate-900 dark:text-slate-100 truncate ${
+              isCompleted ? 'line-through text-slate-400 dark:text-slate-500' : ''
             }`}
           >
             {activity.name}
           </h4>
 
           {customerLabel && (
-            <div className="flex items-center gap-1 text-[11px] text-slate-400 mt-0.5 truncate">
-              <Building2 className="w-3 h-3 text-slate-500 flex-shrink-0" />
+            <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+              <Building2 className="w-3 h-3 text-slate-400 dark:text-slate-500 flex-shrink-0" />
               <span className="truncate">{customerLabel}</span>
             </div>
           )}
@@ -138,10 +139,10 @@ export const ActivityItemRow: React.FC<ActivityItemRowProps> = ({
       </div>
 
       {/* Left (RTL): Due Date, Priority & Next Action */}
-      <div className="flex items-center justify-between sm:justify-end gap-3 flex-shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800/60">
+      <div className="flex items-center justify-between sm:justify-end gap-3 flex-shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/60 dark:border-slate-700/60">
         {jalaliDate && (
-          <div className="flex items-center gap-1 text-slate-400 text-xs font-mono" dir="ltr">
-            <Calendar className="w-3.5 h-3.5 text-slate-500" />
+          <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-xs font-sans tabular-nums font-mono" dir="ltr">
+            <Calendar className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
             <span>{jalaliDate}</span>
           </div>
         )}
@@ -153,7 +154,7 @@ export const ActivityItemRow: React.FC<ActivityItemRowProps> = ({
           <button
             type="button"
             onClick={() => onScheduleNext?.(activity)}
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 text-xs font-medium transition cursor-pointer"
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-medium transition cursor-pointer"
             title="ثبت پیگیری و کار بعدی برای این مشتری"
           >
             <PlusCircle className="w-3.5 h-3.5" />

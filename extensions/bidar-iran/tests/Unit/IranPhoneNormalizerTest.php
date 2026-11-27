@@ -48,4 +48,34 @@ class IranPhoneNormalizerTest extends TestCase
         $this->assertNull($this->normalizer->toE164('09123456789012')); // too long
         $this->assertNull($this->normalizer->toE164('invalid'));
     }
+
+    public function testNormalizesIranianLandlines(): void
+    {
+        $this->assertSame('02188776655', $this->normalizer->toLocal('02188776655'));
+        $this->assertSame('+982188776655', $this->normalizer->toE164('02188776655'));
+        $this->assertSame('02188776655', $this->normalizer->toLocal('+98 (0) 21-8877-6655'));
+        $this->assertSame('+982188776655', $this->normalizer->toE164('+98 (0) 21-8877-6655'));
+        $this->assertSame('+983133334444', $this->normalizer->toE164('03133334444'));
+    }
+
+    public function testNormalizesDoublePrefixTrunkZeroOnMobiles(): void
+    {
+        foreach (['+9809123456789', '009809123456789', '+98 (0) 912-345-6789'] as $phone) {
+            $this->assertSame('09123456789', $this->normalizer->toLocal($phone));
+            $this->assertSame('+989123456789', $this->normalizer->toE164($phone));
+        }
+    }
+
+    public function testRejectsShortCodesBareLandlineAndEmbeddedGarbage(): void
+    {
+        foreach (['2188776655', '110', '1500', "user:alice@09123456789\u{202E}", 'abc09123456789'] as $phone) {
+            $this->assertNull($this->normalizer->toE164($phone), 'Unexpectedly accepted: ' . $phone);
+        }
+    }
+
+    public function testToLocalMobileAcceptsOnlyMobileNumbers(): void
+    {
+        $this->assertSame('09123456789', $this->normalizer->toLocalMobile('+989123456789'));
+        $this->assertNull($this->normalizer->toLocalMobile('02188776655'));
+    }
 }

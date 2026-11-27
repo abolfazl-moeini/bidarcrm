@@ -9,12 +9,14 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Load .env if present using native Node.js support
+// Load .env using native Node.js support. A missing file is optional;
+// unsupported runtimes and malformed files must fail loudly.
 const envPath = resolve(__dirname, '.env');
-if (existsSync(envPath) && typeof process.loadEnvFile === 'function') {
-  try {
-    process.loadEnvFile(envPath);
-  } catch (_) {}
+if (existsSync(envPath)) {
+  if (typeof process.loadEnvFile !== 'function') {
+    throw new Error('Loading .env requires Node.js 20.12 or newer.');
+  }
+  process.loadEnvFile(envPath);
 }
 
 const env = process.env.MONITOR_ENV || 'local';
@@ -24,7 +26,7 @@ export default {
   environment: env,
   environments: {
     local: {
-      baseUrl: process.env.LOCAL_BASE_URL || 'http://localhost:8080',
+      baseUrl: process.env.LOCAL_BASE_URL || 'http://localhost:8089',
       credentials: {
         username: process.env.LOCAL_USER || 'admin',
         password: process.env.LOCAL_PASSWORD || 'admin',

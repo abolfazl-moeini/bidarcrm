@@ -9,15 +9,19 @@ use DateTimeImmutable;
 class RottenDealCalculator
 {
     public function calculate(
-        ?string $stageProbability,
+        ?string $stage,
         ?int $stageRottenDays,
         DateTimeImmutable $lastActivityAt,
         DateTimeImmutable $now
     ): RottenResult {
+        if ($lastActivityAt >= $now) {
+            return new RottenResult(false, 0);
+        }
+
         $diff = $now->diff($lastActivityAt);
         $days = (int) $diff->days;
 
-        if ($stageProbability === 'Closed Won' || $stageProbability === 'Closed Lost') {
+        if ($stage === 'Closed Won' || $stage === 'Closed Lost') {
             return new RottenResult(false, $days);
         }
 

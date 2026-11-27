@@ -33,21 +33,53 @@ class RottenLoader implements Loader
             return;
         }
 
-        $lastActivityAt = new DateTimeImmutable((string) $lastActivityStr);
-        $stageProbability = $entity->has('stageProbability') ? (string) $entity->get('stageProbability') : null;
+        try {
+            $lastActivityAt = new DateTimeImmutable((string) $lastActivityStr);
+        } catch (\Throwable) {
+            $entity->set('isRotten', false);
+            $entity->set('daysSinceLastActivity', null);
+            return;
+        }
+
+        $stage = null;
+        if ($entity->has('stage') && $entity->get('stage') !== null) {
+            $stage = (string) $entity->get('stage');
+        } elseif ($entity->has('stageProbability') && $entity->get('stageProbability') !== null) {
+            $stage = (string) $entity->get('stageProbability');
+        }
 
         $stageRottenDays = null;
+        $stageMappedStatus = $entity->has('stageMappedStatus') && $entity->get('stageMappedStatus') !== null
+            ? (string) $entity->get('stageMappedStatus')
+            : null;
         if ($entity->has('stageRottenDays') && $entity->get('stageRottenDays') !== null) {
             $stageRottenDays = (int) $entity->get('stageRottenDays');
         } elseif ($this->entityManager !== null && $entity->has('pipelineStageId') && !empty($entity->get('pipelineStageId'))) {
-            $stage = $this->entityManager->getEntityById('PipelineStage', (string) $entity->get('pipelineStageId'));
-            if ($stage !== null && $stage->has('rottenDays')) {
-                $stageRottenDays = (int) $stage->get('rottenDays');
+            $pipelineStage = $this->entityManager->getEntityById('PipelineStage', (string) $entity->get('pipelineStageId'));
+            if ($pipelineStage !== null) {
+                if ($pipelineStage->has('rottenDays')) {
+                    $stageRottenDays = (int) $pipelineStage->get('rottenDays');
+                }
+                if ($stageMappedStatus === null && $pipelineStage->has('mappedStatus') && $pipelineStage->get('mappedStatus') !== null) {
+                    $stageMappedStatus = (string) $pipelineStage->get('mappedStatus');
+                }
             }
         }
 
         $now = new DateTimeImmutable('now');
-        $result = $this->calculator->calculate($stageProbability, $stageRottenDays, $lastActivityAt, $now);
+
+        // If stage or mappedStatus is 'Closed Won' or 'Closed Lost', isRotten must always be false
+        $effectiveStage = ($stageMappedStatus === 'Closed Won' || $stageMappedStatus === 'Closed Lost')
+            ? $stageMappedStatus
+            : $stage;
+        if ($effectiveStage === 'Closed Won' || $effectiveStage === 'Closed Lost') {
+            $days = $lastActivityAt >= $now ? 0 : (int) $now->diff($lastActivityAt)->days;
+            $entity->set('isRotten', false);
+            $entity->set('daysSinceLastActivity', $days);
+            return;
+        }
+
+        $result = $this->calculator->calculate($effectiveStage, $stageRottenDays, $lastActivityAt, $now);
 
         $entity->set('isRotten', $result->isRotten());
         $entity->set('daysSinceLastActivity', $result->daysSinceLastActivity());
@@ -64,17 +96,39 @@ class RottenLoader implements Loader
         $now = $now ?? new DateTimeImmutable('now');
 
         $lastActivityStr = $opportunity['lastActivityAt'] ?? null;
-        if ($lastActivityStr === null) {
+        if ($lastActivityStr === null || $lastActivityStr === '') {
             $opportunity['isRotten'] = false;
             $opportunity['daysSinceLastActivity'] = 0;
             return $opportunity;
         }
 
-        $lastActivityAt = new DateTimeImmutable($lastActivityStr);
-        $stageProbability = $opportunity['stageProbability'] ?? null;
+        try {
+            $lastActivityAt = new DateTimeImmutable((string) $lastActivityStr);
+        } catch (\Throwable) {
+            $opportunity['isRotten'] = false;
+            $opportunity['daysSinceLastActivity'] = null;
+            return $opportunity;
+        }
+
+        $stage = $opportunity['stage'] ?? $opportunity['stageProbability'] ?? null;
+        if ($stage !== null) {
+            $stage = (string) $stage;
+        }
+        $stageMappedStatus = isset($opportunity['stageMappedStatus']) ? (string) $opportunity['stageMappedStatus'] : null;
+        $effectiveStage = ($stageMappedStatus === 'Closed Won' || $stageMappedStatus === 'Closed Lost')
+            ? $stageMappedStatus
+            : $stage;
+
+        if ($effectiveStage === 'Closed Won' || $effectiveStage === 'Closed Lost') {
+            $days = $lastActivityAt >= $now ? 0 : (int) $now->diff($lastActivityAt)->days;
+            $opportunity['isRotten'] = false;
+            $opportunity['daysSinceLastActivity'] = $days;
+            return $opportunity;
+        }
+
         $stageRottenDays = isset($opportunity['stageRottenDays']) ? (int) $opportunity['stageRottenDays'] : null;
 
-        $result = $this->calculator->calculate($stageProbability, $stageRottenDays, $lastActivityAt, $now);
+        $result = $this->calculator->calculate($effectiveStage, $stageRottenDays, $lastActivityAt, $now);
 
         $opportunity['isRotten'] = $result->isRotten();
         $opportunity['daysSinceLastActivity'] = $result->daysSinceLastActivity();

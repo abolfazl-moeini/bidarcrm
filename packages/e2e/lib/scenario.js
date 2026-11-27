@@ -41,3 +41,19 @@ export function fail(name, durationMs, error, extra = {}) {
     ...extra,
   };
 }
+
+/** Build EspoCRM token headers and fail closed when authentication is missing. */
+export function createEspoAuthHeaders(state = {}) {
+  const token = typeof state.token === 'string' ? state.token.trim() : '';
+  if (!token) {
+    throw new Error('Authenticated scenario requires state.token from scenario 01');
+  }
+
+  const username = state.username || 'admin';
+  return {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+    'Espo-Authorization': Buffer.from(`${username}:${token}`).toString('base64'),
+    'Espo-Authorization-By-Token': 'true',
+  };
+}

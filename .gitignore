@@ -28,3 +28,6 @@ logs/
 .vscode/
 *.swp
 *.swo
+
+# AI Driver logs
+.ai-driver/

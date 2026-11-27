@@ -1,0 +1,3356 @@
+=== FILE: apps/web/src/features/kanban/components/KanbanBoard.tsx (48 lines) ===
+/**
+ * BidarCRM - KanbanBoard Component
+ *
+ * Horizontal responsive scrollable board container housing stage columns and
+ * orchestrating deal drag-and-drop operations across the pipeline.
+ */
+
+import React from 'react';
+import { PipelineStage, Opportunity } from '../../../types/espocrm';
+import { KanbanColumn } from './KanbanColumn';
+
+export interface KanbanBoardProps {
+  stages: PipelineStage[];
+  deals: Opportunity[];
+  onMoveDeal: (dealId: string, targetStageId: string, targetStageName: string) => void;
+  onSelectDeal?: (dealId: string) => void;
+  onQuickAddDeal?: (stageId: string, stageName: string) => void;
+  className?: string;
+}
+
+export const KanbanBoard: React.FC<KanbanBoardProps> = ({
+  stages,
+  deals,
+  onMoveDeal,
+  onSelectDeal,
+  onQuickAddDeal,
+  className = '',
+}) => {
+  return (
+    <div
+      className={`bidar-kanban-board flex gap-4 sm:gap-5 overflow-x-auto pb-6 items-start select-none ${className}`}
+      dir="rtl"
+    >
+      {stages.map((stage) => (
+        <KanbanColumn
+          key={stage.id}
+          stage={stage}
+          deals={deals}
+          onDropDeal={onMoveDeal}
+          onSelectDeal={onSelectDeal}
+          onQuickAddDeal={onQuickAddDeal}
+        />
+      ))}
+    </div>
+  );
+};
+
+export default KanbanBoard;
+
+
+=== FILE: apps/web/src/features/kanban/components/KanbanColumn.tsx (139 lines) ===
+/**
+ * BidarCRM - KanbanColumn Component
+ *
+ * Renders an individual pipeline stage column with Didar-inspired chevron header,
+ * aggregated financial metrics, quick-create trigger, and responsive drag-drop zone.
+ */
+
+import React, { useState } from 'react';
+import { Plus } from 'lucide-react';
+import { PipelineStage, Opportunity } from '../../../types/espocrm';
+import { DealCard } from './DealCard';
+import { formatToman, toPersianDigits } from '../../../lib/currency';
+
+export interface KanbanColumnProps {
+  stage: PipelineStage;
+  deals: Opportunity[];
+  onDropDeal: (dealId: string, stageId: string, stageName: string) => void;
+  onSelectDeal?: (dealId: string) => void;
+  onQuickAddDeal?: (stageId: string, stageName: string) => void;
+  className?: string;
+}
+
+export const KanbanColumn: React.FC<KanbanColumnProps> = ({
+  stage,
+  deals,
+  onDropDeal,
+  onSelectDeal,
+  onQuickAddDeal,
+  className = '',
+}) => {
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  // Filter deals matching this stage by ID, Name, or mapped status (e.g., Prospecting, Qualification)
+  const stageDeals = deals.filter(
+    (d) =>
+      d.pipelineStageId === stage.id ||
+      d.stage === stage.name ||
+      Boolean(stage.mappedStatus && d.stage === stage.mappedStatus)
+  );
+
+  const totalAmount = stageDeals.reduce((sum, d) => sum + (d.amount || 0), 0);
+  const color = stage.color || '#10B981';
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (!isDragOver) setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsDragOver(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const dealId = e.dataTransfer.getData('text/plain');
+    if (dealId) {
+      onDropDeal(dealId, stage.id, stage.name);
+    }
+  };
+
+  return (
+    <div
+      data-testid={`kanban-column-${stage.id}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className={`w-72 sm:w-80 flex-shrink-0 flex flex-col bg-slate-200/50 dark:bg-slate-900/60 border rounded-2xl transition-colors duration-150 overflow-hidden ${
+        isDragOver
+          ? 'border-emerald-500 bg-emerald-500/10 shadow-lg shadow-emerald-500/10'
+          : 'border-slate-200/90 dark:border-slate-800/90'
+      } ${className}`}
+      dir="rtl"
+    >
+      {/* Column Stage Header - Didar Stepper Style */}
+      <div className="p-3.5 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 shadow-2xs">
+        <div className="flex items-center justify-between gap-2 mb-1.5">
+          <div className="flex items-center gap-2">
+            <span
+              className="w-2.5 h-2.5 rounded-full flex-shrink-0 shadow-xs"
+              style={{ backgroundColor: color }}
+            />
+            <h3 className="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-100 tracking-tight">
+              {stage.name}
+            </h3>
+          </div>
+          <span className="text-[11px] font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
+            {toPersianDigits(stageDeals.length)} معامله
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+          <span>مجموع ارزش:</span>
+          <span className="font-semibold text-slate-700 dark:text-slate-200 font-mono" dir="ltr">
+            {formatToman(totalAmount)}
+          </span>
+        </div>
+      </div>
+
+      {/* Quick Add Deal in Stage Box */}
+      {onQuickAddDeal && (
+        <div className="px-3 pt-3">
+          <button
+            type="button"
+            onClick={() => onQuickAddDeal(stage.id, stage.name)}
+            className="w-full flex items-center justify-center gap-1.5 py-2 px-3 border border-dashed border-emerald-500/50 dark:border-emerald-500/40 hover:border-emerald-600 dark:hover:border-emerald-400 bg-white/70 dark:bg-slate-800/50 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 text-xs font-medium rounded-xl transition cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>افزودن سریع معامله</span>
+          </button>
+        </div>
+      )}
+
+      {/* Scrollable Deal Cards Area */}
+      <div className="flex-1 overflow-y-auto p-3 space-y-2.5 min-h-[140px]">
+        {stageDeals.length === 0 ? (
+          <div className="h-28 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-800/80 rounded-xl p-4 text-center">
+            <span className="text-xs text-slate-400 dark:text-slate-500 font-normal">
+              معامله‌ای در این مرحله نیست
+            </span>
+          </div>
+        ) : (
+          stageDeals.map((deal) => (
+            <DealCard
+              key={deal.id}
+              deal={deal}
+              onClick={() => onSelectDeal?.(deal.id)}
+            />
+          ))
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default KanbanColumn;
+
+
+=== FILE: apps/web/src/features/kanban/components/DealCard.tsx (79 lines) ===
+/**
+ * BidarCRM - DealCard Component
+ *
+ * Renders an individual deal card with Didar-inspired sales ergonomics,
+ * dark/light adaptive styling, HTML5 draggable support, and formatted currency.
+ */
+
+import React from 'react';
+import { Building2, User, Clock } from 'lucide-react';
+import { Opportunity } from '../../../types/espocrm';
+import { formatToman } from '../../../lib/currency';
+import { RottenBadge } from './RottenBadge';
+
+export interface DealCardProps {
+  deal: Opportunity;
+  className?: string;
+  onClick?: () => void;
+}
+
+export const DealCard: React.FC<DealCardProps> = ({ deal, className = '', onClick }) => {
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+    e.dataTransfer.setData('text/plain', deal.id);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const hasCustomer = Boolean(deal.accountName || deal.contactName);
+
+  return (
+    <div
+      data-testid={`deal-card-${deal.id}`}
+      draggable
+      onDragStart={handleDragStart}
+      onClick={onClick}
+      className={`bidar-deal-card group relative bg-white dark:bg-slate-800/95 hover:bg-slate-50/90 dark:hover:bg-slate-750 border border-slate-200 dark:border-slate-700/80 hover:border-emerald-500/40 dark:hover:border-emerald-500/40 rounded-xl p-3.5 shadow-2xs hover:shadow-md transition-all duration-150 cursor-grab active:cursor-grabbing select-none ${className}`}
+      dir="rtl"
+    >
+      {/* Top Row: Deal Name & Rotten Flag */}
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors line-clamp-2 leading-relaxed">
+          {deal.name}
+        </h4>
+        <RottenBadge deal={deal} />
+      </div>
+
+      {/* Customer / Account Link */}
+      {hasCustomer && (
+        <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 mb-2.5 truncate">
+          {deal.accountName ? (
+            <>
+              <Building2 className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 flex-shrink-0" />
+              <span className="truncate font-medium">{deal.accountName}</span>
+            </>
+          ) : (
+            <>
+              <User className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 flex-shrink-0" />
+              <span className="truncate font-medium">{deal.contactName}</span>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Footer: Amount & Last Activity */}
+      <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-700/70 text-xs">
+        <span className="font-semibold text-emerald-700 dark:text-emerald-400 font-mono text-left" dir="ltr">
+          {formatToman(deal.amount || 0)}
+        </span>
+
+        {deal.daysSinceLastActivity !== undefined && deal.daysSinceLastActivity > 0 && (
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            <span>{deal.daysSinceLastActivity} روز پیش</span>
+          </span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default DealCard;
+
+
+=== FILE: apps/web/src/features/kanban/hooks/useKanbanDeals.ts (184 lines) ===
+/**
+ * BidarCRM - useKanbanDeals Hook
+ *
+ * Coordinates multi-pipeline deal queries, stage aggregations, and optimistic
+ * drag-and-drop state transitions with automatic rollback on server errors.
+ */
+
+import { useState, useEffect, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiClient } from '../../../lib/api-client';
+import { queryKeys } from '../../../lib/query-keys';
+import { Opportunity, Pipeline, PipelineStage, EspoListResponse } from '../../../types/espocrm';
+
+export const DEFAULT_PIPELINE_STAGES: PipelineStage[] = [
+  { id: 'stage-1', name: 'سرنخ جدید', order: 1, color: '#6366f1', mappedStatus: 'Prospecting' },
+  { id: 'stage-2', name: 'مذاکره اولیه', order: 2, color: '#3b82f6', mappedStatus: 'Qualification' },
+  { id: 'stage-3', name: 'پیش‌نویس قرارداد', order: 3, color: '#10b981', mappedStatus: 'Proposal' },
+];
+
+export interface UseKanbanDealsReturn {
+  deals: Opportunity[];
+  stages: PipelineStage[];
+  pipelines: Pipeline[];
+  selectedPipelineId: string;
+  setSelectedPipelineId: (id: string) => void;
+  isLoading: boolean;
+  isError: boolean;
+  error: string | null;
+  moveDeal: (
+    dealId: string,
+    targetStageId: string,
+    targetStageName: string,
+    lossReason?: string,
+    lossReasonNote?: string
+  ) => Promise<void>;
+  refetch: () => Promise<void>;
+  clearError: () => void;
+}
+
+export function useKanbanDeals(initialPipelineId = ''): UseKanbanDealsReturn {
+  const queryClient = useQueryClient();
+  const [selectedPipelineId, setSelectedPipelineId] = useState<string>(initialPipelineId);
+  const [localDeals, setLocalDeals] = useState<Opportunity[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // 1. Fetch Pipelines
+  const pipelineQuery = useQuery<EspoListResponse<Pipeline>>({
+    queryKey: queryKeys.pipelines.all,
+    queryFn: () => apiClient.get<EspoListResponse<Pipeline>>('/Pipeline'),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const pipelines = pipelineQuery.data?.list || [];
+  const activePipelineId = selectedPipelineId || pipelines[0]?.id || 'default';
+  const activePipeline = pipelines.find((p) => p.id === activePipelineId) || pipelines[0];
+
+  // Fallback query for stages if pipeline response does not contain inline stages
+  const stagesQuery = useQuery<EspoListResponse<PipelineStage>>({
+    queryKey: ['pipelineStages', activePipelineId],
+    queryFn: async () => {
+      try {
+        const endpoint = activePipelineId && activePipelineId !== 'default'
+          ? `/PipelineStage?maxSize=100&orderBy=order&where[0][type]=equals&where[0][attribute]=pipelineId&where[0][value]=${encodeURIComponent(activePipelineId)}`
+          : '/PipelineStage?maxSize=100&orderBy=order';
+        return await apiClient.get<EspoListResponse<PipelineStage>>(endpoint);
+      } catch {
+        return { list: [], total: 0 };
+      }
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const stages = useMemo<PipelineStage[]>(() => {
+    if (activePipeline?.stages && activePipeline.stages.length > 0) {
+      return activePipeline.stages;
+    }
+    if (stagesQuery.data?.list && stagesQuery.data.list.length > 0) {
+      return stagesQuery.data.list;
+    }
+    return DEFAULT_PIPELINE_STAGES;
+  }, [activePipeline, stagesQuery.data]);
+
+  // 2. Fetch Opportunities (EspoCRM Opportunity does not store pipelineId in DB, so query cleanly)
+  const dealsQuery = useQuery<EspoListResponse<Opportunity>>({
+    queryKey: queryKeys.deals.kanban(activePipelineId),
+    queryFn: () => apiClient.get<EspoListResponse<Opportunity>>('/Opportunity?maxSize=200'),
+    staleTime: 1000 * 60 * 2,
+  });
+
+  // Sync server deals to local state, filtering by pipelineId if set
+  useEffect(() => {
+    if (dealsQuery.data?.list) {
+      const list = activePipelineId && activePipelineId !== 'default'
+        ? dealsQuery.data.list.filter((d) => !d.pipelineId || d.pipelineId === activePipelineId)
+        : dealsQuery.data.list;
+      setLocalDeals(list);
+    }
+  }, [dealsQuery.data, activePipelineId]);
+
+  // 3. Optimistic Move Action with Rollback & Invalidation
+  const moveDeal = async (
+    dealId: string,
+    targetStageId: string,
+    targetStageName: string,
+    lossReason?: string,
+    lossReasonNote?: string
+  ): Promise<void> => {
+    setErrorMessage(null);
+    const previousSnapshot = [...localDeals];
+
+    const targetStage = stages.find((s) => s.id === targetStageId || s.name === targetStageName);
+    const stageValue = targetStage?.mappedStatus || targetStageName;
+
+    // Optimistically update local board state
+    setLocalDeals((prev) =>
+      prev.map((d) =>
+        d.id === dealId
+          ? {
+              ...d,
+              pipelineStageId: targetStageId,
+              stage: stageValue,
+              ...(lossReason ? { lossReason, lossReasonNote } : {}),
+            }
+          : d
+      )
+    );
+
+    try {
+      const payload: Record<string, unknown> = {};
+      if (targetStageId) {
+        payload.pipelineStageId = targetStageId;
+      }
+      if (stageValue) {
+        payload.stage = stageValue;
+      }
+      if (lossReason) {
+        payload.lossReason = lossReason;
+      }
+      if (lossReasonNote) {
+        payload.lossReasonNote = lossReasonNote;
+      }
+
+      await apiClient.patch(`/Opportunity/${dealId}`, payload);
+      queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
+    } catch (err: unknown) {
+      // Rollback on failure
+      setLocalDeals(previousSnapshot);
+      setErrorMessage('خطا در انتقال معامله. تغییرات بازگردانده شد.');
+      throw err;
+    }
+  };
+
+  const refetch = async () => {
+    const [, dRes] = await Promise.all([pipelineQuery.refetch(), dealsQuery.refetch()]);
+    if (dRes.data?.list) {
+      const list =
+        activePipelineId && activePipelineId !== 'default'
+          ? dRes.data.list.filter((d) => !d.pipelineId || d.pipelineId === activePipelineId)
+          : dRes.data.list;
+      setLocalDeals(list);
+    }
+  };
+
+  const clearError = () => {
+    setErrorMessage(null);
+  };
+
+  return {
+    deals: localDeals,
+    stages,
+    pipelines,
+    selectedPipelineId: activePipelineId,
+    setSelectedPipelineId,
+    isLoading: (dealsQuery.isLoading && localDeals.length === 0) || (pipelineQuery.isLoading && pipelines.length === 0),
+    isError: dealsQuery.isError || pipelineQuery.isError,
+    error: errorMessage || (dealsQuery.error instanceof Error ? dealsQuery.error.message : null),
+    moveDeal,
+    refetch,
+    clearError,
+  };
+}
+
+export default useKanbanDeals;
+
+
+=== FILE: apps/web/src/features/deals/components/DealSidebar.tsx (213 lines) ===
+/**
+ * BidarCRM - DealSidebar Component
+ *
+ * Renders the deal details sidebar:
+ * - Deal financial overview (formatted in Toman)
+ * - Current stage and expected close date
+ * - Contact and account direct communication links (tel:, mailto:)
+ * - Rotten alert badge
+ * - Stage actions (Mark Won, Mark Lost)
+ * - Light and dark mode adaptive surfaces
+ */
+
+import React from 'react';
+import {
+  Building2,
+  User,
+  Phone,
+  Mail,
+  Calendar,
+  CheckCircle2,
+  XCircle,
+  Tag,
+  Clock,
+} from 'lucide-react';
+import { Opportunity, PipelineStage } from '../../../types/espocrm';
+import { formatToman } from '../../../lib/currency';
+import { formatJalaliDate } from '../../../lib/jalali';
+import { RottenBadge } from '../../kanban/components/RottenBadge';
+
+export interface DealSidebarProps {
+  deal: Opportunity & { contactPhone?: string; contactEmail?: string };
+  stages?: PipelineStage[];
+  onUpdateStage?: (stageId: string, stageName?: string) => void;
+  onMarkWon?: () => void;
+  onMarkLost?: () => void;
+  className?: string;
+}
+
+export const DealSidebar: React.FC<DealSidebarProps> = ({
+  deal,
+  stages,
+  onUpdateStage,
+  onMarkWon,
+  onMarkLost,
+  className = '',
+}) => {
+  const isWon = deal.stage === 'Closed Won' || deal.stage === 'برنده';
+  const isLost = deal.stage === 'Closed Lost' || deal.stage === 'باخته';
+
+  return (
+    <div
+      className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-5 shadow-2xs ${className}`}
+      dir="rtl"
+    >
+      {/* 1. Header & Stage Status */}
+      <div>
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 px-2.5 py-1 rounded-lg inline-flex items-center gap-1.5">
+            <Tag className="w-3 h-3" />
+            <span>{deal.pipelineName || 'کاریز اصلی'}</span>
+          </span>
+          <RottenBadge deal={deal} />
+        </div>
+        <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 leading-snug">{deal.name}</h2>
+      </div>
+
+      {/* 2. Amount & Stage Highlights */}
+      <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80 space-y-3">
+        <div>
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 block mb-0.5">مبلغ معامله</span>
+          <span className="text-lg font-bold text-emerald-700 dark:text-emerald-400 font-mono tracking-tight text-left block" dir="ltr">
+            {formatToman(deal.amount || 0)}
+          </span>
+        </div>
+
+        <div className="pt-2.5 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between text-xs">
+          <span className="text-slate-500 dark:text-slate-400">مرحله فعلی:</span>
+          <span className="font-semibold text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-900 px-2.5 py-0.5 rounded-md border border-slate-200 dark:border-slate-800">
+            {deal.stage}
+          </span>
+        </div>
+
+        {stages && stages.length > 0 && onUpdateStage && (
+          <div className="pt-2 border-t border-slate-200/80 dark:border-slate-800 space-y-1.5">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 block mb-1">انتقال سریع مرحله:</span>
+            <div className="flex flex-wrap gap-1.5">
+              {stages.map((st) => {
+                const isCurrent =
+                  deal.pipelineStageId === st.id ||
+                  deal.stage === st.name ||
+                  Boolean(st.mappedStatus && deal.stage === st.mappedStatus);
+                return (
+                  <button
+                    key={st.id}
+                    type="button"
+                    onClick={() => onUpdateStage(st.id, st.name)}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition cursor-pointer ${
+                      isCurrent
+                        ? 'bg-emerald-600 text-white shadow-2xs'
+                        : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                    }`}
+                  >
+                    {st.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {deal.closeDate && (
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-500 dark:text-slate-400">تاریخ احتمالی:</span>
+            <span className="font-mono text-slate-700 dark:text-slate-300 flex items-center gap-1" dir="ltr">
+              <Calendar className="w-3 h-3 text-slate-400" />
+              <span>{formatJalaliDate(deal.closeDate)}</span>
+            </span>
+          </div>
+        )}
+
+        {deal.daysSinceLastActivity !== undefined && (
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-500 dark:text-slate-400">آخرین تعامل:</span>
+            <span className="text-slate-700 dark:text-slate-300 flex items-center gap-1">
+              <Clock className="w-3 h-3 text-slate-400" />
+              <span>{deal.daysSinceLastActivity} روز پیش</span>
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* 3. Customer Contacts */}
+      <div className="space-y-3 pt-2">
+        <h3 className="text-xs font-bold text-slate-700 dark:text-slate-300">مشتری و اطلاعات تماس</h3>
+
+        {deal.accountName && (
+          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-xs">
+            <Building2 className="w-4 h-4 text-slate-400 flex-shrink-0" />
+            <div className="truncate">
+              <span className="text-[10px] text-slate-400 block">شرکت / سازمان</span>
+              <span className="font-semibold text-slate-800 dark:text-slate-200 truncate">{deal.accountName}</span>
+            </div>
+          </div>
+        )}
+
+        {deal.contactName && (
+          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-xs">
+            <User className="w-4 h-4 text-slate-400 flex-shrink-0" />
+            <div className="truncate">
+              <span className="text-[10px] text-slate-400 block">شخص رابط</span>
+              <span className="font-semibold text-slate-800 dark:text-slate-200 truncate">{deal.contactName}</span>
+            </div>
+          </div>
+        )}
+
+        {deal.contactPhone && (
+          <a
+            href={`tel:${deal.contactPhone}`}
+            className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-xs text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition"
+            dir="ltr"
+          >
+            <Phone className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+            <span className="font-mono">{deal.contactPhone}</span>
+          </a>
+        )}
+
+        {deal.contactEmail && (
+          <a
+            href={`mailto:${deal.contactEmail}`}
+            className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-xs text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition"
+            dir="ltr"
+          >
+            <Mail className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+            <span className="font-mono truncate">{deal.contactEmail}</span>
+          </a>
+        )}
+      </div>
+
+      {/* 4. Stage Action Buttons */}
+      <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+        <button
+          type="button"
+          onClick={onMarkWon}
+          disabled={isWon}
+          className={`w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-semibold transition cursor-pointer ${
+            isWon
+              ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
+              : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-2xs'
+          }`}
+        >
+          <CheckCircle2 className="w-4 h-4" />
+          <span>{isWon ? 'معامله برنده شد' : 'ثبت به عنوان فروش موفق (برنده)'}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={onMarkLost}
+          disabled={isLost}
+          className={`w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-semibold transition cursor-pointer ${
+            isLost
+              ? 'bg-slate-200 dark:bg-slate-800 text-slate-500 border border-slate-300 dark:border-slate-700'
+              : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
+          }`}
+        >
+          <XCircle className="w-4 h-4" />
+          <span>{isLost ? 'معامله مختومه و باخته است' : 'ثبت به عنوان معامله ناموفق (باخته)'}</span>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default DealSidebar;
+
+
+=== FILE: apps/web/src/features/deals/components/DealTimeline.tsx (132 lines) ===
+/**
+ * BidarCRM - DealTimeline Component
+ *
+ * Renders an interactive vertical timeline of deal stream events
+ * (notes, calls, meetings, tasks) with Shamsi dates, distinct Lucide icons,
+ * and light/dark mode adaptation.
+ */
+
+import React from 'react';
+import {
+  MessageSquare,
+  PhoneCall,
+  Users,
+  CheckSquare,
+  History,
+  Clock,
+} from 'lucide-react';
+import { Note } from '../../../types/espocrm';
+import { formatJalaliDate } from '../../../lib/jalali';
+
+export interface DealTimelineProps {
+  notes: Note[];
+  className?: string;
+}
+
+function getEventIcon(type?: string, relatedType?: string) {
+  const effectiveType = relatedType || type;
+  switch (effectiveType) {
+    case 'Call':
+      return {
+        icon: PhoneCall,
+        badgeBg: 'bg-emerald-50 dark:bg-emerald-500/15 border-emerald-200 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400',
+        label: 'تماس تلفنی',
+      };
+    case 'Meeting':
+      return {
+        icon: Users,
+        badgeBg: 'bg-blue-50 dark:bg-blue-500/15 border-blue-200 dark:border-blue-500/30 text-blue-600 dark:text-blue-400',
+        label: 'جلسه حضوری/آنلاین',
+      };
+    case 'Task':
+      return {
+        icon: CheckSquare,
+        badgeBg: 'bg-amber-50 dark:bg-amber-500/15 border-amber-200 dark:border-amber-500/30 text-amber-600 dark:text-amber-400',
+        label: 'کار بعدی',
+      };
+    case 'Note':
+      return {
+        icon: MessageSquare,
+        badgeBg: 'bg-emerald-50 dark:bg-emerald-500/15 border-emerald-200 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400',
+        label: 'یادداشت',
+      };
+    default:
+      return {
+        icon: History,
+        badgeBg: 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400',
+        label: 'رویداد سیستم',
+      };
+  }
+}
+
+export const DealTimeline: React.FC<DealTimelineProps> = ({ notes, className = '' }) => {
+  if (notes.length === 0) {
+    return (
+      <div
+        className={`bg-white dark:bg-slate-900/40 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl p-8 text-center text-slate-400 dark:text-slate-500 text-xs shadow-2xs ${className}`}
+        dir="rtl"
+      >
+        <Clock className="w-8 h-8 text-slate-400 dark:text-slate-600 mx-auto mb-2" />
+        <p>هنوز تعاملی برای این معامله ثبت نشده است.</p>
+        <p className="text-[11px] text-slate-400 dark:text-slate-600 mt-1">
+          از کادر بالا جهت ثبت اولین یادداشت یا تماس استفاده کنید.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`space-y-4 relative ${className}`} dir="rtl">
+      <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+        تایم‌لاین تعاملات و یادداشت‌ها
+      </h3>
+
+      <div className="relative pl-0 pr-4 space-y-5 before:absolute before:right-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
+        {notes.map((note) => {
+          const { icon: Icon, badgeBg, label } = getEventIcon(note.type, note.relatedType);
+          const jalaliDate = note.createdAt ? formatJalaliDate(note.createdAt) : '';
+          const contentText = note.post || note.relatedName || '';
+
+          return (
+            <div key={note.id} className="relative flex items-start gap-3 group">
+              {/* Timeline Node Icon */}
+              <div
+                className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 -mr-2.5 z-10 ${badgeBg}`}
+                title={label}
+              >
+                <Icon className="w-3 h-3" />
+              </div>
+
+              {/* Event Content Card */}
+              <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 rounded-2xl p-4 transition shadow-2xs space-y-2">
+                <div className="flex items-center justify-between gap-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-slate-900 dark:text-slate-100">
+                      {note.createdByName || 'کاربر سیستم'}
+                    </span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
+                      {label}
+                    </span>
+                  </div>
+                  {jalaliDate && (
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1 font-mono" dir="ltr">
+                      {jalaliDate}
+                    </span>
+                  )}
+                </div>
+
+                {contentText && (
+                  <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
+                    {contentText}
+                  </p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+export default DealTimeline;
+
+
+=== FILE: apps/web/src/features/deals/components/QuickLogBar.tsx (295 lines) ===
+/**
+ * BidarCRM - QuickLogBar Component
+ *
+ * Streamlined quick-logger for notes, calls, meetings, and follow-up tasks
+ * with tab selection, non-empty validation, file attachment, and light/dark mode adaptation.
+ */
+
+import React, { useState, useRef } from 'react';
+import {
+  MessageSquare,
+  PhoneCall,
+  Users,
+  CheckSquare,
+  Send,
+  Loader2,
+  Paperclip,
+  X,
+} from 'lucide-react';
+import { apiClient } from '../../../lib/api-client';
+
+export type LogType = 'Note' | 'Call' | 'Meeting' | 'Task';
+
+export interface QuickLogBarExtra {
+  direction?: 'Outbound' | 'Inbound';
+  dateStart?: string;
+  dateEnd?: string;
+  attachmentId?: string;
+  attachmentName?: string;
+}
+
+export interface QuickLogBarProps {
+  onSubmit: (post: string, type: LogType, extra?: QuickLogBarExtra) => Promise<void> | void;
+  isLoading?: boolean;
+  className?: string;
+}
+
+const LOG_TABS: { type: LogType; label: string; icon: React.FC<{ className?: string }> }[] = [
+  { type: 'Note', label: 'یادداشت', icon: MessageSquare },
+  { type: 'Call', label: 'تماس تلفنی', icon: PhoneCall },
+  { type: 'Meeting', label: 'جلسه', icon: Users },
+  { type: 'Task', label: 'کار بعدی', icon: CheckSquare },
+];
+
+export const QuickLogBar: React.FC<QuickLogBarProps> = ({
+  onSubmit,
+  isLoading = false,
+  className = '',
+}) => {
+  const [activeTab, setActiveTab] = useState<LogType>('Note');
+  const [text, setText] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Extra states for Call, Meeting, Task, Attachment
+  const [callDirection, setCallDirection] = useState<'Outbound' | 'Inbound'>('Outbound');
+  const [dueDate, setDueDate] = useState<string>('');
+  const [meetingStart, setMeetingStart] = useState<string>('');
+  const [meetingEnd, setMeetingEnd] = useState<string>('');
+  const [attachment, setAttachment] = useState<{ id: string; name: string } | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('name', file.name);
+      formData.append('type', file.type || 'application/octet-stream');
+
+      const res = await apiClient.post<{ id: string; name: string }>('/Attachment', formData);
+      if (res?.id) {
+        setAttachment({ id: res.id, name: file.name });
+      }
+    } catch {
+      // Fallback
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = text.trim();
+    if (!trimmed || isSubmitting || isLoading) return;
+
+    try {
+      setIsSubmitting(true);
+      const extra: QuickLogBarExtra = {};
+
+      if (activeTab === 'Call') {
+        extra.direction = callDirection;
+      } else if (activeTab === 'Meeting') {
+        if (meetingStart) extra.dateStart = new Date(meetingStart).toISOString();
+        if (meetingEnd) extra.dateEnd = new Date(meetingEnd).toISOString();
+      } else if (activeTab === 'Task') {
+        if (dueDate) extra.dateEnd = new Date(dueDate).toISOString();
+      } else if (activeTab === 'Note' && attachment) {
+        extra.attachmentId = attachment.id;
+        extra.attachmentName = attachment.name;
+      }
+
+      await onSubmit(trimmed, activeTab, extra);
+      setText('');
+      setAttachment(null);
+      setDueDate('');
+      setMeetingStart('');
+      setMeetingEnd('');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const getPlaceholder = (type: LogType) => {
+    switch (type) {
+      case 'Call':
+        return 'نتیجه تماس تلفنی یا خلاصه مکالمه با مخاطب را بنویسید...';
+      case 'Meeting':
+        return 'خلاصه صورت‌جلسه یا تصمیمات اتخاذ شده را یادداشت کنید...';
+      case 'Task':
+        return 'عنوان و جزئیات کار یا پیگیری بعدی را وارد نمایید...';
+      default:
+        return 'یادداشت جدید یا نتیجه فعالیت را بنویسید...';
+    }
+  };
+
+  const isButtonDisabled = !text.trim() || isSubmitting || isLoading || isUploading;
+
+  return (
+    <div
+      className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-2xs space-y-3 ${className}`}
+      dir="rtl"
+    >
+      {/* Activity Type Selector Tabs */}
+      <div className="flex items-center justify-between gap-1.5 overflow-x-auto pb-1">
+        <div className="flex items-center gap-1.5">
+          {LOG_TABS.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.type;
+            return (
+              <button
+                key={tab.type}
+                type="button"
+                onClick={() => setActiveTab(tab.type)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer flex-shrink-0 ${
+                  isActive
+                    ? 'bg-emerald-600 text-white font-semibold shadow-xs'
+                    : 'bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Tab specific options */}
+        {activeTab === 'Call' && (
+          <div className="flex items-center gap-1 text-[11px]">
+            <button
+              type="button"
+              onClick={() => setCallDirection('Outbound')}
+              className={`px-2 py-0.5 rounded-lg border transition ${
+                callDirection === 'Outbound'
+                  ? 'bg-emerald-500/15 border-emerald-500 text-emerald-600 dark:text-emerald-400 font-semibold'
+                  : 'border-slate-200 dark:border-slate-700 text-slate-500'
+              }`}
+            >
+              خروجی
+            </button>
+            <button
+              type="button"
+              onClick={() => setCallDirection('Inbound')}
+              className={`px-2 py-0.5 rounded-lg border transition ${
+                callDirection === 'Inbound'
+                  ? 'bg-emerald-500/15 border-emerald-500 text-emerald-600 dark:text-emerald-400 font-semibold'
+                  : 'border-slate-200 dark:border-slate-700 text-slate-500'
+              }`}
+            >
+              ورودی
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Input Area and Submit Action */}
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <textarea
+          rows={3}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={getPlaceholder(activeTab)}
+          className="w-full p-3 bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 resize-none outline-none transition"
+        />
+
+        {/* Auxiliary Fields depending on Tab */}
+        {activeTab === 'Task' && (
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-slate-500 text-[11px]">موعد انجام:</span>
+            <input
+              type="datetime-local"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              className="px-2.5 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-xs text-slate-800 dark:text-slate-200 outline-none"
+            />
+          </div>
+        )}
+
+        {activeTab === 'Meeting' && (
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="text-slate-500 text-[11px]">شروع جلسه:</span>
+            <input
+              type="datetime-local"
+              value={meetingStart}
+              onChange={(e) => setMeetingStart(e.target.value)}
+              className="px-2.5 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-xs text-slate-800 dark:text-slate-200 outline-none"
+            />
+            <span className="text-slate-500 text-[11px]">پایان:</span>
+            <input
+              type="datetime-local"
+              value={meetingEnd}
+              onChange={(e) => setMeetingEnd(e.target.value)}
+              className="px-2.5 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-xs text-slate-800 dark:text-slate-200 outline-none"
+            />
+          </div>
+        )}
+
+        {/* Note Attachment indicator */}
+        {attachment && (
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs text-slate-700 dark:text-slate-300 w-fit">
+            <Paperclip className="w-3.5 h-3.5 text-emerald-600" />
+            <span className="font-mono text-[11px]">{attachment.name}</span>
+            <button
+              type="button"
+              onClick={() => setAttachment(null)}
+              className="text-slate-400 hover:text-rose-500 cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between pt-1">
+          {/* Note attachment file picker */}
+          {activeTab === 'Note' ? (
+            <div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="flex items-center gap-1 px-2.5 py-1 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-xs transition cursor-pointer"
+                title="پیوست فایل"
+              >
+                {isUploading ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Paperclip className="w-3.5 h-3.5" />
+                )}
+                <span>پیوست فایل</span>
+              </button>
+            </div>
+          ) : (
+            <div />
+          )}
+
+          <button
+            type="submit"
+            disabled={isButtonDisabled}
+            className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-xl shadow-xs transition cursor-pointer"
+          >
+            {isSubmitting || isLoading ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Send className="w-3.5 h-3.5 rotate-180" />
+            )}
+            <span>ثبت یادداشت / فعالیت</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+export default QuickLogBar;
+
+
+=== FILE: apps/web/src/pages/DealDetailPage.tsx (453 lines) ===
+/**
+ * BidarCRM - DealDetailPage Component
+ *
+ * 360-degree comprehensive deal view offering:
+ * - Deal Sidebar (Financial amount in Toman, customer contacts with tel/mailto, rotten alert, stage actions)
+ * - Quick Activity Logger (Notes, Calls, Meetings, Tasks with attachment and status handling)
+ * - Deal Products & Items Manager (DealItemsPanel - GAP-02)
+ * - Pin shortcut toggle (GAP-08)
+ * - Vertical Interaction Stream Timeline (Shamsi dates, icons)
+ * - Didar-inspired 2-column layout and light/dark mode adaptation
+ */
+
+import React, { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { ArrowRight, AlertCircle, RefreshCw, Pin } from 'lucide-react';
+import { apiClient } from '../lib/api-client';
+import { queryKeys } from '../lib/query-keys';
+import { Opportunity, Note, PipelineStage, EspoListResponse } from '../types/espocrm';
+import { DEFAULT_PIPELINE_STAGES } from '../features/kanban/hooks/useKanbanDeals';
+import { authStore } from '../features/auth/authStore';
+import { DealSidebar } from '../features/deals/components/DealSidebar';
+import { QuickLogBar, LogType, QuickLogBarExtra } from '../features/deals/components/QuickLogBar';
+import { DealTimeline } from '../features/deals/components/DealTimeline';
+import { LossReasonModal } from '../features/deals/components/LossReasonModal';
+import { DealItemsPanel } from '../features/deals/components/DealItemsPanel';
+import { isItemPinned, togglePinItem } from '../lib/pinned';
+
+export interface DealDetailPageProps {
+  dealId: string;
+  onBack?: () => void;
+}
+
+export const formatEspoDateTime = (input: Date | string): string => {
+  const date = typeof input === 'string' ? new Date(input) : input;
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}`;
+};
+
+export const DealDetailPage: React.FC<DealDetailPageProps> = ({ dealId, onBack }) => {
+  const queryClient = useQueryClient();
+  const [localNotes, setLocalNotes] = useState<Note[]>([]);
+  const [localDeal, setLocalDeal] = useState<Opportunity | null>(null);
+  const [lossModalOpen, setLossModalOpen] = useState(false);
+  const [isPinned, setIsPinned] = useState(false);
+
+  // 1. Fetch Deal Info
+  const dealQuery = useQuery<Opportunity>({
+    queryKey: queryKeys.deals.detail(dealId),
+    queryFn: () => apiClient.get<Opportunity>(`/Opportunity/${dealId}`),
+  });
+
+  // 2. Fetch Deal Interaction Stream
+  const streamQuery = useQuery<EspoListResponse<Note>>({
+    queryKey: queryKeys.deals.stream(dealId),
+    queryFn: async () => {
+      try {
+        const res = await apiClient.get<EspoListResponse<Note> | Note[]>(
+          `/Opportunity/${dealId}/stream`
+        );
+        if (Array.isArray(res)) {
+          return { list: res, total: res.length };
+        }
+        if (res && Array.isArray(res.list)) {
+          return res;
+        }
+        return { list: [], total: 0 };
+      } catch {
+        try {
+          return await apiClient.get<EspoListResponse<Note>>(
+            `/Note?parentType=Opportunity&parentId=${dealId}&maxSize=100`
+          );
+        } catch {
+          return { list: [], total: 0 };
+        }
+      }
+    },
+  });
+
+  // 3. Fetch Pipeline Stages
+  const pipelineId = localDeal?.pipelineId || dealQuery.data?.pipelineId;
+  const stagesQuery = useQuery<EspoListResponse<PipelineStage>>({
+    queryKey: ['pipelineStages', pipelineId || 'default'],
+    queryFn: async () => {
+      try {
+        const pId = pipelineId;
+        const endpoint =
+          pId && pId !== 'default'
+            ? `/PipelineStage?maxSize=100&orderBy=order&where[0][type]=equals&where[0][attribute]=pipelineId&where[0][value]=${encodeURIComponent(pId)}`
+            : '/PipelineStage?maxSize=100&orderBy=order';
+        return await apiClient.get<EspoListResponse<PipelineStage>>(endpoint);
+      } catch {
+        return { list: [], total: 0 };
+      }
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const stages: PipelineStage[] =
+    stagesQuery.data?.list && stagesQuery.data.list.length > 0
+      ? stagesQuery.data.list
+      : DEFAULT_PIPELINE_STAGES;
+
+  // Sync server data to local state
+  useEffect(() => {
+    if (dealQuery.data) {
+      setLocalDeal(dealQuery.data);
+      setIsPinned(isItemPinned(dealId));
+    }
+  }, [dealQuery.data, dealId]);
+
+  useEffect(() => {
+    if (streamQuery.data?.list) {
+      setLocalNotes(streamQuery.data.list);
+    }
+  }, [streamQuery.data]);
+
+  // Handle pin toggle
+  const handleTogglePin = () => {
+    if (!deal) return;
+    const nowPinned = togglePinItem({
+      id: dealId,
+      type: 'deal',
+      title: deal.name,
+      subtitle: deal.accountName || deal.stage,
+      url: `/deals/${dealId}`,
+    });
+    setIsPinned(nowPinned);
+  };
+
+  // Quick Note & Activity submission respecting type
+  const handleAddNote = async (text: string, type: LogType = 'Note', extra: QuickLogBarExtra = {}) => {
+    const tempId = `temp-${Date.now()}`;
+    const optimisticNote: Note = {
+      id: tempId,
+      post: text,
+      type: type === 'Note' ? 'Post' : type,
+      createdAt: new Date().toISOString(),
+      parentType: 'Opportunity',
+      parentId: dealId,
+      createdByName: 'شما',
+    };
+
+    // Optimistically update notes
+    setLocalNotes((prev) => [optimisticNote, ...prev]);
+
+    // Optimistically clear rotten flag on the deal
+    setLocalDeal((prev) =>
+      prev
+        ? {
+            ...prev,
+            isRotten: false,
+            daysSinceLastActivity: 0,
+            lastActivityAt: new Date().toISOString(),
+          }
+        : null
+    );
+
+    try {
+      let created: Note;
+      const currentUserId = authStore.getState().user?.id || '2b45fd50209e2a898';
+      const assignedUserId = deal?.assignedUserId || currentUserId;
+
+      if (type === 'Call') {
+        // Call -> POST /Call (status: 'Held', direction, parentType: 'Opportunity', parentId)
+        await apiClient.post('/Call', {
+          name: text.slice(0, 80),
+          description: text,
+          status: 'Held',
+          direction: extra?.direction || 'Outbound',
+          parentType: 'Opportunity',
+          parentId: dealId,
+          assignedUserId,
+          dateStart: extra?.dateStart ? formatEspoDateTime(extra.dateStart) : formatEspoDateTime(new Date()),
+          dateEnd: extra?.dateEnd ? formatEspoDateTime(extra.dateEnd) : formatEspoDateTime(new Date(Date.now() + 5 * 60 * 1000)),
+        });
+        created = {
+          ...optimisticNote,
+          id: `call-${Date.now()}`,
+          type: 'Call',
+          relatedType: 'Call',
+          relatedName: text,
+          post: text,
+        };
+      } else if (type === 'Meeting') {
+        // Meeting -> POST /Meeting (status: 'Held', dateStart, dateEnd, parentType: 'Opportunity', parentId)
+        const start = extra?.dateStart ? formatEspoDateTime(extra.dateStart) : formatEspoDateTime(new Date());
+        const end = extra?.dateEnd ? formatEspoDateTime(extra.dateEnd) : formatEspoDateTime(new Date(Date.now() + 30 * 60 * 1000));
+        await apiClient.post('/Meeting', {
+          name: text.slice(0, 80),
+          description: text,
+          status: 'Held',
+          dateStart: start,
+          dateEnd: end,
+          parentType: 'Opportunity',
+          parentId: dealId,
+          assignedUserId,
+        });
+        created = {
+          ...optimisticNote,
+          id: `meeting-${Date.now()}`,
+          type: 'Meeting',
+          relatedType: 'Meeting',
+          relatedName: text,
+          post: text,
+        };
+      } else if (type === 'Task') {
+        // Task -> POST /Task (status: 'Not Started', dateEnd, parentType: 'Opportunity', parentId)
+        const due = extra?.dateEnd ? formatEspoDateTime(extra.dateEnd) : formatEspoDateTime(new Date(Date.now() + 24 * 60 * 60 * 1000));
+        await apiClient.post('/Task', {
+          name: text.slice(0, 80),
+          description: text,
+          status: 'Not Started',
+          dateEnd: due,
+          parentType: 'Opportunity',
+          parentId: dealId,
+          assignedUserId,
+        });
+        created = {
+          ...optimisticNote,
+          id: `task-${Date.now()}`,
+          type: 'Task',
+          relatedType: 'Task',
+          relatedName: text,
+          post: text,
+        };
+      } else {
+        // Note -> POST /Note (type: 'Post') + attachment file upload (POST /Attachment)
+        const payload: Record<string, unknown> = {
+          post: text,
+          type: 'Post',
+          parentType: 'Opportunity',
+          parentId: dealId,
+        };
+        if (extra.attachmentId) {
+          payload.attachmentsIds = [extra.attachmentId];
+        }
+        created = await apiClient.post<Note>('/Note', payload);
+      }
+
+      // Replace temp note with server note
+      setLocalNotes((prev) => prev.map((n) => (n.id === tempId ? created : n)));
+
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: queryKeys.deals.detail(dealId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.deals.stream(dealId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
+    } catch {
+      // Revert on failure
+      setLocalNotes((prev) => prev.filter((n) => n.id !== tempId));
+    }
+  };
+
+  const handleMarkWon = async () => {
+    await apiClient.patch(`/Opportunity/${dealId}`, { stage: 'Closed Won' });
+    setLocalDeal((prev) => (prev ? { ...prev, stage: 'Closed Won', isRotten: false } : null));
+    queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
+    queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
+  };
+
+  const handleMarkLost = async (lossReason: string = 'Other', lossReasonNote: string = '') => {
+    setLossModalOpen(false);
+    await apiClient.patch(`/Opportunity/${dealId}`, {
+      stage: 'Closed Lost',
+      lossReason,
+      lossReasonNote,
+    });
+    setLocalDeal((prev) => (prev ? { ...prev, stage: 'Closed Lost', lossReason, lossReasonNote } : null));
+    queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
+    queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
+  };
+
+  const handleUpdateStage = async (stageIdOrName: string, stageName?: string) => {
+    const targetStage = stages.find(
+      (s) => s.id === stageIdOrName || s.name === stageIdOrName || s.name === stageName
+    );
+    const stageVal = targetStage?.mappedStatus || stageName || stageIdOrName;
+    const stageId = targetStage?.id || (stageIdOrName.length === 17 ? stageIdOrName : undefined);
+    const payload: Record<string, unknown> = {};
+    if (stageId) payload.pipelineStageId = stageId;
+    if (stageVal) payload.stage = stageVal;
+    try {
+      await apiClient.patch(`/Opportunity/${dealId}`, payload);
+      setLocalDeal((prev) =>
+        prev ? { ...prev, stage: stageVal, pipelineStageId: stageId || prev.pipelineStageId } : null
+      );
+      queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
+    } catch {
+      // ignore
+    }
+  };
+
+  const isLoading = dealQuery.isLoading || streamQuery.isLoading;
+  const isError = dealQuery.isError || streamQuery.isError;
+  const deal = localDeal || dealQuery.data;
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 animate-pulse" dir="rtl">
+        <div className="h-8 w-48 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-4">
+            <div className="h-36 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl" />
+            <div className="h-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl" />
+          </div>
+          <div className="h-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl" />
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !deal) {
+    return (
+      <div
+        className="p-6 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs flex items-center justify-between gap-4"
+        dir="rtl"
+      >
+        <div className="flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-rose-500 flex-shrink-0" />
+          <span>خطا در بارگذاری اطلاعات معامله یا سرور در دسترس نیست.</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            dealQuery.refetch();
+            streamQuery.refetch();
+          }}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-800 dark:text-rose-200 transition font-medium cursor-pointer"
+        >
+          <RefreshCw className="w-3.5 h-3.5" />
+          <span>تلاش مجدد</span>
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 sm:space-y-6 flex flex-col h-full" dir="rtl">
+      {/* Top Bar with Navigation & Pin Action */}
+      <div className="flex items-center justify-between bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-2xs">
+        <div className="flex items-center gap-3">
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer"
+              title="بازگشت به کاریز"
+            >
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          )}
+          <div>
+            <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+              {deal.name}
+            </h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              کاریز: {deal.pipelineName || 'فروش اصلی'} | مرحله: {deal.stage}
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <button
+            type="button"
+            onClick={handleTogglePin}
+            className={`p-2 rounded-xl border transition cursor-pointer flex items-center gap-1.5 text-xs font-medium ${
+              isPinned
+                ? 'bg-amber-500/15 border-amber-500/30 text-amber-600 dark:text-amber-400'
+                : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+            }`}
+            title={isPinned ? 'حذف از پین‌شده‌ها' : 'سنجاق کردن معامله'}
+            aria-label="سنجاق کردن"
+          >
+            <Pin className={`w-4 h-4 ${isPinned ? 'fill-amber-500' : ''}`} />
+            <span>{isPinned ? 'پین‌شده' : 'سنجاق کردن'}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Interactive Stage Stepper */}
+      <div
+        data-testid="stage-stepper"
+        className="bidar-stage-stepper bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2 sm:p-3 rounded-2xl shadow-2xs overflow-x-auto flex items-center gap-1.5 sm:gap-2"
+        dir="rtl"
+      >
+        {stages.map((stage, idx) => {
+          const isCurrent =
+            deal.pipelineStageId === stage.id ||
+            deal.stage === stage.name ||
+            Boolean(stage.mappedStatus && deal.stage === stage.mappedStatus);
+          return (
+            <button
+              key={stage.id}
+              type="button"
+              data-testid={`stepper-stage-${stage.id}`}
+              onClick={() => handleUpdateStage(stage.id, stage.name)}
+              className={`flex-1 min-w-[120px] sm:min-w-[140px] flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                isCurrent
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'bg-slate-100 dark:bg-slate-800/70 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
+              }`}
+            >
+              <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold bg-white/20">
+                {idx + 1}
+              </span>
+              <span className="truncate">{stage.name}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Main Two-Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        {/* Left Column: Quick Logger, Products & Stream Timeline (Takes 2/3 width) */}
+        <div className="lg:col-span-2 space-y-6 order-2 lg:order-1">
+          <QuickLogBar onSubmit={handleAddNote} />
+
+          {/* GAP-02: Deal Items Panel */}
+          <DealItemsPanel
+            dealId={dealId}
+            dealName={deal.name}
+            onAmountChange={(newAmount) => {
+              setLocalDeal((prev) => (prev ? { ...prev, amount: newAmount } : null));
+            }}
+          />
+
+          <DealTimeline notes={localNotes} />
+        </div>
+
+        {/* Right Column: Deal Summary & Actions Sidebar (Takes 1/3 width) */}
+        <div className="order-1 lg:order-2">
+          <DealSidebar
+            deal={deal}
+            stages={stages}
+            onUpdateStage={handleUpdateStage}
+            onMarkWon={handleMarkWon}
+            onMarkLost={() => setLossModalOpen(true)}
+          />
+        </div>
+      </div>
+
+      {/* GAP-01: Loss Reason Modal */}
+      <LossReasonModal
+        isOpen={lossModalOpen}
+        dealName={deal?.name}
+        onConfirm={handleMarkLost}
+        onClose={() => setLossModalOpen(false)}
+      />
+    </div>
+  );
+};
+
+export default DealDetailPage;
+
+
+=== FILE: apps/web/src/pages/ContactsPage.tsx (242 lines) ===
+/**
+ * BidarCRM - ContactsPage Component
+ *
+ * Full contacts directory page with Didar-inspired tab navigation (اشخاص / شرکت‌ها),
+ * customer groups filter chips (GAP-05), Persian CSV export, direct SMS dispatch,
+ * and quick contact/account creation dialogs.
+ */
+
+import React, { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  Users,
+  Plus,
+  RefreshCw,
+  AlertCircle,
+  Building2,
+  Download,
+  Tag,
+} from 'lucide-react';
+import { apiClient } from '../lib/api-client';
+import { queryKeys } from '../lib/query-keys';
+import { Contact, EspoListResponse } from '../types/espocrm';
+import { toPersianDigits } from '../lib/currency';
+import { ContactsTable } from '../features/contacts/components/ContactsTable';
+import { ContactQuickCreateModal } from '../features/contacts/components/ContactQuickCreateModal';
+import { AccountCreateModal } from '../features/contacts/components/AccountCreateModal';
+import { SmsModal } from '../components/common/SmsModal';
+
+const CUSTOMER_GROUPS = [
+  { id: '', label: 'همه مخاطبان' },
+  { id: 'VIP', label: 'ویژه (VIP)' },
+  { id: 'Reseller', label: 'نمایندگان' },
+  { id: 'Loyal', label: 'وفادار' },
+  { id: 'Exhibition', label: 'نمایشگاهی' },
+  { id: 'FirstPurchase', label: 'خرید اول' },
+];
+
+export const ContactsPage: React.FC = () => {
+  const queryClient = useQueryClient();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedGroup, setSelectedGroup] = useState('');
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+
+  // SMS Modal State
+  const [smsTarget, setSmsTarget] = useState<{ phone: string; name: string } | null>(null);
+
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery<EspoListResponse<Contact>>({
+    queryKey: queryKeys.contacts.lists(),
+    queryFn: () => apiClient.get<EspoListResponse<Contact>>('/Contact?maxSize=200'),
+  });
+
+  const contacts = data?.list || [];
+
+  const handleCreateSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.contacts.lists() });
+  };
+
+  const handleExportCsv = async () => {
+    try {
+      const blob = await apiClient.getBlob('/BidarExport/Contact');
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `contacts-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to export contacts CSV:', err);
+    }
+  };
+
+  return (
+    <div className="space-y-4 sm:space-y-5 flex flex-col h-full" dir="rtl">
+      {/* Header Controls - Didar Style */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-2xs">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+            <Users className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+                اشخاص و مخاطبان
+              </h1>
+              <span className="text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 rounded-md">
+                {toPersianDigits(contacts.length)} مخاطب
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              مدیریت و مشاهده اشخاص، اطلاعات هویتی و ارتباطات مشتریان
+            </p>
+          </div>
+        </div>
+
+        {/* Tab switchers + Export + Primary CTA */}
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          {/* Segmented View Switcher between Contacts and Accounts */}
+          <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs font-medium">
+            <button
+              type="button"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded-lg shadow-2xs cursor-pointer font-semibold"
+            >
+              <Users className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>اشخاص</span>
+            </button>
+            <a
+              href="/accounts"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 rounded-lg transition"
+            >
+              <Building2 className="w-3.5 h-3.5" />
+              <span>شرکت‌ها</span>
+            </a>
+          </div>
+
+          {/* Persian CSV Export */}
+          <button
+            type="button"
+            onClick={handleExportCsv}
+            className="flex items-center gap-1.5 px-3 py-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700/80 rounded-xl text-xs font-medium transition cursor-pointer"
+            title="خروجی اکسل / CSV فارسی"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span className="hidden md:inline">خروجی CSV</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl transition cursor-pointer"
+            title="به‌روزرسانی لیست"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsAccountModalOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl transition cursor-pointer"
+          >
+            <Building2 className="w-4 h-4" />
+            <span>شرکت جدید</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsContactModalOpen(true)}
+            className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-xs font-semibold rounded-xl shadow-xs transition cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>مخاطب جدید</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Customer Groups Filter Bar (GAP-05) */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 rounded-2xl shadow-2xs">
+        <Tag className="w-4 h-4 text-slate-400 mr-1 flex-shrink-0" />
+        <span className="text-[11px] font-semibold text-slate-500 ml-2 whitespace-nowrap">
+          فیلتر گروه:
+        </span>
+        {CUSTOMER_GROUPS.map((grp) => (
+          <button
+            key={grp.id}
+            type="button"
+            onClick={() => setSelectedGroup(grp.id)}
+            className={`px-3 py-1 rounded-xl text-xs font-medium transition cursor-pointer whitespace-nowrap ${
+              selectedGroup === grp.id
+                ? 'bg-emerald-600 text-white font-semibold shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+            }`}
+          >
+            {grp.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Error Alert */}
+      {isError && (
+        <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0" />
+          <span>{error instanceof Error ? error.message : 'خطا در بارگذاری لیست مخاطبان'}</span>
+        </div>
+      )}
+
+      {/* Contacts Table with Real-time Search and SMS action */}
+      <div className="flex-1">
+        <ContactsTable
+          contacts={contacts}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          selectedGroup={selectedGroup}
+          isLoading={isLoading}
+          onSendSms={(contact) => {
+            if (contact.phoneNumber) {
+              setSmsTarget({
+                phone: contact.phoneNumber,
+                name: contact.name || `${contact.firstName || ''} ${contact.lastName || ''}`.trim(),
+              });
+            }
+          }}
+        />
+      </div>
+
+      {/* Quick Create Contact Modal */}
+      <ContactQuickCreateModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
+        onSuccess={handleCreateSuccess}
+      />
+
+      {/* Quick Create Account Modal */}
+      <AccountCreateModal
+        isOpen={isAccountModalOpen}
+        onClose={() => setIsAccountModalOpen(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: queryKeys.accounts.lists() });
+        }}
+      />
+
+      {/* Global SMS Modal */}
+      {smsTarget && (
+        <SmsModal
+          isOpen={Boolean(smsTarget)}
+          recipientPhone={smsTarget.phone}
+          recipientName={smsTarget.name}
+          onClose={() => setSmsTarget(null)}
+        />
+      )}
+    </div>
+  );
+};
+
+export default ContactsPage;
+
+
+=== FILE: apps/web/src/pages/DashboardPage.tsx (350 lines) ===
+/**
+ * BidarCRM - DashboardPage Component
+ *
+ * Primary sales operations hub displaying key performance indicators,
+ * real-time sales funnel chart, conversion rate, average sales cycle,
+ * loss reasons breakdown, sales goal progress bar, top sales reps leaderboard,
+ * lead sources breakdown, Jalali period and user filtering, and prioritized pending action items.
+ */
+
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import {
+  Briefcase,
+  BadgeCheck,
+  Flame,
+  Clock,
+  AlertCircle,
+  RefreshCw,
+  Percent,
+  Timer,
+  User,
+} from 'lucide-react';
+import { apiClient } from '../lib/api-client';
+import { queryKeys } from '../lib/query-keys';
+import { DashboardSummary, Task, EspoUser, EspoListResponse } from '../types/espocrm';
+import { formatToman, toPersianDigits } from '../lib/currency';
+import { KpiCard } from '../features/dashboard/components/KpiCard';
+import { SalesFunnelChart } from '../features/dashboard/components/SalesFunnelChart';
+import {
+  PendingActivitiesWidget,
+  PendingActivityItem,
+} from '../features/dashboard/components/PendingActivitiesWidget';
+import { LossReasonsWidget } from '../features/dashboard/components/LossReasonsWidget';
+import { SalesGoalWidget } from '../features/dashboard/components/SalesGoalWidget';
+import { TopSalesRepsWidget } from '../features/dashboard/components/TopSalesRepsWidget';
+import { LeadSourcesWidget } from '../features/dashboard/components/LeadSourcesWidget';
+
+export interface DashboardPageProps {
+  onNavigate?: (path: string) => void;
+}
+
+const JALALI_PERIODS = [
+  { id: 'current_month', label: 'ماه جاری' },
+  { id: 'last_month', label: 'ماه گذشته' },
+  { id: 'current_quarter', label: 'فصل جاری' },
+];
+
+export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
+  const [jalaliPeriod, setJalaliPeriod] = useState<string>('current_month');
+  const [assignedUserId, setAssignedUserId] = useState<string>('');
+
+  // 1. Fetch Users for User Filter
+  const usersQuery = useQuery<EspoListResponse<EspoUser>>({
+    queryKey: ['users', 'list'],
+    queryFn: async () => {
+      try {
+        return await apiClient.get<EspoListResponse<EspoUser>>('/User?maxSize=50');
+      } catch {
+        return { list: [], total: 0 };
+      }
+    },
+    staleTime: 1000 * 60 * 10,
+  });
+
+  const users = usersQuery.data?.list || [];
+
+  // 2. Fetch KPI Summary with Jalali period & user filter
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+  } = useQuery<DashboardSummary>({
+    queryKey: [...queryKeys.dashboard.summary(), jalaliPeriod, assignedUserId],
+    queryFn: () => {
+      const params: Record<string, string> = {};
+      if (jalaliPeriod) params.jalaliPeriod = jalaliPeriod;
+      if (assignedUserId) params.assignedUserId = assignedUserId;
+      return apiClient.get<DashboardSummary>('/BidarDashboard/summary', { params });
+    },
+  });
+
+  // 3. Fetch Real Pending Activities
+  const { data: activitiesData } = useQuery<EspoListResponse<Task>>({
+    queryKey: queryKeys.activities.list({ status: 'open' }),
+    queryFn: async () => {
+      try {
+        return await apiClient.get<EspoListResponse<Task>>(
+          '/Task?where[0][type]=in&where[0][attribute]=status&where[0][value][]=Not Started&where[0][value][]=Started&maxSize=10&orderBy=dateEnd'
+        );
+      } catch {
+        return { list: [], total: 0 };
+      }
+    },
+    staleTime: 1000 * 60 * 2,
+  });
+
+  if (isLoading) {
+    return (
+      <div data-testid="dashboard-skeleton" className="space-y-6 animate-pulse" dir="rtl">
+        {/* Header Skeleton */}
+        <div className="h-8 w-48 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+
+        {/* KPI Skeleton Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="h-28 sm:h-32 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5"
+            />
+          ))}
+        </div>
+
+        {/* Lower Grid Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 h-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl" />
+          <div className="h-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl" />
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    const errorMsg =
+      error instanceof Error ? error.message : 'خطا در دریافت اطلاعات داشبورد از سرور.';
+
+    return (
+      <div
+        className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-8 text-center text-rose-700 dark:text-rose-300 max-w-xl mx-auto my-12"
+        dir="rtl"
+      >
+        <AlertCircle className="w-10 h-10 text-rose-500 mx-auto mb-3" />
+        <h3 className="text-base font-bold text-rose-800 dark:text-rose-200 mb-2">
+          خطا در دریافت اطلاعات داشبورد
+        </h3>
+        <p className="text-xs text-rose-600/80 dark:text-rose-300/80 mb-6 leading-relaxed">
+          {errorMsg}
+        </p>
+        <button
+          type="button"
+          onClick={() => refetch()}
+          disabled={isFetching}
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white font-medium text-xs rounded-xl shadow-xs transition disabled:opacity-50 cursor-pointer"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin' : ''}`} />
+          <span>تلاش مجدد</span>
+        </button>
+      </div>
+    );
+  }
+
+  const summary: DashboardSummary = data || {
+    openCount: 0,
+    openAmount: 0,
+    wonCount: 0,
+    wonAmount: 0,
+    rottenCount: 0,
+    overdueActivitiesCount: 0,
+    conversionRate: 0,
+    avgSalesCycleDays: 0,
+    funnelStages: [],
+    lossReasonsBreakdown: [],
+    topSalesReps: [],
+    leadSourceBreakdown: [],
+  };
+
+  const pendingActivities: PendingActivityItem[] = (activitiesData?.list || []).map((t) => ({
+    id: t.id,
+    name: t.name,
+    type: (t as any).type || ('Task' as const),
+    dateDue: t.dateEnd || t.dateDue,
+    status: t.status,
+    priority: t.priority,
+  }));
+
+  const goalTarget = summary.goal?.targetValue ?? 100000000;
+  const goalCurrent = summary.goal?.currentValue ?? summary.wonAmount ?? 0;
+
+  return (
+    <div className="space-y-6 sm:space-y-8" dir="rtl">
+      {/* Page Header & Period / User Filters */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-2xs">
+        <div>
+          <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+            پیشخوان فروش بیدار
+          </h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            خلاصه عملکرد کاریز معاملات، درآمد تحقق‌یافته و رصد لحظه‌ای اقدامات
+          </p>
+        </div>
+
+        {/* Filter Controls Bar */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* Jalali Period Buttons */}
+          <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs font-medium">
+            {JALALI_PERIODS.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => setJalaliPeriod(p.id)}
+                className={`px-3 py-1.5 rounded-lg transition cursor-pointer font-semibold ${
+                  jalaliPeriod === p.id
+                    ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xs'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Sales Rep User Filter Dropdown */}
+          <div className="relative">
+            <select
+              value={assignedUserId}
+              onChange={(e) => setAssignedUserId(e.target.value)}
+              className="pl-3 pr-8 py-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs text-slate-800 dark:text-slate-200 outline-none"
+            >
+              <option value="">همه کارشناسان</option>
+              {users.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name || u.userName}
+                </option>
+              ))}
+            </select>
+            <User className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl transition cursor-pointer"
+            title="به‌روزرسانی داده‌ها"
+          >
+            <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
+      </div>
+
+      {/* 4 Primary KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        {/* 1. Open Deals */}
+        <KpiCard
+          title="معاملات باز"
+          value={formatToman(summary.openAmount)}
+          subtitle={`${toPersianDigits(summary.openCount)} معامله`}
+          icon={Briefcase}
+          variant="indigo"
+        />
+
+        {/* 2. Won Deals Revenue */}
+        <KpiCard
+          title="درآمد محقق‌شده"
+          value={formatToman(summary.wonAmount)}
+          subtitle={`${toPersianDigits(summary.wonCount)} موفق`}
+          icon={BadgeCheck}
+          variant="emerald"
+        />
+
+        {/* 3. Rotten Deals */}
+        <KpiCard
+          title="معاملات پوسیده"
+          value={toPersianDigits(summary.rottenCount)}
+          subtitle="نیازمند اقدام فوری"
+          icon={Flame}
+          variant="rose"
+        />
+
+        {/* 4. Overdue Activities */}
+        <KpiCard
+          title="فعالیت‌های معوق"
+          value={toPersianDigits(summary.overdueActivitiesCount)}
+          subtitle="سررسید گذشته"
+          icon={Clock}
+          variant="amber"
+        />
+      </div>
+
+      {/* GAP-03: Secondary Efficiency Metrics & GAP-07: Sales Goal Bar */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Conversion Rate Card */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 flex items-center justify-between">
+          <div className="space-y-1">
+            <span className="text-xs text-slate-500 dark:text-slate-400">نرخ تبدیل فروش</span>
+            <div className="text-xl font-bold text-teal-600 dark:text-teal-400 font-sans tabular-nums" dir="rtl">
+              {toPersianDigits(summary.conversionRate ?? 0)}٪
+            </div>
+            <span className="text-[11px] text-slate-400 dark:text-slate-500 block">نسبت معاملات موفق به کل بسته شده</span>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center">
+            <Percent className="w-5 h-5" />
+          </div>
+        </div>
+
+        {/* Avg Sales Cycle Card */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 flex items-center justify-between">
+          <div className="space-y-1">
+            <span className="text-xs text-slate-500 dark:text-slate-400">سرعت فروش (میانگین چرخه)</span>
+            <div className="text-xl font-bold text-indigo-600 dark:text-indigo-400 font-sans tabular-nums" dir="rtl">
+              {toPersianDigits(summary.avgSalesCycleDays ?? 0)} روز
+            </div>
+            <span className="text-[11px] text-slate-400 dark:text-slate-500 block">فاصله ایجاد تا نهایی‌شدن معامله</span>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+            <Timer className="w-5 h-5" />
+          </div>
+        </div>
+
+        {/* GAP-07: Sales Goal Widget bound to summary.goal */}
+        <div className="lg:col-span-1">
+          <SalesGoalWidget
+            goalName={summary.goal?.name || 'هدف فروش ماهانه'}
+            targetAmount={goalTarget}
+            currentAmount={goalCurrent}
+          />
+        </div>
+      </div>
+
+      {/* Middle Analytical Section: Funnel & Loss Reasons */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Sales Funnel Chart (2 Cols) */}
+        <div className="lg:col-span-2 space-y-6">
+          <SalesFunnelChart stages={summary.funnelStages} />
+
+          {/* GAP-03: Loss Reasons Breakdown */}
+          <LossReasonsWidget reasons={summary.lossReasonsBreakdown} />
+        </div>
+
+        {/* Daily Priority Activities (1 Col) */}
+        <div>
+          <PendingActivitiesWidget activities={pendingActivities} onNavigate={onNavigate} />
+        </div>
+      </div>
+
+      {/* Lower Section: Top Sales Reps & Lead Sources Breakdown */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Top Sales Reps Leaderboard */}
+        <TopSalesRepsWidget reps={summary.topSalesReps as any} />
+
+        {/* Lead Acquisition Sources Breakdown */}
+        <LeadSourcesWidget sources={summary.leadSourceBreakdown as any} />
+      </div>
+    </div>
+  );
+};
+
+export default DashboardPage;
+
+
+=== FILE: apps/web/src/components/layout/AppShell.tsx (217 lines) ===
+/**
+ * BidarCRM - AppShell Component
+ *
+ * Core layout frame with Didar-inspired dark signature header & rail,
+ * responsive mobile drawer, pinned shortcuts dropdown (GAP-08), and theme-adaptive canvas.
+ */
+
+import React, { useState, useEffect, useRef } from 'react';
+import { Menu, Pin, X, Briefcase, User, Building2 } from 'lucide-react';
+import { Sidebar } from './Sidebar';
+import { GlobalSearchBar } from './GlobalSearchBar';
+import { UserNav } from './UserNav';
+import { brandNameFa } from '../../lib/brand';
+import { PinnedItem, getPinnedItems, removePinnedItem } from '../../lib/pinned';
+import { toPersianDigits } from '../../lib/iran-format';
+
+export interface AppShellProps {
+  children?: React.ReactNode;
+  currentPath?: string;
+  onNavigate?: (path: string) => void;
+  onNewDeal?: () => void;
+  onSearch?: (query: string) => void;
+  className?: string;
+}
+
+export const AppShell: React.FC<AppShellProps> = ({
+  children,
+  currentPath = '/dashboard',
+  onNavigate,
+  onNewDeal,
+  onSearch: _onSearch,
+  className = '',
+}) => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showPinnedDropdown, setShowPinnedDropdown] = useState(false);
+  const [pinnedItems, setPinnedItems] = useState<PinnedItem[]>([]);
+  const pinnedDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Sync pinned items
+  useEffect(() => {
+    setPinnedItems(getPinnedItems());
+
+    const handleUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent<{ items: PinnedItem[] }>;
+      if (customEvent.detail?.items) {
+        setPinnedItems(customEvent.detail.items);
+      } else {
+        setPinnedItems(getPinnedItems());
+      }
+    };
+
+    window.addEventListener('bidar:pinned_updated', handleUpdate);
+    return () => window.removeEventListener('bidar:pinned_updated', handleUpdate);
+  }, []);
+
+  // Click outside to close pinned dropdown
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (pinnedDropdownRef.current && !pinnedDropdownRef.current.contains(e.target as Node)) {
+        setShowPinnedDropdown(false);
+      }
+    };
+    if (showPinnedDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showPinnedDropdown]);
+
+  const handlePinnedClick = (item: PinnedItem) => {
+    setShowPinnedDropdown(false);
+    onNavigate?.(item.url);
+  };
+
+  const handleUnpin = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    removePinnedItem(id);
+    setPinnedItems((prev) => prev.filter((i) => i.id !== id));
+  };
+
+  const getPinnedIcon = (type: string) => {
+    switch (type) {
+      case 'deal':
+        return <Briefcase className="w-3.5 h-3.5 text-indigo-400" />;
+      case 'contact':
+        return <User className="w-3.5 h-3.5 text-emerald-400" />;
+      case 'account':
+        return <Building2 className="w-3.5 h-3.5 text-amber-400" />;
+      default:
+        return <Pin className="w-3.5 h-3.5 text-slate-400" />;
+    }
+  };
+
+  return (
+    <div
+      className={`bidar-app-shell flex h-screen w-screen overflow-hidden bg-slate-900 text-slate-100 font-sans antialiased selection:bg-emerald-500 selection:text-white ${className}`}
+      dir="rtl"
+      lang="fa"
+    >
+      {/* 1. Primary RTL Sidebar (Right side - Slim Rail with Desktop Expand & Mobile Drawer) */}
+      <Sidebar
+        currentPath={currentPath}
+        onNavigate={onNavigate}
+        mobileOpen={mobileMenuOpen}
+        onCloseMobile={() => setMobileMenuOpen(false)}
+      />
+
+      {/* 2. Main Work Area (Header + Fluid Responsive Canvas) */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+        {/* Top Header Bar - Dark Didar Signature Topbar */}
+        <header className="h-14 bg-slate-900 border-b border-slate-800/90 px-3 sm:px-6 flex items-center justify-between gap-3 z-30 flex-shrink-0">
+          <div className="flex items-center gap-2 sm:gap-4 flex-1 max-w-xl">
+            {/* Hamburger Button on Mobile/Tablet */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(true)}
+              className="p-1.5 text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded-lg lg:hidden cursor-pointer"
+              aria-label="باز کردن منو"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
+            {/* Workspace Identifier */}
+            <div className="hidden md:flex items-center gap-2 pl-2 border-l border-slate-800">
+              <span className="text-xs font-semibold text-slate-200">{brandNameFa} CRM</span>
+              <span className="text-[10px] bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded-sm">
+                کاریز فعال
+              </span>
+            </div>
+
+            {/* Global Search Bar */}
+            <GlobalSearchBar onNavigate={onNavigate} />
+
+            {/* Pinned Items Dropdown Trigger */}
+            <div className="relative hidden xl:block" ref={pinnedDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setShowPinnedDropdown(!showPinnedDropdown)}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs transition cursor-pointer ${
+                  showPinnedDropdown
+                    ? 'bg-slate-800 text-emerald-400'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                }`}
+                title="موارد پین‌شده"
+              >
+                <Pin className={`w-3.5 h-3.5 ${pinnedItems.length > 0 ? 'fill-emerald-500/30 text-emerald-400' : ''}`} />
+                <span>پین‌شده‌ها</span>
+                {pinnedItems.length > 0 && (
+                  <span className="font-mono text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.2 rounded-full">
+                    {toPersianDigits(pinnedItems.length)}
+                  </span>
+                )}
+              </button>
+
+              {/* Pinned Items Popover Menu */}
+              {showPinnedDropdown && (
+                <div className="absolute left-0 mt-2 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in duration-100">
+                  <div className="p-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-slate-900 dark:text-slate-100">
+                    <span>موارد سنجاق‌شده ({toPersianDigits(pinnedItems.length)})</span>
+                    <span className="text-[10px] font-normal text-slate-400">حداکثر ۱۰ مورد</span>
+                  </div>
+
+                  <div className="max-h-72 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
+                    {pinnedItems.length === 0 ? (
+                      <div className="p-6 text-center text-slate-400 text-[11px]">
+                        موردی سنجاق نشده است. با زدن علامت سنجاق در صفحات جزئیات، موارد پرکاربرد را اینجا ذخیره کنید.
+                      </div>
+                    ) : (
+                      pinnedItems.map((item) => (
+                        <div
+                          key={item.id}
+                          onClick={() => handlePinnedClick(item)}
+                          className="flex items-center justify-between p-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition cursor-pointer group"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            {getPinnedIcon(item.type)}
+                            <div className="min-w-0">
+                              <span className="font-medium text-slate-900 dark:text-slate-100 truncate block">
+                                {item.title}
+                              </span>
+                              {item.subtitle && (
+                                <span className="text-[10px] text-slate-400 truncate block">
+                                  {item.subtitle}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => handleUnpin(e, item.id)}
+                            className="p-1 text-slate-400 hover:text-rose-500 rounded opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                            title="حذف از پین‌شده‌ها"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* User & Theme Navigation */}
+          <UserNav onNewDeal={onNewDeal} onNavigate={onNavigate} />
+        </header>
+
+        {/* Dynamic Responsive Workspace Canvas (Light / Dark Adaptive) */}
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-5 lg:p-6 bg-[#F4F6F8] dark:bg-[#0B0F19] text-slate-800 dark:text-slate-100 transition-colors duration-150">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default AppShell;
+
+
+=== FILE: apps/web/src/components/layout/Sidebar.tsx (270 lines) ===
+/**
+ * BidarCRM - Slim Icon Rail & Sidebar Navigation Component
+ *
+ * Implements Didar-inspired right-aligned slim icon rail (56px) with expandable
+ * labels, hover tooltips, mobile slide-over drawer, and role-gated admin access.
+ */
+
+import React, { useState } from 'react';
+import {
+  LayoutDashboard,
+  Columns3,
+  Users,
+  Building2,
+  CalendarCheck,
+  Target,
+  BarChart3,
+  Settings,
+  Shield,
+  ChevronLeft,
+  ChevronRight,
+  X,
+} from 'lucide-react';
+import { useAuth } from '../../features/auth/hooks/useAuth';
+import { brandNameFa, taglineFa } from '../../lib/brand';
+
+export interface NavItem {
+  id: string;
+  label: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  adminOnly?: boolean;
+}
+
+export const NAV_ITEMS: NavItem[] = [
+  {
+    id: 'dashboard',
+    label: 'داشبورد',
+    href: '/dashboard',
+    icon: LayoutDashboard,
+  },
+  {
+    id: 'kanban',
+    label: 'کاریز معاملات',
+    href: '/kanban',
+    icon: Columns3,
+  },
+  {
+    id: 'leads',
+    label: 'سرنخ‌ها',
+    href: '/leads',
+    icon: Target,
+  },
+  {
+    id: 'contacts',
+    label: 'مخاطبان',
+    href: '/contacts',
+    icon: Users,
+  },
+  {
+    id: 'accounts',
+    label: 'شرکت‌ها',
+    href: '/accounts',
+    icon: Building2,
+  },
+  {
+    id: 'activities',
+    label: 'فعالیت‌ها و تقویم',
+    href: '/activities',
+    icon: CalendarCheck,
+  },
+  {
+    id: 'reports',
+    label: 'گزارش‌ها',
+    href: '/reports',
+    icon: BarChart3,
+  },
+  {
+    id: 'settings',
+    label: 'تنظیمات',
+    href: '/settings',
+    icon: Settings,
+  },
+];
+
+export interface SidebarProps {
+  currentPath?: string;
+  onNavigate?: (path: string) => void;
+  mobileOpen?: boolean;
+  onCloseMobile?: () => void;
+  className?: string;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({
+  currentPath = '/dashboard',
+  onNavigate,
+  mobileOpen = false,
+  onCloseMobile,
+  className = '',
+}) => {
+  const { user } = useAuth();
+  const isAdmin = Boolean(user?.isAdmin);
+
+  // Desktop rail expansion state
+  const [isExpanded, setIsExpanded] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('bidar_sidebar_expanded') === 'true';
+    }
+    return false;
+  });
+
+  const toggleExpanded = () => {
+    setIsExpanded((prev) => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('bidar_sidebar_expanded', String(next));
+      }
+      return next;
+    });
+  };
+
+  const handleNavClick = (e: React.MouseEvent, href: string) => {
+    if (onNavigate) {
+      e.preventDefault();
+      onNavigate(href);
+    }
+    if (onCloseMobile) {
+      onCloseMobile();
+    }
+  };
+
+  return (
+    <>
+      {/* Mobile Backdrop Overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-40 lg:hidden transition-opacity"
+          onClick={onCloseMobile}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Main Rail Sidebar */}
+      <aside
+        className={`fixed lg:static top-0 bottom-0 right-0 z-50 flex flex-col justify-between bg-white dark:bg-slate-950 border-l border-slate-200 dark:border-slate-800 shadow-xs dark:shadow-none transition-all duration-200 select-none ${
+          /* Desktop Width */
+          isExpanded ? 'lg:w-60' : 'lg:w-16'
+        } ${
+          /* Mobile Drawer Position */
+          mobileOpen ? 'translate-x-0 w-64 shadow-2xl' : 'translate-x-full lg:translate-x-0'
+        } ${className}`}
+        dir="rtl"
+        aria-label="سایدبار ناوبری"
+      >
+        {/* Top Header / Brand */}
+        <div>
+          <div className="h-14 flex items-center justify-between px-3.5 border-b border-slate-100 dark:border-slate-800/80">
+            <div className="flex items-center gap-3 overflow-hidden">
+              <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-bold text-base shadow-sm shadow-emerald-900/30 flex-shrink-0">
+                ب
+              </div>
+              <div
+                className={`flex flex-col transition-opacity duration-150 ${
+                  isExpanded || mobileOpen ? 'opacity-100' : 'opacity-0 lg:hidden'
+                }`}
+              >
+                <span className="font-bold text-sm text-slate-900 dark:text-white whitespace-nowrap">{brandNameFa} CRM</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 whitespace-nowrap">{taglineFa}</span>
+              </div>
+            </div>
+
+            {/* Close button on mobile */}
+            <button
+              type="button"
+              onClick={onCloseMobile}
+              className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900 lg:hidden rounded-lg"
+              aria-label="بستن منو"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Navigation Items */}
+          <nav className="p-2 space-y-1" aria-label="ناوبری اصلی">
+            {NAV_ITEMS.map((item) => {
+              const Icon = item.icon;
+              const isActive =
+                currentPath === item.href ||
+                (item.href === '/kanban' && currentPath === '/deals') ||
+                (item.href === '/kanban' && currentPath.startsWith('/deals/')) ||
+                (item.href === '/activities' && currentPath === '/calendar');
+
+              return (
+                <a
+                  key={item.id}
+                  href={item.href}
+                  onClick={(e) => handleNavClick(e, item.href)}
+                  title={!isExpanded && !mobileOpen ? item.label : undefined}
+                  className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition duration-150 cursor-pointer ${
+                    isActive
+                      ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/40 shadow-2xs font-semibold'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-900/80 border border-transparent'
+                  }`}
+                >
+                  <Icon
+                    className={`w-5 h-5 flex-shrink-0 transition-colors ${
+                      isActive
+                        ? 'text-blue-600 dark:text-blue-400'
+                        : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200'
+                    }`}
+                  />
+                  <span
+                    className={`whitespace-nowrap transition-opacity duration-150 ${
+                      isExpanded || mobileOpen ? 'opacity-100' : 'opacity-0 lg:hidden'
+                    }`}
+                  >
+                    {item.label}
+                  </span>
+                </a>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Footer Area */}
+        <div className="p-2 space-y-1 border-t border-slate-100 dark:border-slate-800/80">
+          {/* Admin Panel Link (Role-gated) */}
+          {isAdmin && (
+            <a
+              href="/admin"
+              target="_self"
+              rel="noreferrer"
+              title={!isExpanded && !mobileOpen ? 'تنظیمات سیستم' : undefined}
+              className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-400/10 border border-amber-200 dark:border-amber-500/20 transition duration-150 cursor-pointer`}
+              aria-label="تنظیمات سیستم"
+            >
+              <Shield className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+              <span
+                className={`whitespace-nowrap transition-opacity duration-150 ${
+                  isExpanded || mobileOpen ? 'opacity-100' : 'opacity-0 lg:hidden'
+                }`}
+              >
+                تنظیمات سیستم
+              </span>
+            </a>
+          )}
+
+          {/* Desktop Rail Expand/Collapse Toggle Button */}
+          <button
+            type="button"
+            onClick={toggleExpanded}
+            className="hidden lg:flex w-full items-center justify-center p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-xl transition cursor-pointer"
+            title={isExpanded ? 'بستن نوار منو' : 'باز کردن نوار منو'}
+            aria-label={isExpanded ? 'بستن نوار منو' : 'باز کردن نوار منو'}
+          >
+            {isExpanded ? (
+              <div className="flex items-center gap-2 text-xs w-full px-1">
+                <ChevronRight className="w-4 h-4" />
+                <span>جمع‌کردن نوار</span>
+              </div>
+            ) : (
+              <ChevronLeft className="w-4 h-4" />
+            )}
+          </button>
+        </div>
+      </aside>
+    </>
+  );
+};
+
+export default Sidebar;
+
+
+=== FILE: apps/web/src/lib/api-client.ts (269 lines) ===
+/**
+ * BidarCRM - Typed EspoCRM 10.1.4 API Client
+ *
+ * Implements official EspoCRM authentication headers, automatic cookie preservation
+ * (credentials: 'include' for HttpOnly auth-token-secret), structured error mapping,
+ * and 401 session expiration event broadcasts.
+ */
+
+export const API_UNAUTHORIZED_EVENT = 'bidar:unauthorized';
+
+/**
+ * Safely encodes a UTF-8 string to Base64 (supporting non-Latin and Persian characters).
+ */
+export function encodeBase64Utf8(str: string): string {
+  const bytes = new TextEncoder().encode(str);
+  let binary = '';
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+export class ApiError extends Error {
+  public readonly status: number;
+  public readonly statusText: string;
+  public readonly data: unknown;
+
+  constructor(status: number, statusText: string, data?: unknown, customMessage?: string) {
+    let message = customMessage;
+    if (!message) {
+      let details = '';
+      if (typeof data === 'object' && data !== null && 'message' in data && typeof (data as { message: unknown }).message === 'string') {
+        details = (data as { message: string }).message;
+      } else if (typeof data === 'string' && data.length > 0) {
+        details = data;
+      }
+
+      const base = `HTTP ${status}: ${statusText || 'Request failed'}`;
+      message = details ? `${base} - ${details}` : base;
+    }
+
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.statusText = statusText;
+    this.data = data;
+
+    // Maintain prototype chain for instanceof checks
+    Object.setPrototypeOf(this, ApiError.prototype);
+  }
+}
+
+export interface RequestOptions extends Omit<RequestInit, 'body'> {
+  params?: Record<string, string | number | boolean | null | undefined>;
+  body?: unknown;
+}
+
+export class ApiClient {
+  private baseUrl: string;
+  private auth: { username: string; token: string } | null = null;
+  private unauthorizedListeners = new Set<(error: ApiError) => void>();
+
+  constructor(baseUrl = '/api/v1') {
+    this.baseUrl = baseUrl.replace(/\/+$/, '');
+  }
+
+  /**
+   * Configures active authentication credentials for EspoCRM token-based API access.
+   */
+  public setAuth(username: string, token: string): void {
+    this.auth = { username, token };
+  }
+
+  /**
+   * Clears stored credentials.
+   */
+  public clearAuth(): void {
+    this.auth = null;
+  }
+
+  /**
+   * Registers a callback listener executed whenever a 401 Unauthorized response is intercepted.
+   * Returns an unsubscribe function.
+   */
+  public onUnauthorized(callback: (error: ApiError) => void): () => void {
+    this.unauthorizedListeners.add(callback);
+    return () => {
+      this.unauthorizedListeners.delete(callback);
+    };
+  }
+
+  /**
+   * Executes a typed HTTP request against EspoCRM REST API.
+   */
+  public async request<T = unknown>(endpoint: string, options: RequestOptions = {}): Promise<T> {
+    const { params, body, headers: customHeaders, method = 'GET', ...fetchInit } = options;
+
+    // 1. Build destination URL
+    let fullUrl = endpoint.startsWith('http://') || endpoint.startsWith('https://')
+      ? endpoint
+      : `${this.baseUrl}/${endpoint.replace(/^\/+/, '')}`;
+
+    if (params) {
+      const searchParams = new URLSearchParams();
+      for (const [key, value] of Object.entries(params)) {
+        if (value !== undefined && value !== null) {
+          searchParams.append(key, String(value));
+        }
+      }
+      const queryString = searchParams.toString();
+      if (queryString) {
+        fullUrl += (fullUrl.includes('?') ? '&' : '?') + queryString;
+      }
+    }
+
+    // 2. Prepare headers
+    const headers = new Headers(customHeaders);
+    if (!headers.has('Accept')) {
+      headers.set('Accept', 'application/json');
+    }
+
+    if (this.auth?.username && this.auth?.token) {
+      const tokenHeader = encodeBase64Utf8(`${this.auth.username}:${this.auth.token}`);
+      headers.set('Espo-Authorization', tokenHeader);
+      headers.set('Espo-Authorization-By-Token', 'true');
+    }
+
+    let payloadBody: BodyInit | null | undefined = undefined;
+    if (body !== undefined && body !== null) {
+      if (typeof body === 'string' || body instanceof FormData || body instanceof Blob) {
+        payloadBody = body as BodyInit;
+      } else {
+        if (!headers.has('Content-Type')) {
+          headers.set('Content-Type', 'application/json');
+        }
+        payloadBody = JSON.stringify(body);
+      }
+    }
+
+    // 3. Perform network call with mandatory credentials: 'include'
+    const response = await fetch(fullUrl, {
+      ...fetchInit,
+      method,
+      headers,
+      body: payloadBody,
+      credentials: 'include',
+    });
+
+    // 4. Handle 204 No Content
+    if (response.status === 204 || response.headers.get('content-length') === '0') {
+      if (!response.ok) {
+        throw new ApiError(response.status, response.statusText);
+      }
+      return null as unknown as T;
+    }
+
+    // 5. Parse response body safely
+    const contentType = response.headers.get('content-type') || '';
+    let responseData: unknown = null;
+
+    if (contentType.includes('application/json')) {
+      try {
+        responseData = await response.json();
+      } catch {
+        responseData = null;
+      }
+    } else {
+      try {
+        responseData = await response.text();
+      } catch {
+        responseData = null;
+      }
+    }
+
+    // 6. Handle HTTP Error statuses
+    if (!response.ok) {
+      const error = new ApiError(response.status, response.statusText, responseData);
+
+      if (response.status === 401) {
+        // Broadcast custom browser event
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent(API_UNAUTHORIZED_EVENT, { detail: { error } })
+          );
+        }
+
+        // Notify registered subscribers
+        for (const listener of this.unauthorizedListeners) {
+          try {
+            listener(error);
+          } catch (listenerError) {
+            console.error('Error in onUnauthorized listener:', listenerError);
+          }
+        }
+      }
+
+      throw error;
+    }
+
+    return responseData as T;
+  }
+
+  public get<T = unknown>(endpoint: string, options?: RequestOptions): Promise<T> {
+    return this.request<T>(endpoint, { ...options, method: 'GET' });
+  }
+
+  public post<T = unknown>(endpoint: string, body?: unknown, options?: RequestOptions): Promise<T> {
+    return this.request<T>(endpoint, { ...options, method: 'POST', body });
+  }
+
+  public put<T = unknown>(endpoint: string, body?: unknown, options?: RequestOptions): Promise<T> {
+    return this.request<T>(endpoint, { ...options, method: 'PUT', body });
+  }
+
+  public patch<T = unknown>(endpoint: string, body?: unknown, options?: RequestOptions): Promise<T> {
+    return this.request<T>(endpoint, { ...options, method: 'PATCH', body });
+  }
+
+  public delete<T = unknown>(endpoint: string, options?: RequestOptions): Promise<T> {
+    return this.request<T>(endpoint, { ...options, method: 'DELETE' });
+  }
+
+  /**
+   * Downloads a binary Blob (e.g. CSV, Excel, PDF) using authenticated headers.
+   */
+  public async getBlob(endpoint: string, options: Omit<RequestOptions, 'body'> = {}): Promise<Blob> {
+    const { params, headers: customHeaders, ...fetchInit } = options;
+    let fullUrl = endpoint.startsWith('http://') || endpoint.startsWith('https://')
+      ? endpoint
+      : `${this.baseUrl}/${endpoint.replace(/^\/+/, '')}`;
+
+    if (params) {
+      const searchParams = new URLSearchParams();
+      for (const [key, value] of Object.entries(params)) {
+        if (value !== undefined && value !== null) {
+          searchParams.append(key, String(value));
+        }
+      }
+      const queryString = searchParams.toString();
+      if (queryString) {
+        fullUrl += (fullUrl.includes('?') ? '&' : '?') + queryString;
+      }
+    }
+
+    const headers = new Headers(customHeaders);
+    if (this.auth?.username && this.auth?.token) {
+      const tokenHeader = encodeBase64Utf8(`${this.auth.username}:${this.auth.token}`);
+      headers.set('Espo-Authorization', tokenHeader);
+      headers.set('Espo-Authorization-By-Token', 'true');
+    }
+
+    const response = await fetch(fullUrl, {
+      ...fetchInit,
+      method: 'GET',
+      headers,
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new ApiError(response.status, response.statusText);
+    }
+
+    return await response.blob();
+  }
+}
+
+export const apiClient = new ApiClient();
+export default apiClient;
+
+
+=== FILE: apps/web/src/lib/jalali.ts (323 lines) ===
+import { toAsciiDigits } from './currency';
+
+/**
+ * Robust Jalali (Shamsi) Date Converter & Formatter (IR-09, IR-10, IR-11)
+ */
+
+export function toJalaliDateString(isoOrDate: string | Date | null | undefined): string {
+  if (!isoOrDate) return '';
+  const d = typeof isoOrDate === 'string' ? new Date(isoOrDate) : isoOrDate;
+  if (!(d instanceof Date) || isNaN(d.getTime())) return '';
+  const formatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    timeZone: 'Asia/Tehran',
+  });
+  return formatter.format(d);
+}
+
+export const formatJalaliDate = toJalaliDateString;
+
+/**
+ * Formats a date to Jalali Date and Time (e.g. ۱۴۰۴/۰۸/۲۲ ۱۵:۳۰).
+ */
+export function formatJalaliDateTime(isoOrDate: string | Date | null | undefined): string {
+  if (!isoOrDate) return '';
+  const d = typeof isoOrDate === 'string' ? new Date(isoOrDate) : isoOrDate;
+  if (!(d instanceof Date) || isNaN(d.getTime())) return '';
+  const formatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Tehran',
+  });
+  return formatter.format(d);
+}
+
+/**
+ * Formats relative Persian time (e.g. "امروز", "دیروز", "فردا", "۳ روز پیش", "۲ ساعت پیش", "چند لحظه پیش").
+ */
+export function formatRelativeJalali(isoOrDate: string | Date | null | undefined): string {
+  if (!isoOrDate) return '';
+  const d = typeof isoOrDate === 'string' ? new Date(isoOrDate) : isoOrDate;
+  if (!(d instanceof Date) || isNaN(d.getTime())) return '';
+
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffSec = Math.round(diffMs / 1000);
+  const diffMin = Math.round(diffSec / 60);
+  const diffHour = Math.round(diffMin / 60);
+  const diffDay = Math.round(diffHour / 24);
+
+  if (Math.abs(diffSec) < 45) {
+    return 'چند لحظه پیش';
+  }
+  if (diffSec > 0) {
+    if (diffMin < 60) return `${diffMin} دقیقه پیش`;
+    if (diffHour < 24) return `${diffHour} ساعت پیش`;
+    if (diffDay === 1) return 'دیروز';
+    if (diffDay < 30) return `${diffDay} روز پیش`;
+  } else {
+    const futureDay = Math.abs(diffDay);
+    if (futureDay === 1) return 'فردا';
+    if (futureDay < 30) return `${futureDay} روز دیگر`;
+  }
+
+  return formatJalaliDate(d);
+}
+
+/**
+ * Determines whether a given Jalali (Shamsi) year is a leap year (366 days, Esfand has 30 days).
+ * Uses the canonical Birashk 33-year cycle algorithm matching Morilog/Jalali CalendarUtils.
+ */
+export function isJalaliLeapYear(jy: number): boolean {
+  const breaks = [
+    -61, 9, 38, 199, 426, 686, 756, 818, 1111, 1181, 1210, 1635, 2060, 2097, 2192, 2262, 2324, 2394, 2456, 3178,
+  ];
+  let jp = breaks[0]!;
+  let jump = 0;
+  for (let i = 1; i < breaks.length; i++) {
+    const jm = breaks[i]!;
+    jump = jm - jp;
+    if (jy < jm) break;
+    jp = jm;
+  }
+  let n = jy - jp;
+  if (jump - n < 6) {
+    n = n - jump + Math.floor((jump + 4) / 33) * 33;
+  }
+  let leap = (((n + 1) % 33) - 1) % 4;
+  if (leap === -1) leap = 4;
+  return leap === 0;
+}
+
+/**
+ * Returns the exact number of days in a given Jalali month (1-6: 31, 7-11: 30, 12: 29 or 30).
+ */
+export function getJalaliMonthLength(jy: number, jm: number): number {
+  if (jm <= 6) return 31;
+  if (jm <= 11) return 30;
+  return isJalaliLeapYear(jy) ? 30 : 29;
+}
+
+export function jalaliToGregorian(jy: number, jm: number, jd: number): [number, number, number] {
+  let gy: number;
+  if (jy > 979) {
+    gy = 1600;
+    jy -= 979;
+  } else {
+    gy = 621;
+  }
+  let days =
+    365 * jy +
+    Math.floor(jy / 33) * 8 +
+    Math.floor(((jy % 33) + 3) / 4) +
+    78 +
+    jd +
+    (jm < 7 ? (jm - 1) * 31 : (jm - 7) * 30 + 186);
+
+  gy += 400 * Math.floor(days / 146097);
+  days %= 146097;
+  if (days > 36524) {
+    gy += 100 * Math.floor(--days / 36524);
+    days %= 36524;
+    if (days >= 365) days++;
+  }
+  gy += 4 * Math.floor(days / 1461);
+  days %= 1461;
+  if (days > 365) {
+    gy += Math.floor((days - 1) / 365);
+    days = (days - 1) % 365;
+  }
+  let gd = days + 1;
+  const sal_a = [
+    0,
+    31,
+    (gy % 4 === 0 && gy % 100 !== 0) || gy % 400 === 0 ? 29 : 28,
+    31,
+    30,
+    31,
+    30,
+    31,
+    31,
+    30,
+    31,
+    30,
+    31,
+  ];
+  let gm = 0;
+  for (gm = 0; gm < 13 && gd > sal_a[gm]!; gm++) {
+    gd -= sal_a[gm]!;
+  }
+  return [gy, gm, gd];
+}
+
+export function toUtcIsoString(jalaliStr: string): string {
+  const ascii = toAsciiDigits(jalaliStr);
+  const parts = ascii.split('/').map((s) => parseInt(s, 10));
+  const jy = parts[0] ?? 1400;
+  const jm = parts[1] ?? 1;
+  const jd = parts[2] ?? 1;
+
+  const [gy, gm, gd] = jalaliToGregorian(jy, jm, jd);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${gy}-${pad(gm)}-${pad(gd)}T08:30:00.000Z`;
+}
+
+export const PERSIAN_MONTH_NAMES = [
+  'فروردین',
+  'اردیبهشت',
+  'خرداد',
+  'تیر',
+  'مرداد',
+  'شهریور',
+  'مهر',
+  'آبان',
+  'آذر',
+  'دی',
+  'بهمن',
+  'اسفند',
+] as const;
+
+export const PERSIAN_WEEKDAYS = [
+  'شنبه',
+  'یکشنبه',
+  'دوشنبه',
+  'سه‌شنبه',
+  'چهارشنبه',
+  'پنج‌شنبه',
+  'جمعه',
+] as const;
+
+export function getJalaliParts(date: Date = new Date()): { year: number; month: number; day: number } {
+  const d = date instanceof Date && !isNaN(date.getTime()) ? date : new Date();
+  const parts = new Intl.DateTimeFormat('en-US-u-ca-persian', {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    timeZone: 'Asia/Tehran',
+  }).formatToParts(d);
+
+  let year = 1405;
+  let month = 9;
+  let day = 1;
+
+  for (const part of parts) {
+    if (part.type === 'year') year = parseInt(part.value, 10);
+    if (part.type === 'month') month = parseInt(part.value, 10);
+    if (part.type === 'day') day = parseInt(part.value, 10);
+  }
+
+  return { year, month, day };
+}
+
+export function getJalaliMonthRangeUtc(
+  year: number,
+  month: number
+): { fromUtc: string; toUtc: string } {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const [sGy, sGm, sGd] = jalaliToGregorian(year, month, 1);
+  const lastDay = getJalaliMonthLength(year, month);
+  const [eGy, eGm, eGd] = jalaliToGregorian(year, month, lastDay);
+
+  return {
+    fromUtc: `${sGy}-${pad(sGm)}-${pad(sGd)}T00:00:00.000Z`,
+    toUtc: `${eGy}-${pad(eGm)}-${pad(eGd)}T23:59:59.999Z`,
+  };
+}
+
+export function getJalaliMonthBounds(year: number, month: number): { start: Date; end: Date } {
+  const range = getJalaliMonthRangeUtc(year, month);
+  return {
+    start: new Date(range.fromUtc),
+    end: new Date(range.toUtc),
+  };
+}
+
+export { formatIranCurrency, toPersianDigits } from './iran-format';
+
+/**
+ * Canonical Iranian Official Holidays (Solar Calendar fixed dates) & Fridays
+ */
+export const IRAN_FIXED_HOLIDAYS: Record<string, string> = {
+  '1/1': 'جشن نوروز',
+  '1/2': 'عید نوروز',
+  '1/3': 'عید نوروز',
+  '1/4': 'عید نوروز',
+  '1/12': 'روز جمهوری اسلامی',
+  '1/13': 'روز طبیعت (سیزده‌بدر)',
+  '3/14': 'رحلت امام خمینی',
+  '3/15': 'قیام ۱۵ خرداد',
+  '11/22': 'پیروزی انقلاب اسلامی',
+  '12/29': 'ملی شدن صنعت نفت',
+  '12/30': 'روز پایانی سال (کبیسه)',
+};
+
+/**
+ * Checks if a given Jalali date is an Iranian official holiday or Friday.
+ */
+export function isIranHoliday(
+  year: number,
+  month: number,
+  day: number
+): { isHoliday: boolean; title?: string } {
+  // Check solar holiday by month/day key
+  const key = `${month}/${day}`;
+  if (IRAN_FIXED_HOLIDAYS[key]) {
+    return { isHoliday: true, title: IRAN_FIXED_HOLIDAYS[key] };
+  }
+
+  // Check if it's Friday (جمعه)
+  const [gy, gm, gd] = jalaliToGregorian(year, month, day);
+  const gDate = new Date(Date.UTC(gy, gm - 1, gd));
+  if (gDate.getUTCDay() === 5) {
+    // UTC Friday
+    return { isHoliday: true, title: 'جمعه (تعطیل هفتگی)' };
+  }
+
+  return { isHoliday: false };
+}
+
+/**
+ * Parses natural Persian relative expressions into Date objects.
+ * Supports: "امروز", "فردا", "پس‌فردا", "هفته آینده", "ساعت ۱۰", "ساعت ۱۴:۳۰"
+ */
+export function parseNaturalPersianDate(input: string): Date | null {
+  if (!input || typeof input !== 'string') return null;
+  const raw = toAsciiDigits(input).trim().toLowerCase();
+
+  const now = new Date();
+  let target = new Date(now);
+
+  if (raw.includes('امروز')) {
+    // keep today
+  } else if (raw.includes('فردا')) {
+    target.setDate(target.getDate() + 1);
+  } else if (raw.includes('پس‌فردا') || raw.includes('پس فردا')) {
+    target.setDate(target.getDate() + 2);
+  } else if (raw.includes('هفته بعد') || raw.includes('هفته آینده')) {
+    target.setDate(target.getDate() + 7);
+  } else {
+    // Fallback: try parsing standard ISO/date
+    const parsed = new Date(input);
+    if (!isNaN(parsed.getTime())) return parsed;
+    return null;
+  }
+
+  // Parse hour if mentioned, e.g. "ساعت 10" or "ساعت 14:30"
+  const timeMatch = raw.match(/ساعت\s*(\d{1,2})(?::(\d{1,2}))?/);
+  if (timeMatch && timeMatch[1]) {
+    const hours = parseInt(timeMatch[1], 10);
+    const minutes = timeMatch[2] ? parseInt(timeMatch[2], 10) : 0;
+    target.setHours(hours, minutes, 0, 0);
+  } else {
+    target.setHours(10, 0, 0, 0); // Default to 10:00 AM
+  }
+
+  return target;
+}
+
+
+
+=== FILE: apps/web/src/lib/theme.ts (98 lines) ===
+/**
+ * BidarCRM - Theme Management Engine
+ *
+ * Supports Light and Dark modes with localStorage persistence,
+ * system preference fallbacks, and instantaneous class synchronization.
+ */
+
+import { useState, useEffect, useCallback } from 'react';
+
+export type ThemeMode = 'light' | 'dark';
+
+export const THEME_STORAGE_KEY = 'bidar_theme';
+
+export function getSystemTheme(): ThemeMode {
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  return 'light';
+}
+
+export function getInitialTheme(): ThemeMode {
+  if (typeof window === 'undefined') return 'light';
+  try {
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    if (stored === 'light' || stored === 'dark') {
+      return stored;
+    }
+  } catch {
+    // Local storage access error fallback
+  }
+  return getSystemTheme();
+}
+
+export function applyTheme(theme: ThemeMode): void {
+  if (typeof document === 'undefined') return;
+  const root = document.documentElement;
+  if (theme === 'dark') {
+    root.classList.add('dark');
+    root.classList.remove('light');
+  } else {
+    root.classList.remove('dark');
+    root.classList.add('light');
+  }
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+  } catch {
+    // Ignore storage quota errors
+  }
+}
+
+export function toggleThemeMode(current: ThemeMode): ThemeMode {
+  return current === 'dark' ? 'light' : 'dark';
+}
+
+/**
+ * React Hook for theme access and toggling
+ */
+export function useTheme() {
+  const [theme, setThemeState] = useState<ThemeMode>(getInitialTheme);
+
+  useEffect(() => {
+    applyTheme(theme);
+  }, [theme]);
+
+  // Listen to OS system preference changes if user hasn't explicitly set preference
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      const stored = localStorage.getItem(THEME_STORAGE_KEY);
+      if (!stored) {
+        setThemeState(e.matches ? 'dark' : 'light');
+      }
+    };
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  const toggle = useCallback(() => {
+    setThemeState((prev) => {
+      const next = toggleThemeMode(prev);
+      applyTheme(next);
+      return next;
+    });
+  }, []);
+
+  const setTheme = useCallback((newTheme: ThemeMode) => {
+    setThemeState(newTheme);
+    applyTheme(newTheme);
+  }, []);
+
+  return {
+    theme,
+    isDark: theme === 'dark',
+    toggleTheme: toggle,
+    setTheme,
+  };
+}
+

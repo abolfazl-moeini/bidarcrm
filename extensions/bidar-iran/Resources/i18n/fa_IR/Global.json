@@ -1,0 +1,69 @@
+{
+  "scopeNames": {
+    "Opportunity": "معامله",
+    "Pipeline": "کاریز",
+    "Lead": "سرنخ فروش",
+    "Account": "شرکت",
+    "Contact": "شخص",
+    "Call": "تماس",
+    "Meeting": "جلسه",
+    "Task": "وظیفه",
+    "Stream": "تایم‌لاین تعاملات",
+    "Dashboard": "نشانگر",
+    "BidarSmsTemplate": "قالب پیامک",
+    "BidarSmsMessage": "پیامک"
+  },
+  "scopeNamesPlural": {
+    "Opportunity": "معاملات",
+    "Pipeline": "کاریزها",
+    "Lead": "سرنخ‌های فروش",
+    "Account": "شرکت‌ها",
+    "Contact": "اشخاص",
+    "Call": "تماس‌ها",
+    "Meeting": "جلسات",
+    "Task": "وظایف",
+    "Stream": "تایم‌لاین تعاملات",
+    "Dashboard": "نشانگر",
+    "BidarSmsTemplate": "قالب‌های پیامک",
+    "BidarSmsMessage": "پیامک‌ها"
+  },
+  "labels": {
+    "Opportunity": "معامله",
+    "Opportunities": "معاملات",
+    "Pipeline": "کاریز",
+    "Pipelines": "کاریزها",
+    "Sales Pipeline": "کاریز فروش",
+    "SalesPipeline": "کاریز فروش",
+    "Lead": "سرنخ فروش",
+    "Leads": "سرنخ‌های فروش",
+    "Account": "شرکت",
+    "Accounts": "شرکت‌ها",
+    "Contact": "شخص",
+    "Contacts": "اشخاص",
+    "Call": "تماس",
+    "Calls": "تماس‌ها",
+    "Meeting": "جلسه",
+    "Meetings": "جلسات",
+    "Task": "وظیفه",
+    "Tasks": "وظایف",
+    "Stream": "تایم‌لاین تعاملات",
+    "Dashboard": "نشانگر",
+    "isRotten": "معامله راکد",
+    "Closed Won": "فروش موفق",
+    "Closed Lost": "شکست‌خورده"
+  },
+  "dashlets": {
+    "Leads": "سرنخ‌های فروش من",
+    "Opportunities": "معاملات من",
+    "Tasks": "وظایف من",
+    "Calls": "تماس‌های من",
+    "Meetings": "جلسات من",
+    "SalesPipeline": "کاریز فروش"
+  },
+  "options": {
+    "currency": {
+      "IRR": "ریال ایران",
+      "IRT": "تومان ایران"
+    }
+  }
+}

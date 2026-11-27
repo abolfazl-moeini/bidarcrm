@@ -1,0 +1,560 @@
+import {el} from 'bidar-theme:bidar';
+
+/** Negative closing stages: offered separately rather than on the path. */
+const OFF_PATH_STYLES = ['danger'];
+
+/**
+ * Record band: identity (name, assigned users, teams)
+ * and pipeline path.
+ */
+export default class RecordBand {
+
+    /**
+     * @param {import('views/record/detail').default} view
+     */
+    constructor(view) {
+        this.view = view;
+        this.model = view.model;
+        this.entityType = view.entityType;
+    }
+
+    init() {
+        this.view.listenTo(this.view, 'after:render', () => {
+            this.render();
+            this.watchBandHeight();
+            this.watchActions();
+            this.updateEditingState();
+        });
+
+        this.view.listenTo(this.view, 'after:mode-change', () => this.updateEditingState());
+
+        this.view.listenTo(this.model, 'sync change', () => {
+            if (this.view.isRendered()) {
+                this.render();
+            }
+        });
+
+        this.view.once('remove', () => this.releaseBackground());
+    }
+
+    /**
+     * The gradient is painted on the page background, which spans the full width without
+     * overflowing, over the exact height of the band (page header included).
+     *
+     * @private
+     */
+    watchBandHeight() {
+        const band = this.view.element && this.view.element.querySelector('.bidar-band');
+
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+        }
+
+        if (!band) {
+            return;
+        }
+
+        document.body.dataset.bidarBandOwner = this.view.cid;
+        document.body.classList.add('bidar-band-page');
+
+        // The first call comes once the browser has laid out the page, just before painting it:
+        // measuring then costs nothing, whereas measuring here would force an extra layout.
+        this.resizeObserver = new ResizeObserver(() => {
+            const bottom = band.getBoundingClientRect().bottom + window.scrollY;
+
+            document.body.style.setProperty('--bidar-band-height', `${Math.round(bottom)}px`);
+        });
+
+        this.resizeObserver.observe(band);
+
+        const header = document.querySelector('#main > .page-header');
+
+        if (header) {
+            this.resizeObserver.observe(header);
+        }
+    }
+
+    /**
+     * The stylesheet relies on this class to open every block while editing.
+     *
+     * @private
+     */
+    updateEditingState() {
+        const record = this.view.element && this.view.element.querySelector('.bidar-record');
+
+        if (record) {
+            record.classList.toggle('bidar-editing', this.view.mode === 'edit');
+        }
+    }
+
+    /**
+     * The buttons of the page header are laid over the line of the record buttons: each needs
+     * the width of the other. They change with the mode (Edit, then Save and Cancel) and with
+     * the header's own rendering (Follow, then Followed).
+     *
+     * @private
+     */
+    watchActions() {
+        this.stopWatchingActions();
+
+        const main = document.querySelector('#main');
+        const header = main && main.querySelector(':scope > .page-header');
+        const containers = this.view.element ?
+            [...this.view.element.querySelectorAll('.bidar-band .detail-button-container')] : [];
+
+        if (!header || !containers.length) {
+            return;
+        }
+
+        const update = () => {
+            const current = containers.find(item => item.offsetWidth > 0);
+
+            // Stuck to the top while scrolling, it takes the full width: keep the last measure.
+            if (current && current.classList.contains('stick-sub')) {
+                return;
+            }
+
+            const buttons = header.querySelector('.header-buttons');
+
+            // A user who cannot edit has no record buttons: nothing to leave room for.
+            main.style.setProperty('--bidar-band-actions-width', `${current ? Math.ceil(current.offsetWidth) : 0}px`);
+            main.style.setProperty('--bidar-band-actions-gap', current ? 'var(--8px)' : '0px');
+            main.style.setProperty(
+                '--bidar-band-header-actions-width',
+                `${buttons ? Math.ceil(buttons.offsetWidth) : 0}px`
+            );
+        };
+
+        // The first call comes once the layout is done, before the page is painted (see above).
+        this.actionsObserver = new ResizeObserver(update);
+        containers.forEach(item => this.actionsObserver.observe(item));
+
+        const observeButtons = () => {
+            const buttons = header.querySelector('.header-buttons');
+
+            if (buttons) {
+                this.actionsObserver.observe(buttons);
+            }
+        };
+
+        observeButtons();
+
+        // The header replaces its buttons when it renders again.
+        this.headerObserver = new MutationObserver(observeButtons);
+        this.headerObserver.observe(header, {childList: true, subtree: true});
+
+        main.classList.add('bidar-band-inline-actions');
+    }
+
+    /** @private */
+    stopWatchingActions() {
+        if (this.actionsObserver) {
+            this.actionsObserver.disconnect();
+        }
+
+        if (this.headerObserver) {
+            this.headerObserver.disconnect();
+        }
+
+        const main = document.querySelector('#main');
+
+        if (main) {
+            main.classList.remove('bidar-band-inline-actions');
+            main.style.removeProperty('--bidar-band-actions-width');
+            main.style.removeProperty('--bidar-band-actions-gap');
+            main.style.removeProperty('--bidar-band-header-actions-width');
+        }
+    }
+
+    /** @private */
+    releaseBackground() {
+        this.stopWatchingActions();
+
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+        }
+
+        // The next record may have set its own background before this one was removed.
+        if (document.body.dataset.bidarBandOwner !== this.view.cid) {
+            return;
+        }
+
+        delete document.body.dataset.bidarBandOwner;
+        document.body.classList.remove('bidar-band-page');
+        document.body.style.removeProperty('--bidar-band-height');
+    }
+
+    render() {
+        const root = this.view.element;
+
+        if (!root) {
+            return;
+        }
+
+        const identity = root.querySelector('[data-role="bidar-identity"]');
+        const pipeline = root.querySelector('[data-role="bidar-pipeline"]');
+
+        if (identity) {
+            identity.replaceChildren(this.buildIdentity());
+        }
+
+        if (pipeline) {
+            this.renderPipeline(pipeline);
+        }
+    }
+
+    /**
+     * @private
+     * @return {HTMLElement}
+     */
+    buildIdentity() {
+        const name = this.model.get('name') || '';
+
+        const wrapper = el('div', 'bidar-identity');
+        const text = el('div', 'bidar-identity-text');
+
+        // Main page heading (RGAA 9.1): EspoCRM's breadcrumb is only an h3.
+        text.append(el('h1', 'bidar-identity-name', name));
+
+        const people = this.buildPeople();
+
+        if (people) {
+            text.append(people);
+        }
+
+        wrapper.append(text);
+
+        return wrapper;
+    }
+
+    /**
+     * @private
+     * @param {string} name
+     * @return {string}
+     */
+    getInitials(name) {
+        const words = name.trim().split(/\s+/).filter(word => /[\p{L}\p{N}]/u.test(word));
+
+        if (!words.length) {
+            return [...this.view.translate(this.entityType, 'scopeNames')][0].toUpperCase();
+        }
+
+        const letters = words.length === 1 ?
+            [...words[0]].slice(0, 2) :
+            [[...words[0]][0], [...words[words.length - 1]][0]];
+
+        return letters.join('').toUpperCase();
+    }
+
+    /**
+     * Assigned users and teams, according to the entity's fields and read access.
+     *
+     * @private
+     * @return {HTMLElement|null}
+     */
+    buildPeople() {
+        const forbidden = this.view.getAcl().getScopeForbiddenFieldList(this.entityType, 'read');
+        const container = el('div', 'bidar-identity-people');
+
+        const users = this.getAssignedUsers(forbidden);
+
+        if (users) {
+            const chips = users.length ?
+                users.map(user => this.buildUserChip(user)) :
+                [el('span', 'bidar-person bidar-person-empty', this.view.translate('None', 'labels', 'Global'))];
+
+            const field = this.model.hasField('assignedUsers') ? 'assignedUsers' : 'assignedUser';
+
+            container.append(this.buildGroup(this.view.translate(field, 'fields', this.entityType), chips));
+        }
+
+        if (this.model.hasField('teams') && !forbidden.includes('teams')) {
+            const ids = this.model.get('teamsIds') || [];
+            const names = this.model.get('teamsNames') || {};
+
+            if (ids.length) {
+                container.append(this.buildGroup(
+                    this.view.translate('teams', 'fields', this.entityType),
+                    ids.map(id => el('span', 'bidar-person bidar-team', names[id] || id))
+                ));
+            }
+        }
+
+        return container.childElementCount ? container : null;
+    }
+
+    /**
+     * @private
+     * @param {string[]} forbidden
+     * @return {{id: string, name: string}[]|null} Null if the entity has no readable assignment field.
+     */
+    getAssignedUsers(forbidden) {
+        if (this.model.hasField('assignedUsers') && !forbidden.includes('assignedUsers')) {
+            const names = this.model.get('assignedUsersNames') || {};
+
+            return (this.model.get('assignedUsersIds') || []).map(id => ({id, name: names[id] || id}));
+        }
+
+        if (this.model.hasField('assignedUser') && !forbidden.includes('assignedUser')) {
+            const id = this.model.get('assignedUserId');
+
+            return id ? [{id, name: this.model.get('assignedUserName') || id}] : [];
+        }
+
+        return null;
+    }
+
+    /**
+     * @private
+     * @param {string} label
+     * @param {HTMLElement[]} chips
+     * @return {HTMLElement}
+     */
+    buildGroup(label, chips) {
+        const group = el('span', 'bidar-people-group');
+
+        group.append(el('span', 'bidar-people-label', label), ...chips);
+
+        return group;
+    }
+
+    /**
+     * @private
+     * @param {{id: string, name: string}} user
+     * @return {HTMLElement}
+     */
+    buildUserChip(user) {
+        const chip = el('span', 'bidar-person');
+        const initials = el('span', 'bidar-person-avatar', this.getInitials(user.name));
+
+        initials.setAttribute('aria-hidden', 'true');
+        chip.append(initials, el('span', '', user.name));
+
+        return chip;
+    }
+
+    /**
+     * @private
+     * @param {HTMLElement} container
+     */
+    renderPipeline(container) {
+        const pipeline = this.getPipeline();
+
+        if (!pipeline) {
+            this.renderPipelineSummary(container);
+
+            return;
+        }
+
+        container.classList.remove('hidden');
+
+        const currentId = this.model.get('pipelineStageId');
+        const path = pipeline.stages.filter(stage => !OFF_PATH_STYLES.includes(stage.style));
+        const offPath = pipeline.stages.filter(stage => OFF_PATH_STYLES.includes(stage.style));
+        const currentIndex = path.findIndex(stage => stage.id === currentId);
+        const editable = this.canEditStage();
+
+        const links = el('span', 'bidar-pipeline-off');
+
+        offPath.forEach(stage => {
+
+            if (stage.id === currentId) {
+                links.append(el('span', 'bidar-pipeline-off-current', stage.name));
+
+                return;
+            }
+
+            if (!editable) {
+                return;
+            }
+
+            const button = el('button', 'bidar-pipeline-off-link', stage.name);
+
+            button.type = 'button';
+            button.title = `${this.view.translate('pipelineStage', 'fields', this.entityType)} : ${stage.name}`;
+            button.addEventListener('click', () => this.setStage(stage.id));
+            links.append(button);
+        });
+
+        const stageLabel = this.view.translate('pipelineStage', 'fields', this.entityType);
+        const stateOf = index => index < currentIndex ? 'done' : index === currentIndex ? 'current' : 'todo';
+        const list = el('ol', 'bidar-pipeline-steps');
+
+        list.id = `bidar-pipeline-${this.view.cid}`;
+        list.setAttribute('aria-label', stageLabel);
+        list.style.setProperty('--bidar-steps', String(path.length));
+
+        path.forEach((stage, index) => {
+            const item = el('li', 'bidar-step');
+            const state = stateOf(index);
+
+            item.dataset.state = state;
+
+            if (state === 'current') {
+                item.setAttribute('aria-current', 'step');
+            }
+
+            const inner = editable && state !== 'current' ? el('button', 'bidar-step-inner') : el('span', 'bidar-step-inner');
+
+            if (inner.tagName === 'BUTTON') {
+                inner.type = 'button';
+                inner.addEventListener('click', () => this.setStage(stage.id));
+            }
+
+            if (state === 'done') {
+                inner.append(el('span', 'fas fa-check bidar-step-check'));
+            }
+
+            inner.append(el('span', 'bidar-step-label', stage.name));
+            item.append(inner);
+            list.append(item);
+        });
+
+        // Narrow screen: the current stage and a progress bar; the list opens on tap.
+        const current = pipeline.stages.find(stage => stage.id === currentId);
+        const toggle = el('button', 'bidar-pipeline-toggle');
+
+        toggle.type = 'button';
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.setAttribute('aria-controls', list.id);
+        toggle.setAttribute('aria-label', `${stageLabel} : ${current ? current.name : ''}`);
+        toggle.append(
+            el('span', 'bidar-pipeline-toggle-label', current ? current.name : stageLabel),
+            el('span', 'fas fa-chevron-down bidar-pipeline-toggle-icon')
+        );
+
+        toggle.addEventListener('click', () => {
+            toggle.setAttribute('aria-expanded', String(container.classList.toggle('bidar-pipeline-open')));
+        });
+
+        const bar = el('div', 'bidar-pipeline-bar');
+
+        bar.setAttribute('aria-hidden', 'true');
+
+        path.forEach((stage, index) => {
+            const segment = el('span', 'bidar-pipeline-segment');
+
+            segment.dataset.state = stateOf(index);
+            bar.append(segment);
+        });
+
+        container.classList.remove('bidar-pipeline-open');
+        container.replaceChildren(toggle, bar, list);
+
+        if (links.childElementCount) {
+            const head = el('div', 'bidar-pipeline-head');
+
+            head.append(links);
+            container.prepend(head);
+        }
+    }
+
+    /**
+     * Inactive pipeline: EspoCRM doesn't send its stages, so only the current stage is shown.
+     *
+     * @private
+     * @param {HTMLElement} container
+     */
+    renderPipelineSummary(container) {
+        const pipelineName = this.model.get('pipelineName');
+        const stageName = this.model.get('pipelineStageName');
+
+        if (!this.canReadStage() || !pipelineName || !stageName) {
+            container.classList.add('hidden');
+            container.replaceChildren();
+
+            return;
+        }
+
+        const head = el('div', 'bidar-pipeline-head');
+        const summary = el('span', 'bidar-pipeline-summary');
+
+        summary.append(this.view.translate('pipeline', 'fields', this.entityType) + ' ');
+        summary.append(el('strong', '', pipelineName), ' · ', el('span', 'bidar-pipeline-stage-chip', stageName));
+        head.append(summary);
+
+        container.classList.remove('hidden');
+        container.replaceChildren(head);
+    }
+
+    /**
+     * Read from the metadata and the application parameters rather than through an EspoCRM
+     * helper: the theme thus depends on no module that could change between versions.
+     *
+     * @private
+     * @return {boolean}
+     */
+    pipelinesEnabled() {
+        return this.view.getMetadata().get(['scopes', this.entityType, 'pipelines']) === true;
+    }
+
+    /**
+     * @private
+     * @return {{id: string, stages: {id: string, name: string, style: string|null}[]}[]}
+     */
+    getPipelines() {
+        return (this.view.getHelper().getAppParam('pipelines') || {})[this.entityType] || [];
+    }
+
+    /**
+     * @private
+     * @return {boolean}
+     */
+    canReadStage() {
+        if (!this.pipelinesEnabled() || !this.model.hasField('pipelineStage')) {
+            return false;
+        }
+
+        return !this.view.getAcl().getScopeForbiddenFieldList(this.entityType, 'read').includes('pipelineStage');
+    }
+
+    /**
+     * @private
+     * @return {{id: string, stages: {id: string, name: string, style: string|null}[]}|null}
+     */
+    getPipeline() {
+        if (!this.canReadStage()) {
+            return null;
+        }
+
+        const pipelineId = this.model.get('pipelineId');
+        const pipeline = this.getPipelines().find(item => item.id === pipelineId);
+
+        return pipeline && pipeline.stages && pipeline.stages.length ? pipeline : null;
+    }
+
+    /**
+     * @private
+     * @return {boolean}
+     */
+    canEditStage() {
+        if (this.view.readOnly || this.view.mode === 'edit') {
+            return false;
+        }
+
+        if (this.model.getFieldParam('pipelineStage', 'readOnly')) {
+            return false;
+        }
+
+        const forbidden = this.view.getAcl().getScopeForbiddenFieldList(this.entityType, 'edit');
+
+        return !forbidden.includes('pipelineStage') && this.view.getAcl().checkModel(this.model, 'edit') === true;
+    }
+
+    /**
+     * @private
+     * @param {string} stageId
+     */
+    async setStage(stageId) {
+        Espo.Ui.notifyWait();
+
+        try {
+            await this.model.save({pipelineStageId: stageId}, {patch: true});
+        } catch (e) {
+            // EspoCRM already shows the error returned by the server.
+            return;
+        }
+
+        Espo.Ui.success(this.view.translate('Saved'));
+    }
+}

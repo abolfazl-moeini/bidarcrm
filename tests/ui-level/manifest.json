@@ -106,7 +106,7 @@
     {
       "id": "kanban",
       "name": "کانبان کاریز معاملات (Kanban)",
-      "targetUrl": "http://localhost:5173/app/deals",
+      "targetUrl": "http://localhost:5173/app/kanban",
       "ref": "tests/ui-level/refs/kanban.html",
       "adapter": "html",
       "selector": "#root",
@@ -252,6 +252,96 @@
       "colorThresholdDeltaE": 2.0,
       "geometryTolerancePx": 0.5,
       "maskSelectors": [".dynamic-time"]
+    },
+    {
+      "id": "leads",
+      "name": "سرنخ‌های فروش (Leads)",
+      "targetUrl": "http://localhost:5173/app/leads",
+      "ref": "tests/ui-level/refs/leads.html",
+      "adapter": "html",
+      "selector": "#root",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      },
+      "viewports": [
+        {
+          "name": "desktop",
+          "width": 1280,
+          "height": 800,
+          "deviceScaleFactor": 2
+        },
+        {
+          "name": "tablet",
+          "width": 1024,
+          "height": 768,
+          "deviceScaleFactor": 2
+        }
+      ],
+      "colorThresholdDeltaE": 2.0,
+      "geometryTolerancePx": 0.5,
+      "maskSelectors": []
+    },
+    {
+      "id": "reports",
+      "name": "گزارشات تحلیلی و فروش (Reports)",
+      "targetUrl": "http://localhost:5173/app/reports",
+      "ref": "tests/ui-level/refs/reports.html",
+      "adapter": "html",
+      "selector": "#root",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      },
+      "viewports": [
+        {
+          "name": "desktop",
+          "width": 1280,
+          "height": 800,
+          "deviceScaleFactor": 2
+        },
+        {
+          "name": "tablet",
+          "width": 1024,
+          "height": 768,
+          "deviceScaleFactor": 2
+        }
+      ],
+      "colorThresholdDeltaE": 2.0,
+      "geometryTolerancePx": 0.5,
+      "maskSelectors": []
+    },
+    {
+      "id": "settings",
+      "name": "تنظیمات و پیکربندی سامانه (Settings)",
+      "targetUrl": "http://localhost:5173/app/settings",
+      "ref": "tests/ui-level/refs/settings.html",
+      "adapter": "html",
+      "selector": "#root",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      },
+      "viewports": [
+        {
+          "name": "desktop",
+          "width": 1280,
+          "height": 800,
+          "deviceScaleFactor": 2
+        },
+        {
+          "name": "tablet",
+          "width": 1024,
+          "height": 768,
+          "deviceScaleFactor": 2
+        }
+      ],
+      "colorThresholdDeltaE": 2.0,
+      "geometryTolerancePx": 0.5,
+      "maskSelectors": []
     }
   ]
 }

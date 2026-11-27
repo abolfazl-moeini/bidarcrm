@@ -1,7 +1,7 @@
 {
   "fields": {
     "apiKey": {
-      "type": "varchar",
+      "type": "password",
       "required": true
     },
     "senderLine": {

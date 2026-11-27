@@ -1,0 +1,17 @@
+{
+  "messages": {
+    "upgradeBackup": "We recommend making a backup of your Bidar CRM files and data before upgrading.",
+    "newVersionIsAvailable": "New Bidar CRM version {latestVersion} is available.",
+    "upgradeDone": "Bidar CRM has been upgraded to version **{version}**.",
+    "upgradeVersion": "Bidar CRM will be upgraded to version **{version}**. Please be patient as this may take a while."
+  },
+  "descriptions": {
+    "upgrade": "Upgrade Bidar CRM",
+    "systemRequirements": "System Requirements for Bidar CRM"
+  },
+  "labels": {
+    "upgrade": "Upgrade Bidar CRM",
+    "cronIsNotConfigured": "Scheduled jobs are not running. Hence inbound emails, notifications and reminders are not working. Please setup a cron job for Bidar CRM.",
+    "upgradeInfo": "Check the documentation on how to upgrade your Bidar CRM instance."
+  }
+}

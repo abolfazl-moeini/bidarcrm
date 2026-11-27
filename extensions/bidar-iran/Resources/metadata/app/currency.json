@@ -1,0 +1,14 @@
+{
+  "list": [
+    "__APPEND__",
+    "IRT"
+  ],
+  "symbolMap": {
+    "IRR": "ریال",
+    "IRT": "تومان"
+  },
+  "precisionMap": {
+    "IRR": 0,
+    "IRT": 0
+  }
+}

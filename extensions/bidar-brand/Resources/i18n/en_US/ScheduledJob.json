@@ -1,0 +1,10 @@
+{
+  "options": {
+    "cronSetup": {
+      "linux": "Note: Add this line to the crontab file to run Bidar CRM Scheduled Jobs:",
+      "mac": "Note: Add this line to the crontab file to run Bidar CRM Scheduled Jobs:",
+      "windows": "Note: Create a batch file with the following commands to run Bidar CRM Scheduled Jobs using Windows Scheduled Tasks:",
+      "default": "Note: Add this command to Cron Job (Scheduled Task):"
+    }
+  }
+}

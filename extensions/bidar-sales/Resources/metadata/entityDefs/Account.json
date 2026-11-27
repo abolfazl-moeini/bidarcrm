@@ -1,0 +1,29 @@
+{
+  "fields": {
+    "customerGroups": {
+      "type": "multiEnum",
+      "options": ["VIP", "Reseller", "Loyal", "Exhibition", "FirstPurchase"],
+      "default": []
+    },
+    "industry": {
+      "type": "enum",
+      "options": [
+        "",
+        "Technology",
+        "Software",
+        "Advertising",
+        "Manufacturing",
+        "Healthcare",
+        "Finance",
+        "Retail",
+        "Consulting",
+        "Education",
+        "Real Estate",
+        "Telecommunications",
+        "Other",
+        "فناوری اطلاعات و ارتباطات",
+        "فناوری اطلاعات"
+      ]
+    }
+  }
+}

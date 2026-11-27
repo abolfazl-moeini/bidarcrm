@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مخاطبان و مشتریان | بیدار CRM</title>
+  <link rel="stylesheet" href="./assets/bidar-styles.css">
+  <style>
+    body { font-family: 'Vazirmatn', system-ui, -apple-system, sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+  
+    <header class="bg-slate-900 border-b border-slate-800 px-4 py-2.5 flex items-center justify-between text-slate-100 select-none">
+      <div class="flex items-center gap-4">
+        <a href="index.html" class="flex items-center gap-2 hover:opacity-90 transition">
+          <div class="w-8 h-8 rounded-xl bg-teal-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+            ب
+          </div>
+          <span class="font-bold text-sm tracking-tight text-white">بیدار CRM</span>
+        </a>
+        <nav class="hidden md:flex items-center gap-1 border-r border-slate-800 pr-4">
+          <a href="dashboard.html" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">داشبورد</a>
+          <a href="kanban.html" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">کاریز فروش</a>
+          <a href="deal-detail.html" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">جزئیات معامله</a>
+          <a href="leads.html" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">سرنخ‌ها</a>
+          <a href="contacts.html" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors bg-slate-800 text-white font-semibold">مخاطبان</a>
+          <a href="accounts.html" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">شرکت‌ها</a>
+          <a href="activities.html" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">فعالیت‌ها</a>
+          <a href="reports.html" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">گزارشات</a>
+          <a href="settings.html" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">تنظیمات</a>
+        </nav>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-xs bg-teal-950/80 text-teal-400 border border-teal-800/60 px-2 py-0.5 rounded-md font-mono hidden sm:inline">نسخه آفلاین</span>
+        <a href="login.html" class="text-xs text-rose-400 hover:text-rose-300 font-medium">خروج</a>
+      </div>
+    </header>
+  
+  <main class="w-full">
+    
+      <div class="max-w-7xl mx-auto p-6 space-y-5" dir="rtl">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+          <div>
+            <h1 class="text-xl font-bold text-slate-100">فهرست مخاطبان</h1>
+            <p class="text-xs text-slate-400 mt-0.5">مدیریت اشخاص حقیقی، تصمیم‌گیرندگان و مدیران سازمان‌ها</p>
+          </div>
+          <button class="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-semibold">+ مخاطب جدید</button>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+          <table class="bidar-contacts-table w-full text-right border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-950 border-b border-slate-800 text-slate-400 font-semibold">
+                <th class="py-3 px-4">نام کامل</th>
+                <th class="py-3 px-4">شرکت متبوع</th>
+                <th class="py-3 px-4">سمت</th>
+                <th class="py-3 px-4">تلفن همراه</th>
+                <th class="py-3 px-4">ایمیل</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800 text-slate-200">
+              <tr class="hover:bg-slate-800/40">
+                <td class="py-3 px-4 font-bold text-slate-100">علیرضا رضایی</td>
+                <td class="py-3 px-4 text-slate-400">فولاد البرز</td>
+                <td class="py-3 px-4">مدیر فناوری اطلاعات</td>
+                <td class="py-3 px-4 font-mono" dir="ltr">۰۹۱۲۱۱۱۴۴۵۵</td>
+                <td class="py-3 px-4 font-mono text-slate-400">a.rezaei@alborzsteel.ir</td>
+              </tr>
+              <tr class="hover:bg-slate-800/40">
+                <td class="py-3 px-4 font-bold text-slate-100">سارا یوسفی</td>
+                <td class="py-3 px-4 text-slate-400">بازرگانی سینا</td>
+                <td class="py-3 px-4">مدیر بازرگانی خارجی</td>
+                <td class="py-3 px-4 font-mono" dir="ltr">۰۹۳۳۲۲۲۹۹۰۰</td>
+                <td class="py-3 px-4 font-mono text-slate-400">yousefi@sinatrading.com</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    
+  </main>
+</body>
+</html>

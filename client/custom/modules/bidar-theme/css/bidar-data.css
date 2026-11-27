@@ -1,0 +1,283 @@
+/**
+ * Data: lists as cards, marked column headers, status badges.
+ */
+
+/* ===== Main list: a card ===== */
+#main > .list-container > .list,
+.modal-body .list-container > .list {
+    background-color: var(--bidar-surface);
+    border: 1px solid var(--bidar-border);
+    border-radius: var(--bidar-radius-lg);
+    box-shadow: var(--bidar-shadow-xs);
+}
+
+#main > .list-container > .list {
+    position: relative;
+    margin-inline-start: 0;
+    margin-inline-end: 0;
+}
+
+/* Cyan corner, the Bidar card signature (inside the frame: the list clips what overflows) */
+#main > .list-container > .list::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    inset-inline-start: 0;
+    /* Above the pinned columns of Better Columns (sticky, level 3) */
+    z-index: 6;
+    width: 21px;
+    height: 21px;
+    border-top: 3px solid var(--bidar-signature);
+    border-inline-start: 3px solid var(--bidar-signature);
+    border-start-start-radius: calc(var(--bidar-radius-lg) - 1px);
+    pointer-events: none;
+}
+
+#main > .list-container > .list > table,
+.modal-body .list-container > .list > table {
+    margin-bottom: 0;
+}
+
+/* ===== Tables ===== */
+.list > table {
+    font-variant-numeric: tabular-nums;
+}
+
+.list > table > thead > tr > th,
+:where(#main) .table > thead > tr > th {
+    background-color: var(--bidar-table-head-bg);
+    border-inline-end: 1px solid var(--bidar-table-head-line);
+    border-bottom: 1px solid var(--bidar-table-head-line);
+    color: var(--bidar-text-secondary);
+    font-size: var(--12px);
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    vertical-align: middle;
+    transition: background-color var(--bidar-fast) ease;
+}
+
+.list > table > thead > tr > th:last-child,
+:where(#main) .table > thead > tr > th:last-child {
+    border-inline-end: 0;
+}
+
+.list > table > thead > tr > th:hover {
+    background-color: var(--bidar-table-head-hover);
+}
+
+/* In a panel, the list has no frame of its own: the header gets a line on top as well */
+.panel-body > div > .list > table.table > thead > tr > th {
+    border-top: 1px solid var(--bidar-table-head-line);
+}
+
+.list > table > thead > tr > th:not(:first-child),
+.list > table > tbody > tr > td:not(:first-child) {
+    padding-inline-start: var(--14px);
+}
+
+.list > table > thead > tr > th a.sort {
+    color: inherit;
+    font-weight: inherit;
+}
+
+.list > table > thead > tr > th a.sort:hover {
+    color: var(--bidar-text);
+}
+
+#main > .list-container > .list > table > thead > tr > th {
+    padding-top: var(--10px);
+    padding-bottom: var(--10px);
+}
+
+#main > .list-container > .list > table > tbody > tr > td {
+    padding-top: var(--10px);
+    padding-bottom: var(--10px);
+    border-top: 1px solid var(--bidar-n-100);
+    vertical-align: middle;
+}
+
+.list > table > tbody > tr {
+    transition: background-color var(--bidar-fast) ease;
+}
+
+.list > table > tbody > tr:hover > td {
+    background-color: var(--bidar-table-row-hover);
+}
+
+.list > table > tbody > tr.active > td,
+.list > table > tbody > tr:has(input.record-checkbox:checked) > td {
+    background-color: var(--bidar-brand-subtle);
+}
+
+.list > table a.link {
+    font-weight: 500;
+}
+
+.list > table a.link:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--bidar-n-300);
+}
+
+/* "Show more" below the list */
+.list .show-more {
+    padding: var(--8px) 0;
+}
+
+.list .show-more .btn {
+    color: var(--bidar-text-muted);
+}
+
+/* Toolbar above the list */
+.list-buttons-container {
+    margin-bottom: var(--10px);
+}
+
+.list-buttons-container .pagination-btn-middle {
+    color: var(--bidar-text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Kanban: pastel headers with the title in colour, the tints of the panel headings. They go
+ * through EspoCRM's own variables, which its very specific rules read.
+ */
+div.list-kanban th.group-header {
+    --label-default-bg: var(--bidar-n-150);
+    --brand-primary: var(--panel-primary-bg);
+    --brand-info: var(--panel-info-bg);
+    --brand-success: var(--panel-success-bg);
+    --brand-warning: var(--panel-warning-bg);
+    --brand-danger: var(--panel-danger-bg);
+    --text-white-color: var(--bidar-text-secondary);
+}
+
+div.list-kanban th.group-header-primary { --text-white-color: var(--panel-primary-text); }
+div.list-kanban th.group-header-info { --text-white-color: var(--panel-info-text); }
+div.list-kanban th.group-header-success { --text-white-color: var(--panel-success-text); }
+div.list-kanban th.group-header-warning { --text-white-color: var(--panel-warning-text); }
+div.list-kanban th.group-header-danger { --text-white-color: var(--panel-danger-text); }
+
+div.list-kanban th.group-header .kanban-group-label {
+    font-weight: 600;
+}
+
+/* ===== Kanban Board Layout & Cards ===== */
+.list-kanban-container {
+    padding-bottom: 12px;
+}
+
+div.list-kanban {
+    border-collapse: separate;
+    border-spacing: 12px 0;
+}
+
+div.list-kanban table.kanban-columns td.group-column {
+    background-color: var(--bidar-surface-sunken, #f8fafc);
+    border: 1px solid var(--bidar-border);
+    border-radius: var(--bidar-radius-lg, 10px);
+    padding: 10px;
+    vertical-align: top;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+div.list-kanban th.group-header {
+    border-start-start-radius: var(--bidar-radius-md, 8px);
+    border-start-end-radius: var(--bidar-radius-md, 8px);
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+    padding: 10px 14px;
+    font-size: var(--13px);
+}
+
+/* Kanban Cards */
+div.list-kanban .group-column-list .item {
+    margin-bottom: 10px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+div.list-kanban .group-column-list .item .panel.panel-default {
+    background: var(--bidar-surface);
+    border: 1px solid var(--bidar-border, #e2e8f0);
+    border-radius: var(--bidar-radius-md, 8px);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+    margin-bottom: 0;
+    overflow: hidden;
+    position: relative;
+}
+
+div.list-kanban .group-column-list .item:hover .panel.panel-default {
+    border-color: var(--bidar-border-strong);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+    transform: translateY(-1px);
+}
+
+/* Drag placeholder */
+div.list-kanban .ui-sortable-placeholder,
+div.list-kanban .drag-placeholder {
+    border: 2px dashed var(--bidar-brand) !important;
+    background: rgba(15, 118, 110, 0.06) !important;
+    border-radius: var(--bidar-radius-md, 8px) !important;
+    min-height: 72px;
+    margin-bottom: 10px;
+    visibility: visible !important;
+}
+
+/* Rotten deal visual indicator */
+div.list-kanban .item[data-is-rotten="true"] .panel.panel-default,
+div.list-kanban .item.is-rotten .panel.panel-default,
+div.list-kanban .item:has(.field[data-name="isRotten"]:not(:empty)) .panel.panel-default {
+    border-inline-start: 3px solid var(--bidar-danger, #ef4444);
+    background: linear-gradient(to right, rgba(239, 68, 68, 0.04) 0%, var(--bidar-surface) 24px);
+}
+
+/* ===== Badges ===== */
+.badge,
+.label,
+.bidar-badge,
+.number-badge,
+td[data-name="status"] > .field > span,
+td[data-name="stage"] > .field > span {
+    white-space: nowrap !important;
+    display: inline-flex;
+    align-items: center;
+}
+
+.label {
+    border-radius: var(--bidar-radius-pill);
+    font-weight: 500;
+    letter-spacing: 0;
+}
+
+.label.label-md:not(.label-state) {
+    padding: var(--2px) var(--8px);
+    font-size: var(--12px);
+    line-height: 1.5;
+}
+
+.label.label-state {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--6px);
+    padding: var(--2px) var(--8px);
+    font-size: var(--12px);
+    font-weight: 500;
+    line-height: 1.5;
+    box-shadow: inset 0 0 0 1px var(--bidar-border);
+}
+
+.label.label-state::before {
+    content: "";
+    flex: none;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: currentColor;
+}
+
+.label.label-state.label-primary { box-shadow: inset 0 0 0 1px var(--state-primary-border); }
+.label.label-state.label-info { box-shadow: inset 0 0 0 1px var(--state-info-border); }
+.label.label-state.label-success { box-shadow: inset 0 0 0 1px var(--state-success-border); }
+.label.label-state.label-warning { box-shadow: inset 0 0 0 1px var(--state-warning-border); }
+.label.label-state.label-danger { box-shadow: inset 0 0 0 1px var(--state-danger-border); }

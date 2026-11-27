@@ -1,0 +1,11 @@
+{
+  "fields": {
+    "name": "نام قلم",
+    "quantity": "تعداد",
+    "unitPrice": "قیمت واحد",
+    "discountPercent": "تخفیف (درصد)",
+    "lineTotal": "جمع کل قلم",
+    "opportunity": "معامله",
+    "product": "محصول"
+  }
+}

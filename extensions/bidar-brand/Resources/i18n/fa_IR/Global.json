@@ -1,0 +1,11 @@
+{
+  "labels": {
+    "My Espo": "نشانگر من",
+    "About": "درباره بیدار CRM",
+    "Application": "بیدار CRM"
+  },
+  "themes": {
+    "Bidar": "بیدار (پیش‌فرض RTL)",
+    "Espo": "کلاسیک"
+  }
+}

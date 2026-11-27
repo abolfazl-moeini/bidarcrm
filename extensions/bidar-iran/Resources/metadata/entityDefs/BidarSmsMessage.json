@@ -1,0 +1,49 @@
+{
+  "fields": {
+    "phoneNumber": {
+      "type": "varchar",
+      "maxLength": 32,
+      "index": true
+    },
+    "body": {
+      "type": "text"
+    },
+    "status": {
+      "type": "enum",
+      "options": ["sent", "scheduled", "failed", "received"],
+      "default": "sent",
+      "index": true
+    },
+    "providerMessageId": {
+      "type": "varchar",
+      "maxLength": 64
+    },
+    "contactId": {
+      "type": "varchar",
+      "maxLength": 24
+    },
+    "contact": {
+      "type": "link"
+    },
+    "opportunityId": {
+      "type": "varchar",
+      "maxLength": 24
+    },
+    "opportunity": {
+      "type": "link"
+    },
+    "scheduledAt": {
+      "type": "datetime"
+    }
+  },
+  "links": {
+    "contact": {
+      "type": "belongsTo",
+      "entity": "Contact"
+    },
+    "opportunity": {
+      "type": "belongsTo",
+      "entity": "Opportunity"
+    }
+  }
+}

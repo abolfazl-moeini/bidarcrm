@@ -1,0 +1,11 @@
+{
+  "fields": {
+    "nationalCode": {
+      "type": "varchar",
+      "maxLength": 10
+    },
+    "birthDate": {
+      "type": "date"
+    }
+  }
+}

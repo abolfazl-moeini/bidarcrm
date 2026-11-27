@@ -1,0 +1,28 @@
+{
+  "fields": {
+    "bidarColorScheme": "طرح رنگ بیدار",
+    "bidarDensity": "تراکم",
+    "bidarLayout": "چیدمان"
+  },
+  "options": {
+    "bidarColorScheme": {
+      "light": "روشن",
+      "dark": "تیره",
+      "system": "مطابق سیستم"
+    },
+    "bidarDensity": {
+      "comfortable": "راحت",
+      "compact": "فشرده"
+    },
+    "bidarLayout": {
+      "": "پیش‌فرض",
+      "split": "دوستونه",
+      "classic": "کلاسیک"
+    }
+  },
+  "labels": {
+    "bidarColorScheme": "طرح رنگ بیدار",
+    "bidarDensity": "تراکم",
+    "bidarLayout": "چیدمان"
+  }
+}

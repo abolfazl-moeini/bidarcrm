@@ -1,0 +1,242 @@
+/**
+ * Brut style (neo-brutalism): thick outlines, hard offset shadows, yellow and pink, and the Space
+ * Grotesk typeface. It applies when js/appearance.js sets data-bidar-style="brut" on the root
+ * element, from the user's choice or the administrator's default.
+ *
+ * The light block does not apply in the dark palette: the dark block then sets every value on top
+ * of css/bidar-dark.css, with light outlines and yellow shadows. Text contrast is at least 4.5:1.
+ */
+:root[data-bidar-style="brut"] {
+    --bidar-font: "Bidar Space Grotesk", "Bidar Inter", -apple-system, "Segoe UI", sans-serif;
+    --bidar-radius-sm: 4px;
+    --bidar-radius: 6px;
+    --bidar-radius-md: 6px;
+    --bidar-radius-lg: 8px;
+    --bidar-signature: #ffd23f;
+    --bidar-on-signature: #111111;
+    --bidar-brand: #ff5ca8;
+    --bidar-brand-hover: #ff4597;
+    --bidar-brand-active: #f0358a;
+    --bidar-on-brand: #111111;
+    --bidar-shadow-xs: 4px 4px 0 var(--bidar-brut-ink);
+    --bidar-shadow-sm: 4px 4px 0 var(--bidar-brut-ink);
+    --bidar-shadow-md: 6px 6px 0 var(--bidar-brut-ink);
+    --bidar-shadow-lg: 8px 8px 0 var(--bidar-brut-ink);
+    --bidar-shadow-primary: 3px 3px 0 var(--bidar-brut-ink);
+    --bidar-shadow-primary-hover: 4px 4px 0 var(--bidar-brut-ink);
+    --bidar-band-glow: linear-gradient(transparent, transparent);
+    --bidar-sidebar-glow: linear-gradient(transparent, transparent);
+    --bidar-band-primary-bg: #ff5ca8;
+    --bidar-band-primary-hover: #ff4597;
+    --bidar-band-primary-text: #111111;
+    --bidar-band-avatar-bg: #8fd3ff;
+    --bidar-band-avatar-text: #111111;
+    --bidar-table-head-bg: #ffe066;
+    --bidar-table-head-hover: #ffd23f;
+    --bidar-sidebar-active: #ffd23f;
+    --bidar-sidebar-strong: #111111;
+}
+
+:root[data-bidar-style="brut"]:not([data-bidar-scheme="dark"]) {
+    --bidar-canvas: #fdf6e3;
+    --bidar-surface: #ffffff;
+    --bidar-surface-sunken: #fffdf6;
+    --bidar-border: #111111;
+    --bidar-border-strong: #111111;
+    --bidar-border-input: #111111;
+    --bidar-text: #111111;
+    --bidar-text-secondary: #2b2b2b;
+    --bidar-text-muted: #4a4a4a;
+    --bidar-text-faint: #4a4a4a;
+    --bidar-brand-subtle: #ffe066;
+    --bidar-brand-border: #111111;
+    --bidar-brand-subtle-hover: #ffd23f;
+    --bidar-brand-ring: #111111;
+    --bidar-selection: rgba(255, 92, 168, 0.3);
+    --bidar-link: #1a3fd1;
+    --bidar-link-hover: #111111;
+    /* Pink is a fill only: text and thin marks in the brand colour are black (pink reaches 2.9:1) */
+    --bidar-brand-text: #111111;
+    --bidar-brand-mark: #111111;
+    --bidar-focus-halo: 0 0 0 3px rgba(17, 17, 17, 0.25);
+
+    --bidar-band-bg: #fdf6e3;
+    --bidar-band-text: #111111;
+    --bidar-band-muted: #2b2b2b;
+    --bidar-band-line: #111111;
+    --bidar-band-gradient: linear-gradient(#fdf6e3, #fdf6e3);
+    --bidar-topbar-bg: #fdf6e3;
+    --bidar-band-fill-1: #fff3c4;
+    --bidar-band-fill-2: #ffe99a;
+    --bidar-band-fill-3: #ffffff;
+    --bidar-band-fill-4: #ffe066;
+
+    --bidar-table-head-line: #111111;
+    --bidar-table-row-hover: #fff6cf;
+
+    --bidar-sidebar-bg: #ffffff;
+    --bidar-sidebar-line: #111111;
+    --bidar-sidebar-text: #111111;
+    --bidar-sidebar-muted: #111111;
+    --bidar-sidebar-hover: #fff3c4;
+    --bidar-sidebar-logo-filter: grayscale(1) brightness(0);
+    --bidar-sidebar-logo-opacity: 1;
+
+    --navbar-bg: #fdf6e3;
+    --input-border: #111111;
+    --input-border-focus-rgba: rgba(17, 17, 17, 0.25);
+
+    /* The style's own values */
+    --bidar-brut-ink: #111111;
+    --bidar-brut-box: #ffffff;
+}
+
+:root[data-bidar-style="brut"][data-bidar-scheme="dark"] {
+    --bidar-n-0: #1f1f1f;
+    --bidar-n-25: #1a1a1a;
+    --bidar-n-50: #161616;
+    --bidar-n-100: #2a2a2a;
+    --bidar-n-150: #333333;
+    --bidar-n-200: #3d3d3d;
+    --bidar-n-300: #4d4d4d;
+    --bidar-n-400: #7a7a75;
+    --bidar-n-500: #a8a8a2;
+    --bidar-n-600: #c4c4bd;
+    --bidar-n-700: #dcdcd5;
+    --bidar-n-800: #ebebe5;
+    --bidar-n-900: #f5f5f0;
+
+    --bidar-canvas: #161616;
+    --bidar-surface: #1f1f1f;
+    --bidar-surface-sunken: #1a1a1a;
+    --bidar-border: #f5f5f0;
+    --bidar-border-strong: #f5f5f0;
+    --bidar-border-input: #f5f5f0;
+    --bidar-text: #f5f5f0;
+    --bidar-text-secondary: #e2e2dc;
+    --bidar-text-muted: #c4c4bd;
+    --bidar-text-faint: #c4c4bd;
+    --bidar-brand-subtle: #3a3216;
+    --bidar-brand-border: #f5f5f0;
+    --bidar-brand-subtle-hover: #4a3f12;
+    --bidar-brand-ring: #ffd23f;
+    --bidar-selection: rgba(255, 210, 63, 0.3);
+    --bidar-link: #8fd3ff;
+    --bidar-link-hover: #ffd23f;
+    --bidar-focus-halo: 0 0 0 3px rgba(255, 210, 63, 0.35);
+
+    --bidar-band-bg: #161616;
+    --bidar-band-text: #f5f5f0;
+    --bidar-band-muted: #e2e2dc;
+    --bidar-band-line: #f5f5f0;
+    --bidar-band-gradient: linear-gradient(#161616, #161616);
+    --bidar-topbar-bg: #161616;
+    --bidar-band-fill-1: #2a2614;
+    --bidar-band-fill-2: #3a3216;
+    --bidar-band-fill-3: #1f1f1f;
+    --bidar-band-fill-4: #4a3f12;
+
+    --bidar-table-head-line: #f5f5f0;
+    --bidar-table-row-hover: #262214;
+
+    --bidar-sidebar-bg: #111111;
+    --bidar-sidebar-line: #f5f5f0;
+    --bidar-sidebar-text: #f5f5f0;
+    --bidar-sidebar-muted: #f5f5f0;
+    --bidar-sidebar-hover: #2a2614;
+
+    --navbar-bg: #161616;
+    --input-bg: #121212;
+    --input-border: #f5f5f0;
+    --input-border-focus-rgba: rgba(255, 210, 63, 0.35);
+    --btn-default-bg: #1f1f1f;
+    --tooltip-bg: #ffd23f;
+    --tooltip-color: #111111;
+
+    --bidar-brut-ink: #ffd23f;
+    --bidar-brut-box: #1f1f1f;
+}
+
+/* No cyan corner: the thick outline frames the cards */
+:root[data-bidar-style="brut"] :is(.bidar-layout-classic .bidar-content-card, .bidar-record .bidar-inspector-card, #main > .list-container > .list)::before {
+    display: none;
+}
+
+:root[data-bidar-style="brut"] :is(.bidar-inspector-card, .bidar-inspector > .side > .panel, .bidar-record .bidar-main, .bidar-record .bidar-content-card, #main > .list-container > .list, .bidar-composer) {
+    border-width: 2px;
+}
+
+/* Important: EspoCRM sets button borders with !important */
+:root[data-bidar-style="brut"] .btn {
+    border-width: 2px !important;
+    border-color: var(--bidar-border) !important;
+}
+
+/* Column headers on yellow, in both palettes */
+:root[data-bidar-style="brut"] :is(.list > table > thead > tr > th, :where(#main) .table > thead > tr > th) {
+    color: #111111;
+    font-weight: 700;
+    border-bottom-width: 2px;
+}
+
+:root[data-bidar-style="brut"] .bidar-identity-name {
+    font-size: var(--32px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+}
+
+:root[data-bidar-style="brut"] .bidar-step .bidar-step-inner {
+    font-weight: 700;
+}
+
+:root[data-bidar-style="brut"] #navbar {
+    border-bottom: 2px solid var(--bidar-border);
+}
+
+/* Side menu: icons in outlined boxes, the current page in yellow with a hard shadow */
+:root[data-bidar-style="brut"] body[data-navbar="side"] #navbar > .navbar {
+    border-right: 2px solid var(--bidar-border);
+}
+
+/* Important: EspoCRM sets the entity colour as the border of the link itself */
+:root[data-bidar-style="brut"] body[data-navbar="side"] #navbar ul.tabs > li:is(.tab, .more) > a {
+    margin: 3px 12px;
+    border: 2px solid transparent !important;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+:root[data-bidar-style="brut"] body[data-navbar="side"] #navbar ul.tabs > li.tab > a .short-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    margin-left: -4px;
+    border: 2px solid var(--bidar-border);
+    border-radius: 6px;
+    background: var(--bidar-brut-box);
+    box-shadow: 2px 2px 0 var(--bidar-brut-ink);
+}
+
+:root[data-bidar-style="brut"] body[data-navbar="side"] #navbar ul.tabs > li.tab > a:hover {
+    border-color: var(--bidar-border) !important;
+}
+
+:root[data-bidar-style="brut"] body[data-navbar="side"] #navbar ul.tabs > li.tab.active > a,
+:root[data-bidar-style="brut"] body[data-navbar="side"] #navbar ul.tabs > li.tab.active > a:hover {
+    border-color: #111111 !important;
+    box-shadow: 3px 3px 0 var(--bidar-brut-ink);
+    color: #111111;
+}
+
+:root[data-bidar-style="brut"] body[data-navbar="side"] #navbar ul.tabs > li.tab.active > a::before {
+    display: none;
+}
+
+:root[data-bidar-style="brut"] body[data-navbar="side"] #navbar ul.tabs > li.tab-divider > div > .label-text {
+    font-size: var(--11px);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}

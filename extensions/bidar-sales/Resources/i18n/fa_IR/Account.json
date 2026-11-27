@@ -1,0 +1,14 @@
+{
+  "fields": {
+    "customerGroups": "گروه‌های مشتری"
+  },
+  "options": {
+    "customerGroups": {
+      "VIP": "VIP",
+      "Reseller": "نماینده",
+      "Loyal": "مشتری وفادار",
+      "Exhibition": "نمایشگاه",
+      "FirstPurchase": "خرید اول"
+    }
+  }
+}

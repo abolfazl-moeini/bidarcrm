@@ -1,0 +1,14 @@
+/**
+ * Bidar theme: iframe stylesheet for the Monochrome style (e-mail bodies and rich text in a frame).
+ * EspoCRM picks it while the style is on (src/helpers/appearance.js).
+ */
+@import "bidar-iframe.css?v=1.1.0";
+
+:root {
+    --bidar-font: "Bidar Inter", -apple-system, "Segoe UI", sans-serif;
+    --text-color: #1c1d1f;
+    --text-link-color: #1c1d1f;
+    --text-link-hover-color: #1f5fd6;
+    --default-border-color: #ececee;
+    --blockquote-border-color: #cfcfd4;
+}

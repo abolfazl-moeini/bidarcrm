@@ -3,36 +3,51 @@
  *
  * Verifies pipeline stages discovery, creates a deal, and simulates stage transition.
  */
-import { ok, fail } from '../lib/scenario.js';
+import { ok, fail, createEspoAuthHeaders } from '../lib/scenario.js';
 
 export const name = '03-kanban-create-and-dnd';
 
-export async function run({ baseUrl, state = {} }) {
+export async function run({ baseUrl, state = {}, timeoutMs = 30000 }) {
   const start = performance.now();
   try {
-    const headers = {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    };
-    if (state.token) {
-      const username = state.username || 'admin';
-      const authVal = Buffer.from(`${username}:${state.token}`).toString('base64');
-      headers['Espo-Authorization'] = authVal;
-      headers['Espo-Authorization-By-Token'] = 'true';
-      headers['Authorization'] = `Bearer ${state.token}`;
-    }
+    const headers = createEspoAuthHeaders(state);
 
     // 1. Fetch Pipelines & Stages
     const pipeRes = await fetch(`${baseUrl}/api/v1/Pipeline`, {
       method: 'GET',
       headers,
+      signal: AbortSignal.timeout(timeoutMs),
     });
     if (!pipeRes.ok) {
       throw new Error(`Pipeline fetch failed with HTTP ${pipeRes.status}`);
     }
     const pipeData = await pipeRes.json();
-    const pipelines = pipeData.list || [];
-    state.pipeline = pipelines[0] || null;
+    const pipelines = Array.isArray(pipeData.list) ? pipeData.list : [];
+    const discoveredPipeline = pipelines.find((pipeline) => Array.isArray(pipeline?.stages) && pipeline.stages.length > 0);
+    state.pipeline = Array.isArray(state.pipeline?.stages) && state.pipeline.stages.length > 0
+      ? state.pipeline
+      : discoveredPipeline || pipelines[0] || null;
+
+    let stages = Array.isArray(state.pipeline?.stages) ? state.pipeline.stages : null;
+    if (!Array.isArray(stages)) {
+      const stagesRes = await fetch(`${baseUrl}/api/v1/PipelineStage`, {
+        method: 'GET',
+        headers,
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+      if (!stagesRes.ok) {
+        throw new Error(`Pipeline has no stages array and PipelineStage fetch failed with HTTP ${stagesRes.status}`);
+      }
+      const stagesData = await stagesRes.json();
+      stages = Array.isArray(stagesData.list) ? stagesData.list : null;
+    }
+    if (!Array.isArray(stages) || stages.length < 2 || !stages[0]?.id || !stages[1]?.id) {
+      throw new Error('Pipeline stage discovery requires at least two stages with IDs');
+    }
+    const [firstStage, nextStage] = stages.slice(0, 2);
+    if (!firstStage.name || !nextStage.name) {
+      throw new Error('Pipeline stage discovery requires names for the first two stages');
+    }
 
     // 2. Create Opportunity
     const createRes = await fetch(`${baseUrl}/api/v1/Opportunity`, {
@@ -41,15 +56,17 @@ export async function run({ baseUrl, state = {} }) {
       body: JSON.stringify({
         name: 'معامله تستی سناریوی E2E',
         amount: 25000000,
-        pipelineStageId: 'stage-1',
-        stage: 'سرنخ جدید',
+        pipelineStageId: firstStage.id,
+        stage: firstStage.name,
       }),
+      signal: AbortSignal.timeout(timeoutMs),
     });
     if (!createRes.ok) {
       throw new Error(`Opportunity creation failed with HTTP ${createRes.status}`);
     }
     const createdDeal = await createRes.json();
-    const dealId = createdDeal.id || 'deal-e2e-101';
+    if (!createdDeal.id) throw new Error('Opportunity creation response is missing createdDeal.id');
+    const dealId = createdDeal.id;
     state.dealId = dealId;
 
     // 3. Simulate Drag & Drop Stage Move (PATCH)
@@ -57,9 +74,10 @@ export async function run({ baseUrl, state = {} }) {
       method: 'PATCH',
       headers,
       body: JSON.stringify({
-        pipelineStageId: 'stage-2',
-        stage: 'مذاکره اولیه',
+        pipelineStageId: nextStage.id,
+        stage: nextStage.name,
       }),
+      signal: AbortSignal.timeout(timeoutMs),
     });
     if (!patchRes.ok) {
       throw new Error(`Stage transition PATCH failed with HTTP ${patchRes.status}`);
@@ -68,7 +86,7 @@ export async function run({ baseUrl, state = {} }) {
     const duration = performance.now() - start;
     return ok(name, duration, 'Kanban deal creation and stage transition verified', {
       dealId,
-      stage: 'مذاکره اولیه',
+      stage: nextStage.name,
     });
   } catch (err) {
     const duration = performance.now() - start;

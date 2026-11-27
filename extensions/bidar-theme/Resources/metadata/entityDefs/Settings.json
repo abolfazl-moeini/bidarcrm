@@ -1,0 +1,13 @@
+{
+  "fields": {
+    "bidarLayout": {
+      "type": "enum",
+      "options": [
+        "split",
+        "classic"
+      ],
+      "default": "split",
+      "tooltip": true
+    }
+  }
+}

@@ -3,27 +3,19 @@
  *
  * Fetches dashboard KPI summary and validates aggregated revenue and deal counts.
  */
-import { ok, fail } from '../lib/scenario.js';
+import { ok, fail, createEspoAuthHeaders } from '../lib/scenario.js';
 
 export const name = '02-dashboard-and-navigation';
 
-export async function run({ baseUrl, state = {} }) {
+export async function run({ baseUrl, state = {}, timeoutMs = 30000 }) {
   const start = performance.now();
   try {
-    const headers = {
-      Accept: 'application/json',
-    };
-    if (state.token) {
-      const username = state.username || 'admin';
-      const authVal = Buffer.from(`${username}:${state.token}`).toString('base64');
-      headers['Espo-Authorization'] = authVal;
-      headers['Espo-Authorization-By-Token'] = 'true';
-      headers['Authorization'] = `Bearer ${state.token}`;
-    }
+    const headers = createEspoAuthHeaders(state);
 
     const response = await fetch(`${baseUrl}/api/v1/BidarDashboard/summary`, {
       method: 'GET',
       headers,
+      signal: AbortSignal.timeout(timeoutMs),
     });
 
     if (!response.ok) {

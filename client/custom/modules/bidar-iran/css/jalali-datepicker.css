@@ -1,0 +1,113 @@
+/**
+ * Bidar Jalali DatePicker Theme Integration
+ * Maps Bidar Design System color variables for @majidh1/jalalidatepicker
+ * Works across EspoCRM native admin views in both Light and Dark palettes.
+ */
+
+jdp-container {
+    font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    direction: rtl !important;
+    text-align: right !important;
+    --jdp-color-0: var(--bidar-surface, #ffffff);
+    --jdp-color-1: var(--bidar-surface-sunken, #f8fafc);
+    --jdp-color-2: var(--bidar-border-light, #f1f5f9);
+    --jdp-color-3: var(--bidar-border, #cbd5e1);
+    --jdp-color-4: var(--bidar-text-secondary, #64748b);
+    --jdp-color-5: var(--bidar-text, #0f172a);
+    --jdp-primary: var(--bidar-primary, #0f766e);
+    --jdp-red: var(--bidar-danger, #ef4444);
+    border: 1px solid var(--bidar-border, #e2e8f0) !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.08) !important;
+    border-radius: var(--bidar-radius-lg, 12px) !important;
+    z-index: 1060 !important;
+}
+
+jdp-container .jdp-icon-plus,
+jdp-container .jdp-icon-minus {
+    border-color: var(--bidar-border, #cbd5e1) !important;
+    color: var(--bidar-text, #0f172a) !important;
+    fill: var(--bidar-text, #0f172a) !important;
+}
+
+jdp-container .jdp-days-header {
+    background-color: var(--bidar-surface-sunken, #f8fafc) !important;
+    color: var(--bidar-text-secondary, #64748b) !important;
+    font-weight: 600 !important;
+}
+
+jdp-container .jdp-day {
+    color: var(--bidar-text, #0f172a);
+    font-variant-numeric: tabular-nums;
+    border-radius: var(--bidar-radius-sm, 6px) !important;
+}
+
+jdp-container .jdp-day:not(.disabled-day):hover {
+    background: var(--bidar-border-light, #f1f5f9) !important;
+}
+
+jdp-container .jdp-day.selected {
+    background-color: var(--bidar-primary, #0f766e) !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+}
+
+jdp-container .jdp-day.today {
+    border: 1px solid var(--bidar-primary, #0f766e) !important;
+}
+
+jdp-container .jdp-btn-today,
+jdp-container .jdp-btn-empty,
+jdp-container .jdp-btn-close {
+    background: var(--bidar-primary, #0f766e) !important;
+    color: #ffffff !important;
+    border-radius: var(--bidar-radius-sm, 6px) !important;
+    font-family: inherit !important;
+}
+
+/* Dark mode mapping */
+:root[data-bidar-scheme="dark"] jdp-container,
+body.bidar-dark jdp-container,
+html[data-theme="dark"] jdp-container {
+    --jdp-color-0: var(--bidar-n-0, #161930);
+    --jdp-color-1: var(--bidar-n-50, #0d0f1e);
+    --jdp-color-2: var(--bidar-n-100, #20243f);
+    --jdp-color-3: var(--bidar-n-200, #343958);
+    --jdp-color-4: var(--bidar-n-500, #9298b5);
+    --jdp-color-5: var(--bidar-n-900, #eceef7);
+    --jdp-primary: var(--bidar-brand, #8f93ff);
+    --jdp-red: var(--bidar-danger, #f97066);
+    border-color: var(--bidar-n-200, #343958) !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4) !important;
+}
+
+:root[data-bidar-scheme="dark"] jdp-container .jdp-icon-plus,
+:root[data-bidar-scheme="dark"] jdp-container .jdp-icon-minus {
+    border-color: var(--bidar-n-200, #343958) !important;
+    color: var(--bidar-n-900, #eceef7) !important;
+    fill: var(--bidar-n-900, #eceef7) !important;
+}
+
+:root[data-bidar-scheme="dark"] jdp-container .jdp-days-header {
+    background-color: var(--bidar-n-50, #0d0f1e) !important;
+    color: var(--bidar-n-500, #9298b5) !important;
+}
+
+:root[data-bidar-scheme="dark"] jdp-container .jdp-day:not(.disabled-day):hover {
+    background: var(--bidar-n-150, #2a2e4d) !important;
+}
+
+:root[data-bidar-scheme="dark"] jdp-container .jdp-day.selected {
+    background-color: var(--bidar-brand, #8f93ff) !important;
+    color: #0d0f1e !important;
+}
+
+:root[data-bidar-scheme="dark"] jdp-container .jdp-day.today {
+    border-color: var(--bidar-brand, #8f93ff) !important;
+}
+
+:root[data-bidar-scheme="dark"] jdp-container .jdp-btn-today,
+:root[data-bidar-scheme="dark"] jdp-container .jdp-btn-empty,
+:root[data-bidar-scheme="dark"] jdp-container .jdp-btn-close {
+    background: var(--bidar-brand, #8f93ff) !important;
+    color: #0d0f1e !important;
+}

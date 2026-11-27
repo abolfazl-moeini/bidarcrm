@@ -1,0 +1,41 @@
+{
+  "fields": {
+    "name": {
+      "type": "varchar"
+    },
+    "quantity": {
+      "type": "float",
+      "default": 1,
+      "min": 0
+    },
+    "unitPrice": {
+      "type": "currency",
+      "min": 0
+    },
+    "discountPercent": {
+      "type": "float",
+      "default": 0,
+      "min": 0,
+      "max": 100
+    },
+    "lineTotal": {
+      "type": "currency"
+    },
+    "opportunity": {
+      "type": "link"
+    },
+    "product": {
+      "type": "link"
+    }
+  },
+  "links": {
+    "opportunity": {
+      "type": "belongsTo",
+      "entity": "Opportunity"
+    },
+    "product": {
+      "type": "belongsTo",
+      "entity": "BidarProduct"
+    }
+  }
+}

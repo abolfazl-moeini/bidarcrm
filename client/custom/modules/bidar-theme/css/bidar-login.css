@@ -1,0 +1,102 @@
+/**
+ * Login: a centred card on a neutral background, with a very light brand glow.
+ * Only visible when Bidar is the system theme.
+ */
+html:not([dir="ltr"]) body:has(#login) {
+    direction: rtl;
+    text-align: right;
+    background:
+        radial-gradient(60rem 28rem at 50% -8rem, rgba(0, 182, 237, 0.10), transparent 70%),
+        radial-gradient(40rem 24rem at 15% -6rem, rgba(41, 43, 107, 0.10), transparent 70%),
+        var(--bidar-canvas);
+}
+
+html:not([dir="ltr"]) #login,
+html:not([dir="ltr"]) #login.panel {
+    position: relative;
+    direction: rtl;
+    text-align: right;
+    border: 1px solid var(--bidar-border);
+    border-radius: var(--bidar-radius-xl);
+    box-shadow: var(--bidar-shadow-lg);
+    overflow: hidden;
+}
+
+#login.panel > .panel-heading {
+    background: var(--bidar-surface);
+    border-bottom: none;
+    padding: var(--24px) var(--24px) var(--8px);
+}
+
+#login.panel > .panel-body {
+    padding: var(--8px) var(--24px) var(--24px);
+}
+
+#login .logo-container,
+#login.panel .logo-container {
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    text-align: center;
+    padding: var(--8px) 0;
+}
+
+#login .logo-container img,
+#login.panel .logo-container img {
+    display: block;
+    margin: 0 auto;
+    max-height: 48px;
+    width: auto;
+    object-fit: contain;
+}
+
+/* RTL Login Layout & Alignment (active by default for login page) */
+#login .form-group label,
+#login.panel .form-group label,
+#login .control-label,
+html[dir="rtl"] #login.panel .form-group label,
+body[data-direction="rtl"] #login.panel .form-group label {
+    display: block;
+    text-align: right;
+    direction: rtl;
+}
+
+#login .form-control,
+#login.panel .form-control {
+    text-align: right;
+}
+
+/* Cyan corner, the Bidar card signature (RTL right-aligned by default) */
+#login.panel::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: auto;
+    right: 0;
+    z-index: 1;
+    width: 25px;
+    height: 25px;
+    border-top: 3px solid var(--bidar-signature);
+    border-left: none;
+    border-right: 3px solid var(--bidar-signature);
+    border-top-left-radius: 0;
+    border-top-right-radius: calc(var(--bidar-radius-xl) - 1px);
+    pointer-events: none;
+}
+
+html[dir="ltr"] #login.panel::before {
+    right: auto;
+    left: 0;
+    border-right: none;
+    border-left: 3px solid var(--bidar-signature);
+    border-top-right-radius: 0;
+    border-top-left-radius: calc(var(--bidar-radius-xl) - 1px);
+}
+
+html[dir="ltr"] body:has(#login) { direction: ltr; text-align: left; }
+html[dir="ltr"] #login { direction: ltr; text-align: left; }
+html[dir="ltr"] #login .form-group label,
+html[dir="ltr"] #login .form-control {
+    text-align: left;
+    direction: ltr;
+}

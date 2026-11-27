@@ -3,33 +3,26 @@
  *
  * Schedules an activity attached to the deal, marks it completed, and verifies follow-up readiness.
  */
-import { ok, fail } from '../lib/scenario.js';
+import { ok, fail, createEspoAuthHeaders } from '../lib/scenario.js';
+import { formatFutureDate } from '../lib/test-helpers.js';
 
 export const name = '06-activities-and-jalali-calendar';
 
-export async function run({ baseUrl, state = {} }) {
+export async function run({ baseUrl, state = {}, timeoutMs = 30000 }) {
   const start = performance.now();
   try {
-    const dealId = state.dealId || 'deal-e2e-101';
-    const headers = {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    };
-    if (state.token) {
-      const username = state.username || 'admin';
-      const authVal = Buffer.from(`${username}:${state.token}`).toString('base64');
-      headers['Espo-Authorization'] = authVal;
-      headers['Espo-Authorization-By-Token'] = 'true';
-      headers['Authorization'] = `Bearer ${state.token}`;
-    }
+    if (!state.dealId) throw new Error('Activity scenario requires state.dealId from scenario 03');
+    const dealId = state.dealId;
+    const headers = createEspoAuthHeaders(state);
 
     // 1. Schedule Activity
     const taskPayload = {
       name: 'جلسه بازبینی قرارداد نهایی',
       type: 'Meeting',
       priority: 'High',
-      dateDue: '2026-11-25T10:00:00.000Z',
-      dateEnd: '2026-11-25T10:00:00.000Z',
+      dateStart: formatFutureDate(1, 10, 0),
+      dateDue: formatFutureDate(1, 11, 0),
+      dateEnd: formatFutureDate(1, 11, 30),
       parentId: dealId,
       parentType: 'Opportunity',
     };
@@ -38,6 +31,7 @@ export async function run({ baseUrl, state = {} }) {
       method: 'POST',
       headers,
       body: JSON.stringify(taskPayload),
+      signal: AbortSignal.timeout(timeoutMs),
     });
 
     if (!createRes.ok) {
@@ -45,7 +39,8 @@ export async function run({ baseUrl, state = {} }) {
     }
 
     const taskData = await createRes.json();
-    const taskId = taskData.id || 'task-e2e-401';
+    if (!taskData.id) throw new Error('Task creation response is missing taskData.id');
+    const taskId = taskData.id;
     state.taskId = taskId;
 
     // 2. Mark Activity Completed (PATCH)
@@ -55,6 +50,7 @@ export async function run({ baseUrl, state = {} }) {
       body: JSON.stringify({
         status: 'Completed',
       }),
+      signal: AbortSignal.timeout(timeoutMs),
     });
 
     if (!patchRes.ok) {

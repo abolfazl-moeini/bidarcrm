@@ -2,7 +2,7 @@
  * BidarCRM - LoginForm Component
  *
  * Implements accessible, Persian RTL authentication form with client-side
- * validation, loading states, and error handling for EspoCRM 10.1.4.
+ * validation, loading states, error handling, and light/dark mode adaptation.
  */
 
 import React, { useState } from 'react';
@@ -68,34 +68,39 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, className = '' 
   };
 
   return (
-    <div className={`bidar-login-card w-full max-w-md bg-slate-800/90 border border-slate-700/80 rounded-2xl shadow-2xl p-8 backdrop-blur-md text-right ${className}`} dir="rtl">
+    <div
+      className={`bidar-login-card w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xl p-6 sm:p-8 text-right ${className}`}
+      dir="rtl"
+    >
       {/* Brand Header */}
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 mb-4 shadow-inner">
+      <div className="text-center mb-6 sm:mb-8">
+        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-500/15 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400 mb-4 shadow-sm">
           <Lock className="w-7 h-7" />
         </div>
-        <h1 className="text-2xl font-bold text-slate-100 tracking-tight">ورود به سامانه بیدار</h1>
-        <p className="text-sm text-slate-400 mt-2">سامانه یکپارچه مدیریت ارتباط با مشتری</p>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">ورود به سامانه بیدار</h1>
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1.5">
+          سامانه یکپارچه مدیریت ارتباط با مشتری و کاریز فروش
+        </p>
       </div>
 
       {/* Server Error Alert */}
       {serverError && (
-        <div className="mb-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-sm flex items-start gap-3 transition">
-          <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-rose-400" />
+        <div className="mb-5 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs sm:text-sm flex items-start gap-2.5 transition">
+          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-rose-500" />
           <span className="leading-relaxed">{serverError}</span>
         </div>
       )}
 
       {/* Login Form */}
-      <form onSubmit={handleSubmit} noValidate className="space-y-5">
+      <form onSubmit={handleSubmit} noValidate className="space-y-4 sm:space-y-5">
         {/* Username Field */}
         <div>
-          <label htmlFor="username" className="block text-sm font-medium text-slate-300 mb-2">
+          <label htmlFor="username" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
             نام کاربری یا ایمیل
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-500">
-              <User className="w-5 h-5" />
+            <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
+              <User className="w-4 h-4" />
             </div>
             <input
               id="username"
@@ -109,25 +114,27 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, className = '' 
                 setUsername(e.target.value);
                 if (errors.username) setErrors((prev) => ({ ...prev, username: undefined }));
               }}
-              className={`w-full pr-11 pl-4 py-3 bg-slate-900/80 border rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition duration-150 ${
-                errors.username ? 'border-rose-500 focus:border-rose-500' : 'border-slate-700 focus:border-indigo-500'
+              className={`w-full pr-10 pl-4 py-2.5 bg-slate-50 dark:bg-slate-950 border rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 transition duration-150 ${
+                errors.username
+                  ? 'border-rose-500 focus:border-rose-500'
+                  : 'border-slate-200 dark:border-slate-700 focus:border-emerald-500'
               }`}
               placeholder="admin"
             />
           </div>
           {errors.username && (
-            <p className="mt-1.5 text-xs text-rose-400 font-medium">{errors.username}</p>
+            <p className="mt-1 text-[11px] text-rose-600 dark:text-rose-400 font-medium">{errors.username}</p>
           )}
         </div>
 
         {/* Password Field */}
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
+          <label htmlFor="password" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
             رمز عبور
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-500">
-              <Lock className="w-5 h-5" />
+            <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
+              <Lock className="w-4 h-4" />
             </div>
             <input
               id="password"
@@ -141,14 +148,16 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, className = '' 
                 setPassword(e.target.value);
                 if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
               }}
-              className={`w-full pr-11 pl-4 py-3 bg-slate-900/80 border rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition duration-150 ${
-                errors.password ? 'border-rose-500 focus:border-rose-500' : 'border-slate-700 focus:border-indigo-500'
+              className={`w-full pr-10 pl-4 py-2.5 bg-slate-50 dark:bg-slate-950 border rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 transition duration-150 ${
+                errors.password
+                  ? 'border-rose-500 focus:border-rose-500'
+                  : 'border-slate-200 dark:border-slate-700 focus:border-emerald-500'
               }`}
               placeholder="••••••••"
             />
           </div>
           {errors.password && (
-            <p className="mt-1.5 text-xs text-rose-400 font-medium">{errors.password}</p>
+            <p className="mt-1 text-[11px] text-rose-600 dark:text-rose-400 font-medium">{errors.password}</p>
           )}
         </div>
 
@@ -156,11 +165,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, className = '' 
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full mt-2 py-3.5 px-4 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-medium rounded-xl shadow-lg shadow-indigo-600/25 transition duration-150 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+          className="w-full mt-2 py-3 px-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-semibold text-xs sm:text-sm rounded-xl shadow-sm transition duration-150 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
         >
           {isSubmitting ? (
             <>
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
               <span>در حال ورود...</span>
             </>
           ) : (

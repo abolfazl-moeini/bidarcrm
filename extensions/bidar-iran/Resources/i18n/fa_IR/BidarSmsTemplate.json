@@ -1,0 +1,10 @@
+{
+  "fields": {
+    "name": "عنوان قالب",
+    "body": "متن پیامک",
+    "isActive": "فعال"
+  },
+  "labels": {
+    "Create BidarSmsTemplate": "ایجاد قالب پیامک"
+  }
+}

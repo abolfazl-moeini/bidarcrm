@@ -2,7 +2,7 @@
  * BidarCRM - SalesFunnelChart Component
  *
  * Visualizes pipeline deal distribution across sales funnel stages
- * with horizontal progression bars and Persian currency formatting.
+ * with horizontal progression bars, dark/light adaptation, and Persian currency formatting.
  */
 
 import React from 'react';
@@ -22,27 +22,27 @@ export interface SalesFunnelChartProps {
   className?: string;
 }
 
-const DEFAULT_STAGE_COLORS = ['#6366f1', '#3b82f6', '#0ea5e9', '#10b981', '#14b8a6'];
+const DEFAULT_STAGE_COLORS = ['#10B981', '#059669', '#0D9488', '#0F766E', '#0284C7'];
 
 export const SalesFunnelChart: React.FC<SalesFunnelChartProps> = ({ stages, className = '' }) => {
   const maxAmount = Math.max(...stages.map((s) => s.amount), 1);
 
   return (
     <div
-      className={`bg-slate-900/85 border border-slate-800/90 rounded-2xl p-6 shadow-sm ${className}`}
+      className={`report-card font-vazirmatn bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm ${className}`}
       dir="rtl"
     >
-      <div className="flex items-center justify-between mb-6 border-b border-slate-800/80 pb-4">
+      <div className="flex items-center justify-between mb-5 border-b border-slate-100 dark:border-slate-800 pb-4">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
             <Filter className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-100">قیف فروش معاملات</h3>
-            <p className="text-[11px] text-slate-500">حجم و ارزش معاملات به تفکیک مراحل کاریز</p>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">قیف فروش معاملات</h3>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">حجم و ارزش معاملات به تفکیک مراحل کاریز</p>
           </div>
         </div>
-        <span className="text-xs text-slate-400 font-medium bg-slate-800/70 px-2.5 py-1 rounded-lg">
+        <span className="text-xs text-slate-600 dark:text-slate-400 font-medium bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
           {toPersianDigits(stages.length)} مرحله
         </span>
       </div>
@@ -60,20 +60,20 @@ export const SalesFunnelChart: React.FC<SalesFunnelChartProps> = ({ stages, clas
                     className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                     style={{ backgroundColor: color }}
                   />
-                  <span className="font-semibold text-slate-200">{stage.stageName}</span>
-                  <span className="text-slate-500 text-[11px]">
+                  <span className="font-semibold text-slate-800 dark:text-slate-200">{stage.stageName}</span>
+                  <span className="text-slate-500 dark:text-slate-400 text-[11px]">
                     ({toPersianDigits(stage.count)} معامله)
                   </span>
                 </div>
-                <span className="font-medium text-slate-300 font-mono text-left" dir="ltr">
+                <span className="font-medium text-slate-700 dark:text-slate-300 font-vazirmatn tabular-nums text-left" dir="ltr">
                   {formatToman(stage.amount)}
                 </span>
               </div>
 
-              {/* Funnel Progress Bar */}
-              <div className="h-3 w-full bg-slate-800/80 rounded-full overflow-hidden p-0.5">
+              {/* Progress bar */}
+              <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden p-0.5">
                 <div
-                  className="h-full rounded-full transition-all duration-500"
+                  className="h-full rounded-full transition-all duration-500 shadow-sm"
                   style={{
                     width: `${percentage}%`,
                     backgroundColor: color,
@@ -85,8 +85,8 @@ export const SalesFunnelChart: React.FC<SalesFunnelChartProps> = ({ stages, clas
         })}
 
         {stages.length === 0 && (
-          <div className="text-center py-8 text-slate-500 text-xs">
-            هیچ مرحله‌ای برای نمایش در کاریز موجود نیست.
+          <div className="h-36 flex items-center justify-center text-xs text-slate-400 dark:text-slate-500 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
+            داده‌ای در قیف فروش یافت نشد
           </div>
         )}
       </div>

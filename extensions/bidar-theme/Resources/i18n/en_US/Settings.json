@@ -1,0 +1,14 @@
+{
+  "fields": {
+    "bidarLayout": "Default Bidar layout"
+  },
+  "options": {
+    "bidarLayout": {
+      "split": "Split",
+      "classic": "Classic"
+    }
+  },
+  "tooltips": {
+    "bidarLayout": "For users who haven't picked a layout in the top-bar appearance menu."
+  }
+}

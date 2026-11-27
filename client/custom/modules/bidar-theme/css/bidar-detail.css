@@ -1,0 +1,1588 @@
+/**
+ * Bidar record view: header band (page header, identity, pipeline), "About" inspector
+ * and tabbed main column. Applies to the bidar-theme:record/detail template.
+ */
+
+/* ===== Band: page header + identity + pipeline ===== */
+body.bidar-band-page #main > .page-header,
+.bidar-record > .bidar-band {
+    margin-inline-start: calc(var(--container-padding) * -1);
+    margin-inline-end: calc(var(--container-padding) * -1);
+    padding-inline-start: var(--container-padding);
+    padding-inline-end: var(--container-padding);
+    background: transparent;
+    color: var(--bidar-band-text);
+}
+
+/*
+ * The gradient is painted on the page background, over the band height measured by the script
+ * (--bidar-band-height): it spans the full width, even when the content is centred on a large
+ * screen, without making anything overflow.
+ */
+body.bidar-band-page {
+    background:
+        var(--bidar-band-glow) top left / 100% var(--bidar-band-height, 0) no-repeat,
+        var(--bidar-band-gradient) top left / 100% var(--bidar-band-height, 0) no-repeat,
+        var(--body-bg);
+}
+
+/* The band slides under the top bar: it fills the whole top of the screen. */
+body.bidar-band-page #main > .page-header {
+    margin-top: calc(var(--top-bar-height) * -1);
+    margin-bottom: 0;
+    padding-top: calc(var(--top-bar-height) + var(--10px));
+    padding-bottom: 0;
+}
+
+/* Top bar laid over the band */
+body.bidar-band-page #navbar .navbar-right {
+    background: transparent;
+}
+
+body.bidar-band-page #navbar .navbar-right > li > a {
+    color: var(--bidar-band-muted);
+}
+
+body.bidar-band-page #navbar .navbar-right > li > a:hover,
+body.bidar-band-page #navbar .navbar-right > li.open > a {
+    background-color: var(--bidar-band-fill-2);
+    color: var(--bidar-band-text);
+}
+
+body.bidar-band-page #navbar .navbar-right .global-search-container a.global-search-button {
+    color: var(--bidar-band-muted);
+}
+
+body.bidar-band-page #main > .page-header .header-title {
+    font-size: var(--14px);
+    font-weight: 500;
+    letter-spacing: 0;
+    color: var(--bidar-band-muted);
+}
+
+/* The icon and the space that follows it, which would shift the trail from the name */
+body.bidar-band-page #main > .page-header .header-title .color-icon,
+body.bidar-band-page #main > .page-header .header-title .color-icon + span {
+    display: none;
+}
+
+body.bidar-band-page #main > .page-header .header-breadcrumbs .breadcrumb-item a,
+body.bidar-band-page #main > .page-header .header-breadcrumbs .breadcrumb-item {
+    color: var(--bidar-band-muted);
+}
+
+body.bidar-band-page #main > .page-header .header-breadcrumbs .breadcrumb-item:last-child {
+    color: var(--bidar-band-text);
+}
+
+body.bidar-band-page #main > .page-header .header-breadcrumbs .breadcrumb-separator > span {
+    border-color: var(--bidar-band-muted);
+}
+
+/* Buttons on the band: default buttons stay white, as everywhere else */
+body.bidar-band-page #main > .page-header .btn-text,
+.bidar-band .btn-text {
+    color: var(--bidar-band-muted);
+}
+
+body.bidar-band-page #main > .page-header .btn-text:hover,
+.bidar-band .btn-text:hover {
+    background: var(--bidar-band-fill-2);
+    color: var(--bidar-band-text);
+}
+
+body.bidar-band-page #main > .page-header .btn-primary,
+.bidar-band .btn-primary {
+    background: var(--bidar-band-primary-bg);
+    border-color: var(--bidar-band-primary-bg);
+    color: var(--bidar-band-primary-text);
+    font-weight: 600;
+    box-shadow: none;
+}
+
+body.bidar-band-page #main > .page-header .btn-primary:hover,
+.bidar-band .btn-primary:hover {
+    background: var(--bidar-band-primary-hover);
+    border-color: var(--bidar-band-primary-hover);
+    color: var(--bidar-band-primary-text);
+}
+
+body.bidar-band-page #main > .page-header .btn:focus-visible,
+.bidar-band .btn:focus-visible,
+.bidar-band button:focus-visible {
+    outline-color: var(--bidar-band-focus);
+}
+
+/* The bottom of the band runs under the cards, for a soft transition. */
+.bidar-record > .bidar-band {
+    display: flex;
+    flex-direction: column;
+    gap: var(--12px);
+    padding-top: var(--4px);
+    padding-bottom: calc(var(--14px) + var(--bidar-band-overlap));
+}
+
+.bidar-band-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--16px) var(--24px);
+}
+
+.bidar-band .detail-button-container {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+}
+
+.bidar-band .detail-button-container .sub-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--8px);
+}
+
+.bidar-band .detail-button-container .sub-container::before,
+.bidar-band .detail-button-container .sub-container::after {
+    display: none;
+}
+
+/* No gap left by an empty group: the buttons end at the same place in every mode */
+.bidar-band .detail-button-container .sub-container > .btn-group:empty {
+    display: none;
+}
+
+/* The buttons are on the right of the page: their menu opens towards the left */
+.bidar-band .detail-button-container .dropdown-menu {
+    inset-inline-start: auto;
+    inset-inline-end: 0;
+}
+
+/*
+ * Follow, Convert...: the buttons of the page header sit on the line of the record buttons,
+ * whose width the script measures. The name stays in place whichever buttons are shown.
+ */
+@media screen and (min-width: 768px) {
+    #main.bidar-band-inline-actions > .page-header {
+        position: relative;
+    }
+
+    #main.bidar-band-inline-actions > .page-header .header-buttons {
+        position: absolute;
+        z-index: 1;
+        top: calc(100% + var(--4px));
+        inset-inline-end: calc(var(--container-padding) + var(--bidar-band-actions-width, 0px) + var(--bidar-band-actions-gap, 0px));
+        margin: 0;
+    }
+
+    #main.bidar-band-inline-actions > .record .bidar-band-row {
+        flex-wrap: nowrap;
+        align-items: flex-start;
+    }
+
+    #main.bidar-band-inline-actions > .record .bidar-band-identity {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    #main.bidar-band-inline-actions > .record .bidar-band .detail-button-container:not(.stick-sub) {
+        flex: none;
+        margin-inline-start: var(--bidar-band-header-actions-width, 0px);
+    }
+}
+
+/* Button bar stuck to the top while scrolling: it keeps the band background */
+.bidar-band .detail-button-container.stick-sub {
+    background: var(--bidar-band-glow), var(--bidar-band-gradient);
+    background-attachment: fixed;
+    border-bottom: 1px solid var(--bidar-band-line);
+    padding: var(--8px) 0;
+}
+
+/* Stuck, the buttons stay on the right, where they are in the band */
+.bidar-band .detail-button-container.stick-sub .sub-container {
+    justify-content: flex-end;
+}
+
+/* Identity */
+.bidar-identity {
+    display: flex;
+    align-items: center;
+    gap: var(--16px);
+    min-width: 0;
+}
+
+.bidar-identity-text {
+    min-width: 0;
+}
+
+.bidar-identity-name {
+    margin: 0;
+    color: inherit;
+    font-family: var(--bidar-font-display);
+    font-size: var(--28px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+}
+
+/* Assigned users and teams */
+.bidar-identity-people {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--6px) var(--18px);
+    margin-top: var(--6px);
+    font-size: var(--13px);
+}
+
+.bidar-people-group {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--6px);
+}
+
+.bidar-people-label {
+    color: var(--bidar-band-muted);
+}
+
+.bidar-person {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--6px);
+    padding-block: 2px;
+    padding-inline: 2px var(--10px);
+    border-radius: var(--bidar-radius-pill);
+    background: var(--bidar-band-fill-2);
+    color: var(--bidar-band-text);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.bidar-person.bidar-team,
+.bidar-person.bidar-person-empty {
+    padding-inline-start: var(--10px);
+}
+
+.bidar-person.bidar-person-empty {
+    background: transparent;
+    box-shadow: inset 0 0 0 1px var(--bidar-band-line);
+    color: var(--bidar-band-muted);
+}
+
+.bidar-person-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--bidar-band-avatar-bg);
+    color: var(--bidar-band-avatar-text);
+    font-size: 10px;
+    font-weight: 700;
+}
+
+/* EspoCRM limits the cards to 1300px: without it they end where the band and the lists end */
+.bidar-record .bidar-record-grid {
+    max-width: none;
+}
+
+/* Pipeline path */
+.bidar-band-pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: var(--6px);
+}
+
+.bidar-pipeline-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--8px);
+    font-size: var(--13px);
+    color: var(--bidar-band-muted);
+}
+
+.bidar-pipeline-head strong {
+    color: var(--bidar-band-text);
+    font-weight: 600;
+}
+
+.bidar-pipeline-off {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--14px);
+    margin-inline-start: auto;
+}
+
+.bidar-pipeline-off-link {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--bidar-band-muted);
+    font: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.bidar-pipeline-off-link:hover {
+    color: var(--bidar-band-text);
+}
+
+.bidar-pipeline-stage-chip {
+    padding: 1px var(--10px);
+    border-radius: var(--bidar-radius-pill);
+    background: var(--bidar-signature);
+    color: var(--bidar-on-signature);
+    font-weight: 600;
+}
+
+.bidar-pipeline-off-current {
+    padding: 1px var(--10px);
+    border-radius: var(--bidar-radius-pill);
+    background: var(--bidar-danger-bg);
+    color: var(--bidar-danger);
+    font-weight: 600;
+}
+
+.bidar-pipeline-steps {
+    display: grid;
+    grid-template-columns: repeat(var(--bidar-steps, 4), minmax(0, 1fr));
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.bidar-step-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0 var(--8px);
+    width: 100%;
+    min-height: 32px;
+    padding: var(--4px) var(--16px);
+    border: 0;
+    background: var(--bidar-band-fill-1);
+    color: var(--bidar-band-muted);
+    font: inherit;
+    font-weight: 500;
+    line-height: 1.2;
+    text-align: center;
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%, 12px 50%);
+    transition: background-color var(--bidar-fast) ease, color var(--bidar-fast) ease;
+}
+
+.bidar-step:first-child .bidar-step-inner {
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%);
+    border-radius: 8px 0 0 8px;
+}
+
+.bidar-step:last-child .bidar-step-inner {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 12px 50%);
+    border-radius: 0 8px 8px 0;
+}
+
+.bidar-step-label {
+    min-width: 0;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+.bidar-step[data-state="done"] .bidar-step-inner {
+    background: var(--bidar-band-fill-3);
+    color: var(--bidar-band-text);
+}
+
+.bidar-step[data-state="current"] .bidar-step-inner {
+    background: var(--bidar-signature);
+    color: var(--bidar-on-signature);
+    font-weight: 700;
+}
+
+button.bidar-step-inner {
+    cursor: pointer;
+}
+
+button.bidar-step-inner:hover {
+    background: var(--bidar-band-fill-4);
+    color: var(--bidar-band-text);
+}
+
+button.bidar-step-inner:focus-visible {
+    outline: 2px solid var(--bidar-band-focus);
+    outline-offset: -4px;
+}
+
+.bidar-step-check {
+    font-size: 12px;
+}
+
+/*
+ * Narrow screen: chevrons would cut stage names letter by letter. The current stage shows with
+ * a progress bar; tapping it opens the list of stages as a column.
+ */
+.bidar-band-pipeline {
+    container: bidar-pipeline / inline-size;
+}
+
+.bidar-pipeline-toggle,
+.bidar-pipeline-bar {
+    display: none;
+}
+
+@container bidar-pipeline (max-width: 600px) {
+    .bidar-pipeline-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--8px);
+        width: 100%;
+        min-height: 40px;
+        padding: var(--8px) var(--12px);
+        border: 0;
+        border-radius: 8px;
+        background: var(--bidar-signature);
+        color: var(--bidar-on-signature);
+        font: inherit;
+        font-weight: 700;
+        text-align: start;
+        cursor: pointer;
+    }
+
+    .bidar-pipeline-toggle:focus-visible {
+        outline: 2px solid var(--bidar-band-focus);
+        outline-offset: 2px;
+    }
+
+    .bidar-pipeline-toggle-icon {
+        font-size: 12px;
+        transition: transform var(--bidar-fast) ease;
+    }
+
+    .bidar-pipeline-open .bidar-pipeline-toggle-icon {
+        transform: rotate(180deg);
+    }
+
+    .bidar-pipeline-bar {
+        display: grid;
+        grid-auto-columns: minmax(0, 1fr);
+        grid-auto-flow: column;
+        gap: 3px;
+    }
+
+    .bidar-pipeline-segment {
+        height: 6px;
+        border-radius: 3px;
+        background: var(--bidar-band-fill-1);
+    }
+
+    .bidar-pipeline-segment[data-state="done"] {
+        background: var(--bidar-band-fill-3);
+    }
+
+    .bidar-pipeline-segment[data-state="current"] {
+        background: var(--bidar-signature);
+    }
+
+    .bidar-band-pipeline:not(.bidar-pipeline-open) .bidar-pipeline-steps,
+    .bidar-pipeline-open .bidar-pipeline-bar {
+        display: none;
+    }
+
+    .bidar-pipeline-steps {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .bidar-pipeline-steps .bidar-step .bidar-step-inner {
+        justify-content: flex-start;
+        min-height: 40px;
+        padding: var(--8px) var(--12px);
+        border-radius: 8px;
+        clip-path: none;
+        text-align: start;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bidar-pipeline-toggle-icon {
+        transition: none;
+    }
+}
+
+/* ===== Two columns ===== */
+.bidar-record .record-grid.bidar-record-grid {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--20px);
+    margin-top: calc(var(--bidar-band-overlap) * -1);
+    container-type: inline-size;
+}
+
+/* The handle stands in for the gap between the two columns */
+.bidar-record .record-grid.bidar-record-grid:has(> .bidar-resizer) {
+    column-gap: 0;
+}
+
+/*
+ * Adjustable width (--bidar-inspector-width, set by the script): at least 300 px, and the
+ * main column always keeps 480 px.
+ */
+.bidar-record .bidar-record-grid > .bidar-inspector {
+    flex: 0 0 clamp(300px, var(--bidar-inspector-width, 380px), calc(100% - 480px - var(--20px)));
+    max-width: 100%;
+    width: auto;
+    min-width: 0;
+    float: none;
+    display: flex;
+    flex-direction: column;
+}
+
+.bidar-inspector-card {
+    position: relative;
+    padding: var(--12px) var(--20px) var(--8px);
+    background: var(--bidar-surface);
+    border: 1px solid var(--bidar-border);
+    border-radius: var(--bidar-radius-lg);
+    box-shadow: var(--bidar-shadow-xs);
+}
+
+/*
+ * Side panels as cards. Record info (assignee, teams, dates) is a card of its own; it only
+ * extends "About" in the content variant, where that card has no fields.
+ */
+.bidar-inspector > .side {
+    display: flex;
+    flex-direction: column;
+    gap: var(--16px);
+    width: auto;
+    float: none;
+    padding: 0;
+}
+
+.bidar-inspector:has(> .bidar-inspector-card > .middle) > .side,
+.bidar-inspector:not(:has(> .side > .panel[data-name="default"]:not(.hidden))) > .side {
+    margin-top: var(--16px);
+}
+
+.bidar-inspector:not(:has(> .bidar-inspector-card > .middle)):has(> .side > .panel[data-name="default"]:not(.hidden)) > .bidar-inspector-card {
+    padding-bottom: 0;
+    border-bottom: 0;
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+    box-shadow: none;
+}
+
+.bidar-inspector > .side > .panel {
+    margin: 0;
+    padding: 0 var(--20px) var(--8px);
+    background: var(--bidar-surface);
+    border: 1px solid var(--bidar-border);
+    border-radius: var(--bidar-radius-lg);
+    box-shadow: var(--bidar-shadow-xs);
+}
+
+/*
+ * Panel stuck to the previous one ("Stick to the top" in the layout): as in EspoCRM, it joins
+ * the card above, separated by a thin line.
+ */
+.bidar-inspector > .side > .panel:has(+ .panel.sticked:not(.hidden)) {
+    border-bottom: 0;
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+    box-shadow: none;
+}
+
+.bidar-inspector > .side > .panel.sticked:not(:first-child) {
+    margin-top: calc(var(--16px) * -1);
+    border-top: 1px solid var(--bidar-n-100);
+    border-start-start-radius: 0;
+    border-start-end-radius: 0;
+}
+
+.bidar-inspector:has(> .bidar-inspector-card):not(:has(> .bidar-inspector-card > .middle)) > .side > .panel[data-name="default"] {
+    border-top: 0;
+    border-start-start-radius: 0;
+    border-start-end-radius: 0;
+}
+
+.bidar-inspector:has(> .bidar-inspector-card):not(:has(> .bidar-inspector-card > .middle)) > .side > .panel[data-name="default"] > .panel-body {
+    padding-top: var(--10px);
+    border-top: 1px solid var(--bidar-n-100);
+}
+
+.bidar-inspector:has(> .bidar-inspector-card > .middle) > .side > .panel[data-name="default"] > .panel-body {
+    padding-top: var(--14px);
+}
+
+/* Heading added to Record info: same look as the other side cards */
+.bidar-inspector > .side > .panel > .panel-heading.bidar-added-heading {
+    display: flex;
+    align-items: center;
+    gap: var(--8px);
+    padding: var(--14px) 0 var(--8px);
+    background: transparent;
+    border: 0;
+}
+
+.bidar-inspector > .side > .panel > .panel-heading.bidar-added-heading .panel-title {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--bidar-font-display);
+    font-size: var(--14px);
+    font-weight: 700;
+    color: var(--bidar-text);
+}
+
+.bidar-inspector > .side > .panel[data-name="default"]:has(> .bidar-added-heading) > .panel-body {
+    padding-top: var(--4px);
+}
+
+
+.bidar-inspector > .side > .panel:not([data-name="default"]) > .panel-heading {
+    display: flex;
+    align-items: center;
+    gap: var(--8px);
+    padding: var(--14px) 0 var(--8px);
+}
+
+.bidar-inspector > .side > .panel > .panel-heading .panel-title {
+    order: -1;
+    flex: 1;
+    min-width: 0;
+}
+
+.bidar-inspector > .side > .panel > .panel-heading .panel-actions-container {
+    float: none;
+    margin: 0;
+}
+
+/*
+ * Field tabs from the layout ("About" card or content card): same look as the tab bar of
+ * the main column, with the line running across the card. They wrap in a narrow column.
+ */
+.bidar-record .middle-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 2px;
+    margin: 0 calc(var(--20px) * -1) var(--4px);
+    padding: 0 var(--10px);
+    border-bottom: 1px solid var(--bidar-border);
+}
+
+/* ".tabs.middle-tabs": more specific than EspoCRM's ".record .tabs > button.btn" */
+.bidar-record .tabs.middle-tabs > .btn {
+    height: auto;
+    margin: 0;
+    padding: var(--8px) var(--10px) var(--7px);
+    border: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 0 !important;
+    background: transparent;
+    box-shadow: none;
+    color: var(--bidar-text-secondary);
+    font-size: inherit;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+/* The border marks the active tab, as in the main column: one marker is enough */
+.bidar-record .tabs.middle-tabs > .btn::after {
+    display: none;
+}
+
+.bidar-record .tabs.middle-tabs > .btn:hover {
+    background: transparent;
+    color: var(--bidar-text);
+}
+
+.bidar-record .tabs.middle-tabs > .btn:active {
+    transform: none;
+}
+
+.bidar-record .tabs.middle-tabs > .btn.active {
+    background: transparent;
+    border-bottom-color: var(--bidar-brand-mark);
+    color: var(--bidar-text);
+    font-weight: 600;
+}
+
+/* A tab holding a field that failed validation stays red, even when active */
+.bidar-record .tabs.middle-tabs > .btn.invalid {
+    color: var(--state-danger-text);
+}
+
+/* Below the tabs, no second line: only the following groups get one */
+.bidar-inspector-card .middle-tabs ~ .middle > .panel {
+    border-top: 0;
+}
+
+.bidar-inspector-card .middle-tabs ~ .middle > .panel:not(.tab-hidden):not(.hidden) ~ .panel:not(.tab-hidden):not(.hidden):not(.panel-danger, .panel-warning, .panel-success, .panel-info, .panel-primary) {
+    border-top: 1px solid var(--bidar-n-100);
+}
+
+.bidar-inspector > .side > .panel:not([data-name="default"]) > .panel-heading .panel-title {
+    font-family: var(--bidar-font-display);
+    font-size: var(--14px);
+    font-weight: 700;
+    color: var(--bidar-text);
+}
+
+.bidar-record .bidar-record-grid > .bidar-main,
+.bidar-record .bidar-record-grid > .bidar-content-column {
+    flex: 1 1 480px;
+    min-width: 0;
+}
+
+.bidar-record .bidar-main,
+.bidar-record .bidar-content-card {
+    background: var(--bidar-surface);
+    border: 1px solid var(--bidar-border);
+    border-radius: var(--bidar-radius-lg);
+    box-shadow: var(--bidar-shadow-xs);
+}
+
+/* "Content" variant (rich-text entities): fields at the top of the main column */
+.bidar-record .bidar-content-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--20px);
+}
+
+.bidar-content-card {
+    padding: var(--4px) var(--20px) var(--12px);
+}
+
+/* Classic layout: fields and bottom panels on the left, side panels on the right */
+.bidar-layout-classic .bidar-content-card {
+    position: relative;
+    padding-top: var(--12px);
+}
+
+.bidar-layout-classic > .bidar-inspector > .side {
+    margin-top: 0;
+}
+
+.bidar-content-card .middle > .panel {
+    margin: 0;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--bidar-n-100);
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.bidar-content-card .middle > .panel:last-child {
+    border-bottom: 0;
+}
+
+.bidar-content-card .middle > .panel > .panel-heading {
+    padding-inline-start: 0;
+    padding-inline-end: 0;
+    background: transparent;
+    border: 0;
+}
+
+.bidar-content-card .middle > .panel > .panel-heading .panel-title {
+    font-family: var(--bidar-font);
+    font-size: var(--13px);
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--bidar-brand-text);
+}
+
+.bidar-content-card .middle > .panel > .panel-body {
+    padding-inline-start: 0;
+    padding-inline-end: 0;
+}
+
+@container (max-width: 880px) {
+    .bidar-record .bidar-record-grid > .bidar-inspector {
+        flex-basis: 100%;
+    }
+
+    .bidar-record .bidar-record-grid > .bidar-resizer {
+        display: none;
+    }
+}
+
+/* ===== Width handle between the columns ===== */
+.bidar-record .bidar-record-grid > .bidar-resizer {
+    position: relative;
+    flex: 0 0 var(--20px);
+    align-self: stretch;
+    cursor: col-resize;
+    touch-action: none;
+}
+
+/* Full-height line on hover, while dragging and on keyboard focus */
+.bidar-resizer::before {
+    content: "";
+    position: absolute;
+    top: calc(var(--bidar-band-overlap) + var(--8px));
+    bottom: 0;
+    inset-inline-start: 50%;
+    width: 2px;
+    margin-inline-start: -1px;
+    border-radius: 2px;
+    background: transparent;
+    transition: background-color var(--bidar-fast) ease;
+}
+
+.bidar-resizer:hover::before,
+.bidar-resizer.is-dragging::before,
+.bidar-resizer:focus-visible::before {
+    background: var(--bidar-brand-ring);
+}
+
+/* The coloured line is enough to show focus */
+.bidar-resizer:focus-visible {
+    outline: none;
+}
+
+body.bidar-resizing,
+body.bidar-resizing * {
+    cursor: col-resize !important;
+    user-select: none !important;
+}
+
+/* ===== "About" inspector ===== */
+.bidar-inspector-title {
+    display: flex;
+    align-items: center;
+    gap: var(--8px);
+    /* The height of the collapse button, hidden while editing: the card does not move */
+    min-height: 26px;
+    margin: 0 0 var(--8px);
+    font-family: var(--bidar-font-display);
+    font-size: var(--15px);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.bidar-plus {
+    color: var(--bidar-signature);
+    font-family: var(--bidar-font-display);
+    font-size: 1.2em;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.bidar-inspector .middle > .panel {
+    margin: 0;
+    background: transparent;
+    border: 0;
+    border-top: 1px solid var(--bidar-n-100);
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.bidar-inspector .panel > .panel-heading {
+    min-height: 0;
+    padding: var(--10px) 0 var(--6px);
+    border: 0;
+    background: transparent;
+}
+
+.bidar-inspector .panel > .panel-heading .panel-title {
+    padding: 0;
+    font-family: var(--bidar-font);
+    font-size: var(--13px);
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--bidar-brand-text);
+}
+
+.bidar-inspector .panel > .panel-body {
+    padding: var(--4px) 0 var(--10px);
+}
+
+.bidar-inspector .panel-body > .row {
+    display: block;
+    margin: 0;
+}
+
+.bidar-inspector .panel-body > .row > [class*="col-"]:not(.cell) {
+    display: none;
+}
+
+.bidar-inspector .panel-body > .row > .cell {
+    position: relative;
+    float: none;
+    display: grid;
+    grid-template-columns: 130px minmax(0, 1fr);
+    column-gap: var(--12px);
+    align-items: baseline;
+    width: 100%;
+    margin: 0;
+    padding-block: var(--4px);
+    padding-inline: 0 var(--20px);
+    font-size: var(--14px);
+}
+
+.bidar-inspector .panel-body > .row > .cell.hidden-cell,
+.bidar-inspector .panel-body > .row > .cell.hidden {
+    display: none;
+}
+
+.bidar-inspector .panel-body > .row > .cell > label.control-label {
+    grid-column: 1;
+    margin: 0;
+    font-size: var(--14px);
+    font-weight: 400;
+    color: var(--bidar-text-secondary);
+    overflow-wrap: anywhere;
+}
+
+.bidar-inspector .panel-body > .row > .cell > .field {
+    grid-column: 2;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.bidar-inspector .panel-body > .row > .cell > .inline-edit-link {
+    position: absolute;
+    top: var(--4px);
+    inset-inline-end: 0;
+}
+
+/* While editing, the label goes back above the field */
+.bidar-record.bidar-editing .bidar-inspector .panel-body > .row > .cell,
+.bidar-inspector .panel-body > .row > .cell:has(.inline-save-link) {
+    display: block;
+    padding-inline-end: 0;
+}
+
+.bidar-record.bidar-editing .bidar-inspector .panel-body > .row > .cell > label.control-label,
+.bidar-inspector .panel-body > .row > .cell:has(.inline-save-link) > label.control-label {
+    display: block;
+    margin-bottom: var(--4px);
+}
+
+/* ===== Main column: tabs ===== */
+.bidar-record .bottom.bidar-bottom {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--20px);
+    padding: 0 var(--20px) var(--20px);
+}
+
+.bidar-tab-hidden {
+    display: none !important;
+}
+
+.bidar-tabbar {
+    order: -2;
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    margin: 0 calc(var(--20px) * -1);
+    padding-block: 0;
+    padding-inline: var(--10px) 50px;
+    border-bottom: 1px solid var(--bidar-border);
+    overflow-x: auto;
+}
+
+.bidar-tab {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--6px);
+    padding: var(--14px) var(--10px) var(--11px);
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: var(--bidar-text-secondary);
+    font: inherit;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.bidar-tab:hover {
+    color: var(--bidar-text);
+}
+
+.bidar-tab[aria-pressed="true"] {
+    border-bottom-color: var(--bidar-brand-mark);
+    color: var(--bidar-text);
+    font-weight: 600;
+}
+
+.bidar-tab-count:not(:empty) {
+    min-width: 18px;
+    padding: 0 var(--6px);
+    border-radius: var(--bidar-radius-pill);
+    background: var(--bidar-brand-subtle);
+    color: var(--bidar-brand-text);
+    font-size: var(--12px);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+
+.bidar-tab-count.bidar-tab-count-empty {
+    background: var(--bidar-n-100);
+    color: var(--bidar-text-muted);
+}
+
+.bidar-tab-more .dropdown-menu .bidar-tab-more-item {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--12px);
+}
+
+/* Main column panels: sections, not cards */
+.bidar-bottom > .panel {
+    margin: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.bidar-bottom > .panel > .panel-heading {
+    padding: 0 0 var(--10px);
+    border: 0;
+    background: transparent;
+}
+
+.bidar-bottom > .panel > .panel-heading .panel-title {
+    font-family: var(--bidar-font-display);
+    font-size: var(--15px);
+    font-weight: 700;
+}
+
+.bidar-bottom > .panel > .panel-body {
+    padding: 0;
+}
+
+/*
+ * EspoCRM sizes the margins of a list and its first cell from --panel-padding: with the side
+ * padding of this block, tables run from edge to edge and their text lines up with the title.
+ */
+.bidar-bottom > .panel:not([data-name="stream"]) {
+    --panel-padding: var(--20px);
+}
+
+/* ===== Activity tab: quick actions, activities, tasks, history, stream ===== */
+.bidar-bottom.bidar-tab-activity > .panel[data-name="stream"],
+.bidar-bottom.bidar-tab-activity > .panel[data-name="stream"] > .panel-body {
+    display: contents;
+}
+
+/* Bootstrap clearfixes would become empty flex items (and as many gaps) */
+.bidar-bottom.bidar-tab-activity > .panel[data-name="stream"]::before,
+.bidar-bottom.bidar-tab-activity > .panel[data-name="stream"]::after,
+.bidar-bottom.bidar-tab-activity > .panel[data-name="stream"] > .panel-body::before,
+.bidar-bottom.bidar-tab-activity > .panel[data-name="stream"] > .panel-body::after {
+    display: none;
+}
+
+.bidar-bottom.bidar-tab-activity > .bidar-composer { order: 0; }
+.bidar-bottom.bidar-tab-activity > .panel[data-name="stream"] > .panel-body > .post-container { order: 1; }
+/*
+ * The stream heading is an item of the column, which already spaces its items: its negative
+ * margins take back part of the heading padding to bring it closer to the note field and the stream.
+ */
+.bidar-bottom.bidar-tab-activity > .panel[data-name="stream"] > .panel-heading {
+    order: var(--bidar-stream-order, 2);
+    margin-top: calc(var(--10px) * -1);
+    margin-bottom: calc(var(--16px) * -1);
+    padding-bottom: 0;
+}
+
+/* No pinned notes: their empty container must not add a gap */
+.bidar-bottom.bidar-tab-activity > .panel[data-name="stream"] > .panel-body > .list-container[data-role="pinned"]:not(:has(*)) {
+    display: none;
+}
+
+.bidar-bottom.bidar-tab-activity > .panel[data-name="stream"] > .panel-body > .list-container {
+    order: var(--bidar-stream-list-order, 3);
+}
+
+.bidar-composer {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--4px);
+    margin-bottom: calc(var(--20px) * -1);
+    padding: var(--14px) var(--16px) var(--12px);
+    background: var(--bidar-surface);
+    border: 1px solid var(--bidar-border);
+    border-bottom: 0;
+    border-radius: var(--bidar-radius-lg) var(--bidar-radius-lg) 0 0;
+}
+
+.bidar-layout-classic .bidar-content-card::before,
+.bidar-record .bidar-inspector-card::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    inset-inline-start: -1px;
+    width: 22px;
+    height: 22px;
+    border-top: 3px solid var(--bidar-signature);
+    border-inline-start: 3px solid var(--bidar-signature);
+    border-start-start-radius: var(--bidar-radius-lg);
+    pointer-events: none;
+}
+
+.bidar-composer.bidar-composer-solo {
+    margin-bottom: 0;
+    padding-bottom: var(--14px);
+    border-bottom: 1px solid var(--bidar-border);
+    border-radius: var(--bidar-radius-lg);
+}
+
+.bidar-composer-button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--7px);
+    padding: var(--7px) var(--12px);
+    border: 0;
+    border-radius: var(--bidar-radius);
+    background: transparent;
+    color: var(--bidar-text-secondary);
+    font: inherit;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color var(--bidar-fast) ease, color var(--bidar-fast) ease, transform var(--bidar-fast) ease;
+}
+
+.bidar-composer-button:hover {
+    background: var(--bidar-hover);
+    color: var(--bidar-text);
+}
+
+.bidar-composer-button:active {
+    transform: translateY(1px);
+}
+
+.bidar-composer-button[data-kind="note"] {
+    background: var(--bidar-brand);
+    color: var(--bidar-on-brand);
+}
+
+.bidar-composer-icon {
+    font-size: 0.9em;
+    opacity: 0.85;
+}
+
+.bidar-bottom.bidar-tab-activity > .panel[data-name="stream"] > .panel-body > .post-container {
+    margin: 0;
+    padding: 0 var(--16px) var(--16px);
+    background: var(--bidar-surface);
+    border: 1px solid var(--bidar-border);
+    border-top: 0;
+    border-radius: 0 0 var(--bidar-radius-lg) var(--bidar-radius-lg);
+}
+
+.bidar-bottom.bidar-tab-activity:not(:has(> .bidar-composer)) > .panel[data-name="stream"] > .panel-body > .post-container {
+    padding-top: var(--16px);
+    border-top: 1px solid var(--bidar-border);
+    border-radius: var(--bidar-radius-lg);
+}
+
+.bidar-bottom .post-container textarea.form-control {
+    background: var(--bidar-surface-sunken);
+    border-radius: var(--bidar-radius-md);
+}
+
+/* ===== Timeline: stream and activity lists ===== */
+.bidar-bottom.bidar-tab-activity .list-container[data-role="stream"] .list-group,
+.bidar-bottom .panel[data-name="activities"] .list-group,
+.bidar-bottom .panel[data-name="history"] .list-group,
+.bidar-bottom .panel[data-name="tasks"] .list-group {
+    margin: 0;
+}
+
+/*
+ * Stream: date on the left, rail and dot, content on the right. The date column fits
+ * EspoCRM's short formats ("16 Oct, 25", "Yest 10:27") on one line.
+ */
+.bidar-bottom.bidar-tab-activity .list-container[data-role="stream"] {
+    --bidar-stream-date-width: 84px;
+}
+
+.bidar-bottom.bidar-tab-activity .list-container[data-role="stream"] li.list-group-item {
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--bidar-stream-date-width) 24px minmax(0, 1fr);
+    column-gap: var(--12px);
+    margin: 0;
+    padding-block: 0 var(--20px);
+    padding-inline: 0 var(--32px);
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+}
+
+.bidar-bottom.bidar-tab-activity .list-container[data-role="stream"] li.list-group-item > * {
+    grid-column: 3;
+    min-width: 0;
+}
+
+.bidar-bottom.bidar-tab-activity .list-container[data-role="stream"] li.list-group-item > .stream-date-container {
+    grid-column: 1;
+    grid-row: 1 / span 4;
+    order: -1;
+    /* Top of the column: EspoCRM 10.1 makes this line a flex row centred vertically */
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: baseline;
+    align-content: flex-start;
+    column-gap: var(--4px);
+    margin: 0;
+    padding-top: 1px;
+    text-align: end;
+}
+
+.bidar-bottom.bidar-tab-activity .list-container[data-role="stream"] li.list-group-item > .stream-date-container > .reactions-container {
+    flex-basis: 100%;
+    justify-content: flex-end;
+    width: auto;
+    margin-inline-start: 0;
+}
+
+/* Empty, it would push the date to the left of the column */
+.bidar-bottom.bidar-tab-activity .list-container[data-role="stream"] li.list-group-item > .stream-date-container > .reactions-container:empty {
+    display: none;
+}
+
+.bidar-bottom.bidar-tab-activity .list-container[data-role="stream"] li.list-group-item > .stream-date-container a {
+    color: var(--bidar-text-secondary);
+    font-family: var(--bidar-font-display);
+    font-size: var(--14px);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.bidar-bottom.bidar-tab-activity .list-container[data-role="stream"] li.list-group-item::before {
+    content: "";
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: center;
+    width: 12px;
+    height: 12px;
+    margin-top: 5px;
+    border-radius: 50%;
+    background: var(--bidar-surface);
+    box-shadow: inset 0 0 0 2px var(--bidar-n-300);
+}
+
+.bidar-bottom.bidar-tab-activity .list-container[data-role="stream"] li.list-group-item:first-child::before {
+    background: var(--bidar-brand-subtle);
+    box-shadow: inset 0 0 0 2px var(--bidar-brand-mark);
+}
+
+.bidar-bottom.bidar-tab-activity .list-container[data-role="stream"] li.list-group-item::after {
+    content: "";
+    position: absolute;
+    top: 21px;
+    bottom: 0;
+    inset-inline-start: calc(var(--bidar-stream-date-width) + var(--12px) + 11px);
+    width: 2px;
+    background: var(--bidar-border-strong);
+}
+
+.bidar-bottom.bidar-tab-activity .list-container[data-role="stream"] li.list-group-item:last-child::after {
+    display: none;
+}
+
+.bidar-bottom.bidar-tab-activity .list-container[data-role="stream"] li.list-group-item > .right-container,
+.bidar-bottom.bidar-tab-activity .list-container[data-role="stream"] li.list-group-item > .cell-buttons {
+    position: absolute;
+    top: 0;
+    inset-inline-end: 0;
+}
+
+/* Activities, tasks, history: light rows, subtle hover */
+.bidar-record .panel[data-name="activities"] li.list-group-item,
+.bidar-record .panel[data-name="history"] li.list-group-item,
+.bidar-record .panel[data-name="tasks"] li.list-group-item {
+    margin: 0 calc(var(--10px) * -1);
+    padding: var(--8px) var(--10px);
+    border: 0;
+    border-radius: var(--bidar-radius-md);
+    background: transparent;
+    transition: background-color var(--bidar-fast) ease;
+}
+
+.bidar-record .panel[data-name="activities"] li.list-group-item:hover,
+.bidar-record .panel[data-name="history"] li.list-group-item:hover,
+.bidar-record .panel[data-name="tasks"] li.list-group-item:hover {
+    background: var(--bidar-n-25);
+}
+
+.bidar-record .panel[data-name="activities"] li.list-group-item {
+    border-inline-start: 3px solid var(--bidar-brand-subtle);
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
+    border-start-end-radius: var(--bidar-radius-md);
+    border-end-end-radius: var(--bidar-radius-md);
+}
+
+.bidar-record .panel[data-name="activities"] .list-group,
+.bidar-record .panel[data-name="history"] .list-group,
+.bidar-record .panel[data-name="tasks"] .list-group {
+    margin: 0;
+}
+
+/*
+ * In side cards and in the right column, EspoCRM stretches the list to the panel edges; cancelling
+ * that offset lines the rows up with the heading and keeps their hover inside the card.
+ */
+.bidar-inspector > .side > .panel .list-expanded,
+.bidar-bottom > .panel .list-expanded {
+    margin-inline-start: 0;
+    margin-inline-end: 0;
+}
+
+/* The layout's native tabs are taken over by the Bidar tab bar */
+.bidar-bottom > .tabs {
+    display: none;
+}
+
+/* ===== Hidden empty fields (outside edit mode) ===== */
+.bidar-record-grid:not(.bidar-show-empty) .cell.bidar-empty {
+    display: none !important;
+}
+
+.bidar-record-grid:not(.bidar-show-empty) .middle > .panel:has(.cell.bidar-empty):not(:has(.cell[data-name]:not(.bidar-empty):not(.hidden-cell))) {
+    display: none;
+}
+
+.bidar-empty-toggle {
+    display: block;
+    margin: var(--4px) 0 var(--8px);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--bidar-text-secondary);
+    font: inherit;
+    font-size: var(--13px);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+.bidar-empty-toggle:hover {
+    color: var(--bidar-text);
+}
+
+.bidar-content-card > .bidar-empty-toggle,
+.bidar-inspector-card > .bidar-empty-toggle {
+    margin-top: var(--8px);
+}
+
+/* ===== Collapsible blocks (accordions) ===== */
+.bidar-collapsible {
+    cursor: pointer;
+}
+
+.bidar-inspector-card .middle > .panel > .panel-heading.bidar-collapsible,
+.bidar-content-card .middle > .panel > .panel-heading.bidar-collapsible {
+    display: flex;
+    align-items: center;
+    gap: var(--8px);
+}
+
+.bidar-inspector-card .middle > .panel > .panel-heading.bidar-collapsible > .panel-title,
+.bidar-content-card .middle > .panel > .panel-heading.bidar-collapsible > .panel-title {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.bidar-record .bidar-collapse {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    margin-inline-start: auto;
+    padding: 0;
+    border: 0;
+    border-radius: var(--bidar-radius-sm);
+    background: transparent;
+    box-shadow: none;
+    color: var(--bidar-text-faint);
+}
+
+.bidar-record .bidar-collapse:hover {
+    background: var(--bidar-hover);
+    color: var(--bidar-text);
+}
+
+/* No lingering background after a mouse click: keyboard focus stays visible */
+.bidar-record .bidar-collapse:focus:not(:focus-visible):not(:hover) {
+    background: transparent;
+}
+
+.bidar-record .bidar-collapse .fas {
+    font-size: 11px;
+    transition: transform var(--bidar-fast) var(--bidar-ease);
+}
+
+/* The tab bar scrolls sideways: its chevron is placed from the block, and stays visible */
+.bidar-tabbar > .bidar-collapse {
+    position: absolute;
+    top: 12px;
+    inset-inline-end: var(--20px);
+}
+
+.bidar-collapsed > .panel-heading > .bidar-collapse .fas,
+.bidar-content-card.bidar-collapsed > .bidar-inspector-title .bidar-collapse .fas,
+.bidar-main.bidar-collapsed .bidar-tabbar > .bidar-collapse .fas,
+.bidar-inspector.bidar-collapsed > .bidar-inspector-card .bidar-inspector-title .bidar-collapse .fas {
+    transform: rotate(-90deg);
+}
+
+/* Collapsed: only the heading remains. While editing, everything is open and the chevron disappears. */
+.bidar-record:not(.bidar-editing) .panel.bidar-collapsed > :not(.panel-heading),
+.bidar-record:not(.bidar-editing) .bidar-content-card.bidar-collapsed > :not(.bidar-inspector-title),
+.bidar-record:not(.bidar-editing) .bidar-main.bidar-collapsed > .extra,
+.bidar-record:not(.bidar-editing) .bidar-main.bidar-collapsed .bidar-bottom > :not(.bidar-tabbar),
+.bidar-record:not(.bidar-editing) .bidar-inspector.bidar-collapsed > .bidar-inspector-card > :not(.bidar-inspector-title),
+.bidar-record:not(.bidar-editing) .bidar-inspector.bidar-collapsed:not(:has(> .bidar-inspector-card > .middle)) > .side > .panel[data-name="default"] {
+    display: none;
+}
+
+.bidar-record:not(.bidar-editing) .bidar-inspector.bidar-collapsed:not(:has(> .bidar-inspector-card > .middle)):has(> .side > .panel[data-name="default"]) > .bidar-inspector-card {
+    padding-bottom: var(--8px);
+    border-bottom: 1px solid var(--bidar-border);
+    border-radius: var(--bidar-radius-lg);
+    box-shadow: var(--bidar-shadow-xs);
+}
+
+.bidar-record:not(.bidar-editing) .bidar-content-card.bidar-collapsed > .bidar-inspector-title,
+.bidar-record:not(.bidar-editing) .bidar-inspector.bidar-collapsed > .bidar-inspector-card .bidar-inspector-title {
+    margin-bottom: 0;
+}
+
+.bidar-record:not(.bidar-editing) .bidar-main.bidar-collapsed .bottom.bidar-bottom {
+    padding-bottom: 0;
+}
+
+.bidar-record:not(.bidar-editing) .bidar-main.bidar-collapsed .bidar-tabbar {
+    border-bottom: 0;
+}
+
+.bidar-record:not(.bidar-editing) .bidar-inspector.bidar-collapsed > .side {
+    margin-top: var(--16px);
+}
+
+.bidar-record.bidar-editing .bidar-collapse {
+    display: none;
+}
+
+.bidar-record.bidar-editing .bidar-collapsible {
+    cursor: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bidar-record .bidar-collapse .fas {
+        transition: none;
+    }
+
+    .bidar-composer-button:active {
+        transform: none;
+    }
+}
+
+/*
+ * Panels coloured by the administrator (Danger, Warning, Success, Info, Primary): as in EspoCRM,
+ * the heading becomes a tinted band across the whole block, with the title centred and in colour.
+ * EspoCRM tints the panel background over a fixed height that doesn't match Bidar's headings,
+ * so the tint goes on the heading itself.
+ */
+.bidar-record .panel.headered {
+    background-image: none;
+}
+
+.bidar-record .panel.panel-danger > .panel-heading { background-color: var(--panel-danger-bg); }
+.bidar-record .panel.panel-warning > .panel-heading { background-color: var(--panel-warning-bg); }
+.bidar-record .panel.panel-success > .panel-heading { background-color: var(--panel-success-bg); }
+.bidar-record .panel.panel-info > .panel-heading { background-color: var(--panel-info-bg); }
+.bidar-record .panel.panel-primary > .panel-heading { background-color: var(--panel-primary-bg); }
+
+.bidar-record .panel:is(.panel-danger, .panel-warning, .panel-success, .panel-info, .panel-primary) > .panel-heading .panel-title,
+.bidar-inspector > .side > .panel:is(.panel-danger, .panel-warning, .panel-success, .panel-info, .panel-primary) > .panel-heading .panel-title {
+    color: inherit;
+}
+
+/*
+ * Right column. EspoCRM lists are pulled up by the panel padding (--panel-padding): the same
+ * margin below the band makes them start right under it, without covering it.
+ */
+.bidar-bottom > .panel:is(.panel-danger, .panel-warning, .panel-success, .panel-info, .panel-primary) > .panel-heading {
+    min-height: 0;
+    margin: 0 calc(var(--20px) * -1) var(--panel-padding);
+    padding: 0 var(--20px);
+    border-radius: 0;
+}
+
+.bidar-bottom > .panel:is(.panel-danger, .panel-warning, .panel-success, .panel-info, .panel-primary) > .panel-heading .panel-title {
+    padding-top: var(--8px);
+    padding-bottom: var(--8px);
+}
+
+/* Centred in the band. Lower, this float would stick out and push the table down */
+.bidar-bottom > .panel:is(.panel-danger, .panel-warning, .panel-success, .panel-info, .panel-primary) > .panel-heading > .panel-actions-container {
+    margin-top: var(--3px);
+}
+
+/* First panel of a tab: the band sits right under the tab bar */
+.bidar-bottom > .panel:is(.panel-danger, .panel-warning, .panel-success, .panel-info, .panel-primary):not(.bidar-tab-hidden, .hidden, .panel:not(.bidar-tab-hidden, .hidden) ~ .panel) {
+    margin-top: calc(var(--20px) * -1);
+}
+
+/* Sections of the "About" or content card: the band replaces the separator line */
+.bidar-inspector-card .middle > .panel:is(.panel-danger, .panel-warning, .panel-success, .panel-info, .panel-primary) {
+    border-top: 0;
+}
+
+.bidar-content-card .middle > .panel:has(+ .panel:is(.panel-danger, .panel-warning, .panel-success, .panel-info, .panel-primary)) {
+    border-bottom: 0;
+}
+
+.bidar-inspector-card .middle > .panel:is(.panel-danger, .panel-warning, .panel-success, .panel-info, .panel-primary) > .panel-heading,
+.bidar-content-card .middle > .panel:is(.panel-danger, .panel-warning, .panel-success, .panel-info, .panel-primary) > .panel-heading {
+    margin: 0 calc(var(--20px) * -1);
+    padding: var(--8px) var(--20px);
+    border-radius: 0;
+}
+
+/* Left cards: the band caps the card */
+.bidar-inspector > .side > .panel:is(.panel-danger, .panel-warning, .panel-success, .panel-info, .panel-primary) > .panel-heading {
+    margin: 0 calc(var(--20px) * -1) var(--panel-padding);
+    padding: var(--10px) var(--20px);
+    border-radius: calc(var(--bidar-radius-lg) - 1px) calc(var(--bidar-radius-lg) - 1px) 0 0;
+}
+
+/* Coloured card stuck to the previous one: the band replaces the line, without rounded corners */
+.bidar-inspector > .side > .panel.sticked:not(:first-child):is(.panel-danger, .panel-warning, .panel-success, .panel-info, .panel-primary) {
+    border-top: 0;
+}
+
+.bidar-inspector > .side > .panel.sticked:not(:first-child):is(.panel-danger, .panel-warning, .panel-success, .panel-info, .panel-primary) > .panel-heading {
+    border-start-start-radius: 0;
+    border-start-end-radius: 0;
+}
+
+.bidar-inspector > .side > .panel.bidar-collapsed:is(.panel-danger, .panel-warning, .panel-success, .panel-info, .panel-primary) > .panel-heading {
+    margin-bottom: calc(var(--8px) * -1);
+    border-radius: calc(var(--bidar-radius-lg) - 1px);
+}

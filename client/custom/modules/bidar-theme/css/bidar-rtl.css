@@ -1,0 +1,391 @@
+/**
+ * Bidar RTL Layer for EspoCRM Backbone UI
+ * Guarantees 100% natural Right-to-Left experience with Vazirmatn typography
+ */
+
+html[dir="rtl"],
+body[data-direction="rtl"],
+.bidar-rtl {
+    direction: rtl;
+    text-align: right;
+}
+
+/* Base text and alignment */
+html[dir="rtl"] body {
+    direction: rtl;
+    text-align: right;
+}
+
+/* Layout Grid - In Split view: Inspector (Details) on the Right, Timeline on the Left */
+html[dir="rtl"] .bidar-record-grid {
+    direction: rtl;
+}
+
+html[dir="rtl"] .bidar-record-grid > .bidar-inspector {
+    order: 1;
+}
+
+html[dir="rtl"] .bidar-record-grid > .bidar-resizer {
+    order: 2;
+    cursor: col-resize;
+}
+
+html[dir="rtl"] .bidar-record-grid > .bidar-main,
+html[dir="rtl"] .bidar-record-grid > .bidar-content-column {
+    order: 3;
+}
+
+/* Classic layout mirroring */
+html[dir="rtl"] .bidar-record-grid.bidar-layout-classic > .bidar-content-column,
+html[dir="rtl"] .bidar-record-grid.bidar-layout-classic > .bidar-main {
+    order: 1;
+}
+
+html[dir="rtl"] .bidar-record-grid.bidar-layout-classic > .bidar-resizer {
+    order: 2;
+}
+
+html[dir="rtl"] .bidar-record-grid.bidar-layout-classic > .bidar-inspector {
+    order: 3;
+}
+
+/* Pipeline Stage Ribbon - Right to Left Flow */
+html[dir="rtl"] .bidar-band-stages,
+html[dir="rtl"] .pipeline-stages,
+html[dir="rtl"] .stage-nav {
+    direction: rtl;
+    display: flex;
+    flex-direction: row;
+}
+
+html[dir="rtl"] .bidar-band-stages > *:first-child {
+    border-top-right-radius: var(--bidar-radius-sm);
+    border-bottom-right-radius: var(--bidar-radius-sm);
+}
+
+html[dir="rtl"] .bidar-band-stages > *:last-child {
+    border-top-left-radius: var(--bidar-radius-sm);
+    border-bottom-left-radius: var(--bidar-radius-sm);
+}
+
+/* Mirror chevron navigation icons in RTL */
+html[dir="rtl"] .fas.fa-chevron-left,
+html[dir="rtl"] .fa.fa-chevron-left {
+    transform: scaleX(-1);
+}
+
+html[dir="rtl"] .fas.fa-chevron-right,
+html[dir="rtl"] .fa.fa-chevron-right {
+    transform: scaleX(-1);
+}
+
+html[dir="rtl"] .fas.fa-angle-left,
+html[dir="rtl"] .fa.fa-angle-left {
+    transform: scaleX(-1);
+}
+
+html[dir="rtl"] .fas.fa-angle-right,
+html[dir="rtl"] .fa.fa-angle-right {
+    transform: scaleX(-1);
+}
+
+html[dir="rtl"] .fas.fa-arrow-left,
+html[dir="rtl"] .fa.fa-arrow-left {
+    transform: scaleX(-1);
+}
+
+html[dir="rtl"] .fas.fa-arrow-right,
+html[dir="rtl"] .fa.fa-arrow-right {
+    transform: scaleX(-1);
+}
+
+/* Form Controls & Labels */
+html[dir="rtl"] .form-group label,
+html[dir="rtl"] .control-label {
+    text-align: right;
+}
+
+html[dir="rtl"] .form-control {
+    text-align: right;
+}
+
+html[dir="rtl"] input[type="tel"],
+html[dir="rtl"] input[type="email"],
+html[dir="rtl"] input[type="url"],
+html[dir="rtl"] .ltr-input,
+html[dir="rtl"] .dir-ltr {
+    direction: ltr !important;
+    text-align: right !important;
+}
+
+/* Tables and Data */
+html[dir="rtl"] .table th,
+html[dir="rtl"] .table td,
+html[dir="rtl"] .list-table th,
+html[dir="rtl"] .list-table td {
+    text-align: right;
+}
+
+html[dir="rtl"] .pull-left {
+    float: right !important;
+}
+
+html[dir="rtl"] .pull-right {
+    float: left !important;
+}
+
+/* Modals */
+html[dir="rtl"] .modal-header .close {
+    float: left;
+    margin-right: auto;
+    margin-left: 0;
+}
+
+html[dir="rtl"] .modal-header .modal-title {
+    text-align: right;
+}
+
+html[dir="rtl"] .modal-footer {
+    text-align: left;
+}
+
+/* Dropdown Menus */
+html[dir="rtl"] .dropdown-menu {
+    right: 0;
+    left: auto;
+    text-align: right;
+}
+
+html[dir="rtl"] .dropdown-menu-right {
+    right: auto;
+    left: 0;
+}
+
+/* Tabs */
+html[dir="rtl"] .nav-tabs > li {
+    float: right;
+}
+
+html[dir="rtl"] .nav-tabs > li > a {
+    margin-right: 0;
+    margin-left: 2px;
+}
+
+/* Breadcrumbs */
+html[dir="rtl"] .breadcrumb > li + li:before {
+    content: "/\00a0";
+    padding: 0 5px;
+}
+
+/* Badges & Counters */
+html[dir="rtl"] .badge {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Native Kanban RTL */
+html[dir="rtl"] .list-kanban-container {
+    direction: rtl;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+html[dir="rtl"] div.list-kanban {
+    direction: rtl;
+}
+
+html[dir="rtl"] div.list-kanban table.kanban-columns td.group-column {
+    text-align: right;
+}
+
+html[dir="rtl"] div.list-kanban th.group-header {
+    text-align: right;
+}
+
+html[dir="rtl"] div.list-kanban .item-menu-container {
+    float: left !important;
+}
+
+/* RTL Rotten Deal visual indicator */
+html[dir="rtl"] div.list-kanban .item[data-is-rotten="true"] .panel.panel-default,
+html[dir="rtl"] div.list-kanban .item.is-rotten .panel.panel-default,
+html[dir="rtl"] div.list-kanban .item:has(.field[data-name="isRotten"]:not(:empty)) .panel.panel-default {
+    border-left: 1px solid var(--bidar-border);
+    border-right: 3px solid var(--bidar-danger, #ef4444);
+    background: linear-gradient(to left, rgba(239, 68, 68, 0.04) 0%, var(--bidar-surface) 24px);
+}
+
+/* Desktop RTL side-navbar docking. EspoCRM keeps one padded content container. */
+@media screen and (min-width: 768px) {
+    html[dir="rtl"] body[data-navbar="side"] #navbar > .navbar,
+    body[data-direction="rtl"][data-navbar="side"] #navbar > .navbar,
+    html[dir="rtl"] body[data-navbar="side"] #navbar .navbar,
+    body[data-direction="rtl"][data-navbar="side"] #navbar .navbar {
+        left: auto !important;
+        right: 0 !important;
+        border-right-width: 0 !important;
+        border-left: var(--navbar-border-width, 1px) solid var(--bidar-sidebar-line, var(--navbar-inverse-border)) !important;
+    }
+
+    html[dir="rtl"] body[data-navbar="side"].has-navbar > .content,
+    html[dir="rtl"] body[data-navbar="side"].has-navbar > #content,
+    body[data-direction="rtl"][data-navbar="side"].has-navbar > .content,
+    body[data-direction="rtl"][data-navbar="side"].has-navbar > #content {
+        margin-left: auto !important;
+        margin-right: auto !important;
+        padding-left: var(--container-padding, 15px) !important;
+        padding-right: calc(var(--navbar-width) + var(--container-padding, 15px)) !important;
+    }
+
+    html[dir="rtl"] body[data-navbar="side"].has-navbar.minimized:not(.side-menu-opened) > .content,
+    html[dir="rtl"] body[data-navbar="side"].has-navbar.minimized:not(.side-menu-opened) > #content,
+    body[data-direction="rtl"][data-navbar="side"].has-navbar.minimized:not(.side-menu-opened) > .content,
+    body[data-direction="rtl"][data-navbar="side"].has-navbar.minimized:not(.side-menu-opened) > #content {
+        padding-right: calc(var(--navbar-minimized-width) + var(--container-padding, 15px)) !important;
+    }
+
+    html[dir="rtl"] body[data-navbar="side"].has-navbar #navbar .navbar-right,
+    body[data-direction="rtl"][data-navbar="side"].has-navbar #navbar .navbar-right {
+        left: 0 !important;
+        right: auto !important;
+        margin-left: 0 !important;
+        margin-right: var(--navbar-width) !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        width: calc(100vw - var(--navbar-width)) !important;
+    }
+
+    html[dir="rtl"] body[data-navbar="side"].has-navbar.minimized:not(.side-menu-opened) #navbar .navbar-right,
+    body[data-direction="rtl"][data-navbar="side"].has-navbar.minimized:not(.side-menu-opened) #navbar .navbar-right {
+        margin-right: var(--navbar-minimized-width) !important;
+        width: calc(100vw - var(--navbar-minimized-width)) !important;
+    }
+
+    html[dir="rtl"] body[data-navbar="side"].has-navbar.minimized.side-menu-opened #navbar .navbar-right,
+    body[data-direction="rtl"][data-navbar="side"].has-navbar.minimized.side-menu-opened #navbar .navbar-right {
+        margin-right: var(--navbar-width) !important;
+        width: calc(100vw - var(--navbar-width)) !important;
+    }
+
+    html[dir="rtl"] body[data-navbar="side"].has-navbar #navbar ul.tabs > li.tab.active > a::before,
+    body[data-direction="rtl"][data-navbar="side"].has-navbar #navbar ul.tabs > li.tab.active > a::before {
+        left: auto !important;
+        right: 0 !important;
+        border-start-start-radius: 3px !important;
+        border-end-start-radius: 3px !important;
+        border-start-end-radius: 0 !important;
+        border-end-end-radius: 0 !important;
+    }
+
+    html[dir="rtl"] body[data-navbar="side"].has-navbar > footer,
+    body[data-direction="rtl"][data-navbar="side"].has-navbar > footer {
+        margin-left: 0 !important;
+        margin-right: var(--navbar-width) !important;
+    }
+
+    html[dir="rtl"] body[data-navbar="side"].has-navbar.minimized:not(.side-menu-opened) > footer,
+    body[data-direction="rtl"][data-navbar="side"].has-navbar.minimized:not(.side-menu-opened) > footer {
+        margin-right: var(--navbar-minimized-width) !important;
+    }
+
+    html[dir="rtl"] body[data-navbar="side"] li.tab-group > .dropdown-menu,
+    html[dir="rtl"] body[data-navbar="side"] li.more > .dropdown-menu,
+    body[data-direction="rtl"][data-navbar="side"] li.tab-group > .dropdown-menu,
+    body[data-direction="rtl"][data-navbar="side"] li.more > .dropdown-menu {
+        left: auto;
+        right: var(--navbar-width);
+    }
+
+    html[dir="rtl"] body[data-navbar="side"].minimized:not(.side-menu-opened) li.tab-group > .dropdown-menu,
+    html[dir="rtl"] body[data-navbar="side"].minimized:not(.side-menu-opened) li.more > .dropdown-menu,
+    body[data-direction="rtl"][data-navbar="side"].minimized:not(.side-menu-opened) li.tab-group > .dropdown-menu,
+    body[data-direction="rtl"][data-navbar="side"].minimized:not(.side-menu-opened) li.more > .dropdown-menu {
+        right: var(--navbar-minimized-width);
+    }
+
+    html[dir="rtl"] body[data-navbar="side"] .navbar-header > a.minimizer,
+    body[data-direction="rtl"][data-navbar="side"] .navbar-header > a.minimizer {
+        left: 0;
+        right: auto;
+        float: left !important;
+        margin-inline-start: calc(var(--navbar-tab-left-padding) + var(--3px));
+        margin-inline-end: 0;
+    }
+
+    html[dir="rtl"] body[data-navbar="side"] .navbar-header > a.minimizer span,
+    body[data-direction="rtl"][data-navbar="side"] .navbar-header > a.minimizer span {
+        margin-inline-start: var(--8px);
+        margin-inline-end: 0;
+    }
+
+    html[dir="rtl"] body[data-navbar="side"] .group-caret,
+    body[data-direction="rtl"][data-navbar="side"] .group-caret {
+        left: auto;
+        right: auto;
+        inset-inline-end: var(--13px);
+        transform: rotate(180deg);
+    }
+
+    html[dir="rtl"] body[data-navbar="side"].minimized .group-caret,
+    body[data-direction="rtl"][data-navbar="side"].minimized .group-caret {
+        inset-inline-end: var(--5px);
+    }
+}
+
+body:not(.has-navbar) > footer {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+html[dir="rtl"] .bidar-step-inner {
+    clip-path: polygon(12px 0, 100% 0, calc(100% - 12px) 50%, 100% 100%, 12px 100%, 0 50%);
+}
+
+html[dir="rtl"] .bidar-step:first-child .bidar-step-inner {
+    clip-path: polygon(12px 0, 100% 0, calc(100% - 12px) 50%, 100% 100%, 12px 100%);
+    border-radius: 0 8px 8px 0;
+}
+
+html[dir="rtl"] .bidar-step:last-child .bidar-step-inner {
+    clip-path: polygon(12px 0, 100% 0, 100% 100%, 12px 100%, 0 50%);
+    border-radius: 8px 0 0 8px;
+}
+html[dir="rtl"] .bidar-collapse[aria-expanded="false"] .fas,
+html[dir="rtl"] .bidar-collapse[aria-expanded="false"] .fa,
+html[dir="rtl"] .accordion-toggle.collapsed .fas,
+html[dir="rtl"] .accordion-toggle.collapsed .fa,
+html[dir="rtl"] .bidar-collapsed > .panel-heading > .bidar-collapse .fas,
+html[dir="rtl"] .bidar-content-card.bidar-collapsed > .bidar-inspector-title .bidar-collapse .fas,
+html[dir="rtl"] .bidar-main.bidar-collapsed .bidar-tabbar > .bidar-collapse .fas,
+html[dir="rtl"] .bidar-inspector.bidar-collapsed > .bidar-inspector-card .bidar-inspector-title .bidar-collapse .fas,
+html[dir="rtl"] .bidar-nav-collapsed .bidar-nav-toggle .fas { transform: rotate(90deg); }
+
+html[dir="rtl"] .bidar-layout-classic .bidar-content-card::before,
+html[dir="rtl"] .bidar-record .bidar-inspector-card::before,
+html[dir="rtl"] #main > .list-container > .list::before {
+    left: auto;
+    right: 0;
+    border-left: none;
+    border-right: 3px solid var(--bidar-signature);
+    border-top-left-radius: 0;
+    border-top-right-radius: calc(var(--bidar-radius-lg) - 1px);
+}
+
+html[dir="rtl"] .bidar-band .detail-button-container .dropdown-menu { inset-inline-end: 0; inset-inline-start: auto; }
+html[dir="rtl"] .bidar-collapse { margin-inline-start: auto; margin-left: 0; }
+html[dir="rtl"] .stream-date-container { text-align: end; }
+html[dir="rtl"] .reactions-container { margin-inline-start: 0; }
+
+@media (min-width: 768px) {
+    html[dir="rtl"] .modal:not(.dialog-confirm):not(.dialog-centered) > .modal-dialog {
+        margin: 0 auto 0 0;
+    }
+
+    html[dir="rtl"] .modal:not(.dialog-confirm):not(.dialog-centered) > .modal-dialog > .modal-content {
+        border-inline-start: 0;
+        border-inline-end: 1px solid var(--bidar-border);
+        border-left: 0;
+        border-right: 1px solid var(--bidar-border);
+        border-radius: 0 var(--bidar-radius-xl) var(--bidar-radius-xl) 0;
+        box-shadow: 32px 0 64px -8px rgba(10, 12, 20, 0.32), 4px 0 12px -2px rgba(10, 12, 20, 0.14);
+    }
+}

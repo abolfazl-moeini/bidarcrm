@@ -1,0 +1,681 @@
+--- FILE: extensions/bidar-sales/Services/BidarApiKeyService.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace Espo\Modules\BidarSales\Services;
+
+use Espo\Core\Exceptions\BadRequest;
+use Espo\Core\Exceptions\Forbidden;
+use Espo\Core\Exceptions\NotFound;
+use Espo\Entities\User;
+use Espo\ORM\Entity;
+use Espo\ORM\EntityManager;
+
+class BidarApiKeyService
+{
+    public const KEY_PREFIX_LENGTH = 16;
+    public const RANDOM_BYTES_COUNT = 24;
+
+    private ?EntityManager $entityManager;
+
+    public function __construct(?EntityManager $entityManager = null)
+    {
+        $this->entityManager = $entityManager;
+    }
+
+    /**
+     * Generates a secure plain API key.
+     */
+    public function generatePlainKey(): string
+    {
+        return 'bdr_' . bin2hex(random_bytes(self::RANDOM_BYTES_COUNT));
+    }
+
+    /**
+     * Extracts non-sensitive display prefix.
+     */
+    public function extractPrefix(string $plainKey): string
+    {
+        return substr($plainKey, 0, 12) . '...';
+    }
+
+    /**
+     * Computes SHA-256 hash for storage.
+     */
+    public function hashKey(string $plainKey): string
+    {
+        return hash('sha256', $plainKey);
+    }
+
+    /**
+     * Lists API keys for user. Never returns keyHash.
+     *
+     * @return array{list: list<array<string, mixed>>, total: int}
+     */
+    public function listKeys(User $currentUser, ?string $targetUserId = null): array
+    {
+        if ($this->entityManager === null) {
+            return ['list' => [], 'total' => 0];
+        }
+
+        // If targetUserId is requested, only admin can view another user's keys
+        $userId = $currentUser->getId();
+        if ($targetUserId !== null && $targetUserId !== '' && $targetUserId !== $userId) {
+            if (!$currentUser->isAdmin()) {
+                throw new Forbidden('Only administrators can view API keys of other users.');
+            }
+            $userId = $targetUserId;
+        }
+
+        $collection = $this->entityManager
+            ->getRDBRepository('BidarUserApiKey')
+            ->where(['userId' => $userId])
+            ->order('createdAt', 'desc')
+            ->find();
+
+        $list = [];
+        foreach ($collection as $item) {
+            $list[] = $this->formatKeySafe($item);
+        }
+
+        return [
+            'list' => $list,
+            'total' => count($list),
+        ];
+    }
+
+    /**
+     * Creates a new API key. Returns plainKey ONCE.
+     *
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    public function createKey(User $currentUser, array $data): array
+    {
+        if ($this->entityManager === null) {
+            throw new BadRequest('Entity manager unavailable.');
+        }
+
+        $name = trim((string) ($data['name'] ?? ''));
+        if ($name === '') {
+            throw new BadRequest('Key name is required.');
+        }
+
+        $targetUserId = $currentUser->getId();
+        if (isset($data['userId']) && is_string($data['userId']) && $data['userId'] !== $targetUserId) {
+            if (!$currentUser->isAdmin()) {
+                throw new Forbidden('Only administrators can create API keys for other users.');
+            }
+            $targetUserId = $data['userId'];
+        }
+
+        $plainKey = $this->generatePlainKey();
+        $prefix = $this->extractPrefix($plainKey);
+        $hash = $this->hashKey($plainKey);
+
+        $expiresAt = null;
+        if (!empty($data['expiresAt']) && is_string($data['expiresAt'])) {
+            $ts = strtotime($data['expiresAt']);
+            if ($ts === false) {
+                throw new BadRequest('Invalid expiresAt format.');
+            }
+            $expiresAt = date('Y-m-d H:i:s', $ts);
+        }
+
+        $allowedIpList = [];
+        if (!empty($data['allowedIpList'])) {
+            if (is_array($data['allowedIpList'])) {
+                $allowedIpList = array_values(array_filter(array_map('trim', $data['allowedIpList'])));
+            } elseif (is_string($data['allowedIpList'])) {
+                $allowedIpList = array_values(array_filter(array_map('trim', explode(',', $data['allowedIpList']))));
+            }
+        }
+
+        /** @var Entity $entity */
+        $entity = $this->entityManager->getEntity('BidarUserApiKey');
+        $attributes = [
+            'name' => $name,
+            'userId' => $targetUserId,
+            'keyPrefix' => $prefix,
+            'keyHash' => $hash,
+            'isActive' => true,
+            'expiresAt' => $expiresAt,
+            'allowedIpList' => $allowedIpList,
+            'createdAt' => date('Y-m-d H:i:s'),
+        ];
+        foreach ($attributes as $k => $v) {
+            $entity->set($k, $v);
+        }
+
+        $this->entityManager->saveEntity($entity);
+
+        $result = $this->formatKeySafe($entity);
+        // Expose plainKey exactly once upon creation
+        $result['plainKey'] = $plainKey;
+
+        return $result;
+    }
+
+    /**
+     * Rotates an existing key: regenerates hash, returns new plainKey once.
+     *
+     * @return array<string, mixed>
+     */
+    public function rotateKey(User $currentUser, string $keyId): array
+    {
+        if ($this->entityManager === null) {
+            throw new BadRequest('Entity manager unavailable.');
+        }
+
+        $entity = $this->entityManager->getEntity('BidarUserApiKey', $keyId);
+        if (!$entity) {
+            throw new NotFound('API key not found.');
+        }
+
+        $this->assertOwnership($currentUser, $entity);
+
+        $plainKey = $this->generatePlainKey();
+        $prefix = $this->extractPrefix($plainKey);
+        $hash = $this->hashKey($plainKey);
+
+        $attributes = [
+            'keyPrefix' => $prefix,
+            'keyHash' => $hash,
+            'lastUsedAt' => null,
+            'modifiedAt' => date('Y-m-d H:i:s'),
+        ];
+        foreach ($attributes as $k => $v) {
+            $entity->set($k, $v);
+        }
+
+        $this->entityManager->saveEntity($entity);
+
+        $result = $this->formatKeySafe($entity);
+        $result['plainKey'] = $plainKey;
+
+        return $result;
+    }
+
+    /**
+     * Deletes / revokes an API key.
+     */
+    public function revokeKey(User $currentUser, string $keyId): bool
+    {
+        if ($this->entityManager === null) {
+            throw new BadRequest('Entity manager unavailable.');
+        }
+
+        $entity = $this->entityManager->getEntity('BidarUserApiKey', $keyId);
+        if (!$entity) {
+            throw new NotFound('API key not found.');
+        }
+
+        $this->assertOwnership($currentUser, $entity);
+
+        $this->entityManager->removeEntity($entity);
+
+        return true;
+    }
+
+    private function assertOwnership(User $currentUser, Entity $keyRecord): void
+    {
+        $ownerId = (string) $keyRecord->get('userId');
+        if ($ownerId !== $currentUser->getId() && !$currentUser->isAdmin()) {
+            throw new Forbidden('You do not have permission to manage this API key.');
+        }
+    }
+
+    /**
+     * Formats entity attributes safely without exposing keyHash.
+     *
+     * @return array<string, mixed>
+     */
+    public function formatKeySafe(Entity $entity): array
+    {
+        return [
+            'id' => $entity->getId(),
+            'name' => $entity->get('name'),
+            'userId' => $entity->get('userId'),
+            'keyPrefix' => $entity->get('keyPrefix'),
+            'isActive' => (bool) $entity->get('isActive'),
+            'expiresAt' => $entity->get('expiresAt'),
+            'lastUsedAt' => $entity->get('lastUsedAt'),
+            'allowedIpList' => $entity->get('allowedIpList') ?? [],
+            'createdAt' => $entity->get('createdAt'),
+        ];
+    }
+}
+
+
+--- FILE: extensions/bidar-sales/Services/DashboardSummaryService.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace Espo\Modules\BidarSales\Services;
+
+use DateTimeImmutable;
+
+class DashboardSummaryService
+{
+    private const LOSS_REASON_LABELS = [
+        'PriceTooHigh' => 'قیمت بالا',
+        'Competitor' => 'انتخاب رقیب',
+        'NoBudget' => 'نبود بودجه',
+        'NoResponse' => 'عدم پاسخگویی',
+        'NotQualified' => 'نبود نیاز واقعی',
+        'Other' => 'سایر',
+    ];
+
+    /**
+     * @param list<array<string, mixed>> $deals
+     * @param list<array<string, mixed>> $activities
+     * @param list<array<string, mixed>> $stages
+     * @param ?array<string, mixed> $goal
+     * @return array<string, mixed>
+     */
+    public function calculateSummary(array $deals, array $activities, array $stages, ?array $goal = null): array
+    {
+        $openCount = 0;
+        $openAmount = 0.0;
+        $wonCount = 0;
+        $wonAmount = 0.0;
+        $lostCount = 0;
+        $rottenCount = 0;
+
+        $stageMetrics = [];
+        $stageLookup = [];
+        $stageById = [];
+        foreach ($stages as $stage) {
+            $stageKey = (string) ($stage['name'] ?? $stage['id'] ?? '');
+            $stageId = (string) ($stage['id'] ?? $stageKey);
+            $stageName = (string) ($stage['name'] ?? $stageKey);
+            $stageCode = isset($stage['code']) && is_string($stage['code']) ? $stage['code'] : '';
+            $stageColor = isset($stage['color']) && is_string($stage['color']) ? $stage['color'] : null;
+            $mappedStatus = isset($stage['mappedStatus']) && is_string($stage['mappedStatus']) ? $stage['mappedStatus'] : null;
+
+            $stageMetrics[$stageKey] = [
+                'stageId' => $stageId,
+                'stageName' => $stageName,
+                'count' => 0,
+                'amount' => 0.0,
+                'color' => $stageColor,
+                'id' => $stageId,
+                'name' => $stageName,
+                'mappedStatus' => $mappedStatus,
+            ];
+
+            if ($stageId !== '') {
+                $stageLookup[$stageId] = $stageKey;
+                $stageById[$stageId] = $stage;
+            }
+            if ($stageName !== '') {
+                $stageLookup[$stageName] = $stageKey;
+            }
+            if ($stageCode !== '') {
+                $stageLookup[$stageCode] = $stageKey;
+            }
+            $stageLookup[$stageKey] = $stageKey;
+        }
+
+        $salesCycles = [];
+        $lossReasonsMap = [];
+        $salesRepsMap = [];
+        $leadSourcesMap = [];
+
+        foreach ($deals as $deal) {
+            $amount = (float) ($deal['amount'] ?? 0);
+            $probability = $deal['probability'] ?? null;
+            $stage = (string) ($deal['stage'] ?? '');
+            $pipelineStageId = (string) ($deal['pipelineStageId'] ?? $deal['stageId'] ?? '');
+            $isRotten = (bool) ($deal['isRotten'] ?? false);
+
+            $stageObj = $pipelineStageId !== '' ? ($stageById[$pipelineStageId] ?? null) : null;
+            $stageMappedStatus = isset($stageObj['mappedStatus']) ? (string) $stageObj['mappedStatus'] : null;
+
+            $isWon = (
+                $probability === 100 ||
+                $probability === '100' ||
+                (is_numeric($probability) && (int) $probability === 100) ||
+                $stage === 'Closed Won' ||
+                $stageMappedStatus === 'Closed Won' ||
+                ($deal['stageProbability'] ?? null) === 'Closed Won' ||
+                ($deal['probability'] ?? null) === 'Closed Won'
+            );
+
+            $isLost = !$isWon && (
+                $probability === 0 ||
+                $probability === '0' ||
+                (is_numeric($probability) && (int) $probability === 0 && $probability !== null) ||
+                $stage === 'Closed Lost' ||
+                $stageMappedStatus === 'Closed Lost' ||
+                ($deal['stageProbability'] ?? null) === 'Closed Lost' ||
+                ($deal['probability'] ?? null) === 'Closed Lost'
+            );
+
+            if ($isWon) {
+                $wonCount++;
+                $wonAmount += $amount;
+
+                // avgSalesCycleDays calculation
+                if (isset($deal['salesCycleDays'])) {
+                    $salesCycles[] = max(0.0, (float) $deal['salesCycleDays']);
+                } elseif (!empty($deal['createdAt']) && !empty($deal['closeDate'])) {
+                    try {
+                        $created = new DateTimeImmutable(substr((string) $deal['createdAt'], 0, 10));
+                        $closed = new DateTimeImmutable(substr((string) $deal['closeDate'], 0, 10));
+                        $diff = $created->diff($closed);
+                        $salesCycles[] = $diff->invert ? 0.0 : (float) $diff->days;
+                    } catch (\Throwable) {
+                        // ignore malformed dates
+                    }
+                }
+            } elseif ($isLost) {
+                $lostCount++;
+
+                $reason = (string) ($deal['lossReason'] ?? 'Other');
+                if ($reason === '') {
+                    $reason = 'Other';
+                }
+                $label = (string) ($deal['lossReasonLabel'] ?? self::LOSS_REASON_LABELS[$reason] ?? $reason);
+
+                if (!isset($lossReasonsMap[$reason])) {
+                    $lossReasonsMap[$reason] = [
+                        'reason' => $reason,
+                        'label' => $label,
+                        'count' => 0,
+                        'amount' => 0.0,
+                    ];
+                }
+                $lossReasonsMap[$reason]['count']++;
+                $lossReasonsMap[$reason]['amount'] += $amount;
+            } else {
+                $openCount++;
+                $openAmount += $amount;
+                if ($isRotten) {
+                    $rottenCount++;
+                }
+
+                $matchedStageKey = null;
+                if ($pipelineStageId !== '' && isset($stageLookup[$pipelineStageId])) {
+                    $matchedStageKey = $stageLookup[$pipelineStageId];
+                }
+                if ($matchedStageKey === null && $stage !== '') {
+                    $matchedStageKey = $stageLookup[$stage] ?? (isset($stageMetrics[$stage]) ? $stage : null);
+                }
+                if ($matchedStageKey === null && $stageMappedStatus !== null && isset($stageLookup[$stageMappedStatus])) {
+                    $matchedStageKey = $stageLookup[$stageMappedStatus];
+                }
+                if ($matchedStageKey === null) {
+                    $dealStageId = (string) ($deal['stageId'] ?? '');
+                    $dealStageName = (string) ($deal['stageName'] ?? '');
+                    if ($dealStageId !== '' && isset($stageLookup[$dealStageId])) {
+                        $matchedStageKey = $stageLookup[$dealStageId];
+                    } elseif ($dealStageName !== '' && isset($stageLookup[$dealStageName])) {
+                        $matchedStageKey = $stageLookup[$dealStageName];
+                    }
+                }
+
+                if ($matchedStageKey !== null && isset($stageMetrics[$matchedStageKey])) {
+                    $stageMetrics[$matchedStageKey]['count']++;
+                    $stageMetrics[$matchedStageKey]['amount'] += $amount;
+                }
+            }
+
+            // topSalesReps aggregation
+            $userId = (string) ($deal['assignedUserId'] ?? $deal['userId'] ?? '');
+            if ($userId !== '') {
+                $userName = (string) ($deal['assignedUserName'] ?? $deal['userName'] ?? $userId);
+                if (!isset($salesRepsMap[$userId])) {
+                    $salesRepsMap[$userId] = [
+                        'userId' => $userId,
+                        'userName' => $userName,
+                        'wonCount' => 0,
+                        'wonAmount' => 0.0,
+                        'openCount' => 0,
+                        'rottenCount' => 0,
+                    ];
+                }
+
+                if ($isWon) {
+                    $salesRepsMap[$userId]['wonCount']++;
+                    $salesRepsMap[$userId]['wonAmount'] += $amount;
+                } elseif (!$isLost) {
+                    $salesRepsMap[$userId]['openCount']++;
+                    if ($isRotten) {
+                        $salesRepsMap[$userId]['rottenCount']++;
+                    }
+                }
+            }
+
+            // leadSourceBreakdown aggregation
+            $source = (string) ($deal['source'] ?? $deal['leadSource'] ?? '');
+            if ($source === '') {
+                $source = 'سایر';
+            }
+            if (!isset($leadSourcesMap[$source])) {
+                $leadSourcesMap[$source] = [
+                    'source' => $source,
+                    'count' => 0,
+                    'wonCount' => 0,
+                    'wonAmount' => 0.0,
+                ];
+            }
+            $leadSourcesMap[$source]['count']++;
+            if ($isWon) {
+                $leadSourcesMap[$source]['wonCount']++;
+                $leadSourcesMap[$source]['wonAmount'] += $amount;
+            }
+        }
+
+        $overdueActivitiesCount = 0;
+        $overdueStatuses = ['Not Started', 'Started', 'Planned'];
+        foreach ($activities as $act) {
+            $status = (string) ($act['status'] ?? '');
+            if (in_array($status, $overdueStatuses, true) && !empty($act['isOverdue'])) {
+                $overdueActivitiesCount++;
+            }
+        }
+
+        // 1. conversionRate: round((wonCount / max(1, wonCount + lostCount)) * 100, 1), 0.0 if wonCount + lostCount == 0
+        $totalClosed = $wonCount + $lostCount;
+        $conversionRate = $totalClosed > 0
+            ? round(($wonCount / $totalClosed) * 100.0, 1)
+            : 0.0;
+
+        // 2. avgSalesCycleDays
+        $avgSalesCycleDays = count($salesCycles) > 0
+            ? round(array_sum($salesCycles) / count($salesCycles), 1)
+            : 0.0;
+
+        // 3. lossReasonsBreakdown: sorted descending by count
+        $lossReasonsBreakdown = array_values($lossReasonsMap);
+        usort($lossReasonsBreakdown, function ($a, $b) {
+            return ($b['count'] <=> $a['count']) ?: ($b['amount'] <=> $a['amount']);
+        });
+
+        // 4. topSalesReps: sorted descending by wonAmount
+        $topSalesReps = array_values($salesRepsMap);
+        usort($topSalesReps, function ($a, $b) {
+            return ($b['wonAmount'] <=> $a['wonAmount']) ?: ($b['wonCount'] <=> $a['wonCount']);
+        });
+
+        // 5. leadSourceBreakdown
+        $leadSourceBreakdown = array_values($leadSourcesMap);
+        usort($leadSourceBreakdown, function ($a, $b) {
+            return ($b['count'] <=> $a['count']) ?: ($b['wonAmount'] <=> $a['wonAmount']);
+        });
+
+        $goalResult = null;
+        if ($goal !== null) {
+            $goalProgress = $this->calculateGoalProgress($goal, [
+                'deals' => $deals,
+                'activities' => $activities,
+            ]);
+            $goalProgress['targetAmount'] = $goalProgress['targetValue'];
+            $goalProgress['currentAmount'] = $goalProgress['currentValue'];
+            $goalProgress['percent'] = $goalProgress['progressPercent'];
+            $goalResult = $goalProgress;
+        }
+
+        return [
+            'openCount' => $openCount,
+            'openAmount' => $openAmount,
+            'wonCount' => $wonCount,
+            'wonAmount' => $wonAmount,
+            'lostCount' => $lostCount,
+            'rottenCount' => $rottenCount,
+            'overdueActivitiesCount' => $overdueActivitiesCount,
+            'funnelStages' => array_values($stageMetrics),
+            'conversionRate' => $conversionRate,
+            'avgSalesCycleDays' => $avgSalesCycleDays,
+            'lossReasonsBreakdown' => $lossReasonsBreakdown,
+            'topSalesReps' => $topSalesReps,
+            'leadSourceBreakdown' => $leadSourceBreakdown,
+            'goal' => $goalResult,
+        ];
+    }
+
+    /**
+     * Calculate progress for a sales goal.
+     *
+     * @param array<string, mixed> $goal
+     * @param ?array<string, mixed> $filters
+     * @return array<string, mixed>
+     */
+    public function calculateGoalProgress(array $goal, ?array $filters = null): array
+    {
+        $targetValue = (float) ($goal['targetValue'] ?? 0.0);
+        $metricType = (string) ($goal['metricType'] ?? 'wonAmount');
+        $scopeType = (string) ($goal['scopeType'] ?? 'all');
+        $assignedUserId = isset($goal['assignedUserId']) ? (string) $goal['assignedUserId'] : null;
+        $dateStart = isset($goal['dateStart']) ? (string) $goal['dateStart'] : null;
+        $dateEnd = isset($goal['dateEnd']) ? (string) $goal['dateEnd'] : null;
+
+        if (isset($filters['currentValue'])) {
+            $currentValue = (float) $filters['currentValue'];
+        } else {
+            $currentValue = 0.0;
+            $deals = $filters['deals'] ?? (isset($filters[0]) && is_array($filters[0]) ? $filters : []);
+            $activities = $filters['activities'] ?? [];
+
+            if ($metricType === 'activitiesHeld') {
+                foreach ($activities as $act) {
+                    if (($act['status'] ?? '') === 'Held') {
+                        if ($scopeType === 'user' && $assignedUserId !== null) {
+                            $actUserId = (string) ($act['assignedUserId'] ?? $act['userId'] ?? '');
+                            if ($actUserId !== $assignedUserId) {
+                                continue;
+                            }
+                        }
+
+                        if ($dateStart !== null || $dateEnd !== null) {
+                            $date = (string) ($act['dateStart'] ?? $act['createdAt'] ?? '');
+                            if ($date !== '') {
+                                $checkDate = substr($date, 0, 10);
+                                if ($dateStart !== null && $checkDate < substr($dateStart, 0, 10)) {
+                                    continue;
+                                }
+                                if ($dateEnd !== null && $checkDate > substr($dateEnd, 0, 10)) {
+                                    continue;
+                                }
+                            }
+                        }
+
+                        $currentValue += 1.0;
+                    }
+                }
+            } else {
+                foreach ($deals as $deal) {
+                    if ($scopeType === 'user' && $assignedUserId !== null) {
+                        $dealUserId = (string) ($deal['assignedUserId'] ?? $deal['userId'] ?? '');
+                        if ($dealUserId !== $assignedUserId) {
+                            continue;
+                        }
+                    }
+
+                    if ($dateStart !== null || $dateEnd !== null) {
+                        $date = (string) ($deal['closeDate'] ?? $deal['createdAt'] ?? '');
+                        if ($date !== '') {
+                            $checkDate = substr($date, 0, 10);
+                            if ($dateStart !== null && $checkDate < substr($dateStart, 0, 10)) {
+                                continue;
+                            }
+                            if ($dateEnd !== null && $checkDate > substr($dateEnd, 0, 10)) {
+                                continue;
+                            }
+                        }
+                    }
+
+                    $prob = $deal['probability'] ?? $deal['stageProbability'] ?? null;
+                    $dealStage = (string) ($deal['stage'] ?? '');
+                    $isDealWon = (
+                        $prob === 100 ||
+                        $prob === '100' ||
+                        (is_numeric($prob) && (int) $prob === 100) ||
+                        $dealStage === 'Closed Won' ||
+                        $prob === 'Closed Won' ||
+                        ($deal['stageProbability'] ?? null) === 'Closed Won'
+                    );
+
+                    if ($metricType === 'wonAmount') {
+                        if ($isDealWon) {
+                            $currentValue += (float) ($deal['amount'] ?? 0.0);
+                        }
+                    } elseif ($metricType === 'wonCount') {
+                        if ($isDealWon) {
+                            $currentValue += 1.0;
+                        }
+                    } elseif ($metricType === 'dealsCreated') {
+                        $currentValue += 1.0;
+                    }
+                }
+            }
+        }
+
+        $progressPercent = $targetValue > 0.0
+            ? round(($currentValue / $targetValue) * 100.0, 1)
+            : 0.0;
+
+        return [
+            'id' => $goal['id'] ?? null,
+            'name' => $goal['name'] ?? '',
+            'metricType' => $metricType,
+            'scopeType' => $scopeType,
+            'targetValue' => $targetValue,
+            'currentValue' => $currentValue,
+            'progressPercent' => $progressPercent,
+        ];
+    }
+}
+
+
+--- FILE: extensions/bidar-sales/Controllers/BidarGoal.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace Espo\Modules\BidarSales\Controllers;
+
+use Espo\Core\Controllers\Record;
+
+class BidarGoal extends Record
+{
+}
+
+
+--- FILE: extensions/bidar-sales/Controllers/BidarProduct.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace Espo\Modules\BidarSales\Controllers;
+
+use Espo\Core\Controllers\Record;
+
+class BidarProduct extends Record
+{
+}
+
+

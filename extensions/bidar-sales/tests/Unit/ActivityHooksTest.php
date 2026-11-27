@@ -146,6 +146,60 @@ class ActivityHooksTest extends TestCase
         $loader->process($entity, $params);
     }
 
+    public function testRottenLoaderNeverMarksClosedWonOrClosedLostAsRotten(): void
+    {
+        $loader = new RottenLoader();
+        $now = new DateTimeImmutable('2026-11-22 12:00:00');
+
+        // Deal with stage 'Closed Won' and very old lastActivityAt (100 days ago)
+        $wonDeal = [
+            'id' => 'opp-won',
+            'stage' => 'Closed Won',
+            'stageRottenDays' => 3,
+            'lastActivityAt' => '2026-08-14 12:00:00',
+        ];
+        $enrichedWon = $loader->processData($wonDeal, $now);
+        $this->assertFalse($enrichedWon['isRotten'], 'Closed Won deal must never be marked rotten');
+        $this->assertSame(100, $enrichedWon['daysSinceLastActivity']);
+
+        // Deal with stage 'Closed Lost' and very old lastActivityAt (50 days ago)
+        $lostDeal = [
+            'id' => 'opp-lost',
+            'stage' => 'Closed Lost',
+            'stageRottenDays' => 3,
+            'lastActivityAt' => '2026-10-03 12:00:00',
+        ];
+        $enrichedLost = $loader->processData($lostDeal, $now);
+        $this->assertFalse($enrichedLost['isRotten'], 'Closed Lost deal must never be marked rotten');
+        $this->assertSame(50, $enrichedLost['daysSinceLastActivity']);
+
+        // Entity test: Closed Won entity
+        $wonEntity = $this->createMock(Entity::class);
+        $wonEntity->method('has')->willReturnCallback(function (string $name) {
+            return in_array($name, ['lastActivityAt', 'stage', 'stageRottenDays']);
+        });
+        $wonEntity->method('get')->willReturnCallback(function (string $name) {
+            return match ($name) {
+                'lastActivityAt' => '2026-08-14 12:00:00',
+                'stage' => 'Closed Won',
+                'stageRottenDays' => 3,
+                default => null,
+            };
+        });
+        $wonEntity->expects($this->exactly(2))
+            ->method('set')
+            ->willReturnCallback(function (string $name, $value) use ($wonEntity) {
+                if ($name === 'isRotten') {
+                    $this->assertFalse($value, 'Entity isRotten must be false for Closed Won');
+                } elseif ($name === 'daysSinceLastActivity') {
+                    $this->assertGreaterThan(30, $value);
+                }
+                return $wonEntity;
+            });
+        $params = $this->createMock(Params::class);
+        $loader->process($wonEntity, $params);
+    }
+
     public function testOpportunityMetadataRegistersRottenLoader(): void
     {
         $recordDefsFile = dirname(__DIR__, 2) . '/Resources/metadata/recordDefs/Opportunity.json';
@@ -162,5 +216,41 @@ class ActivityHooksTest extends TestCase
             'Espo\\Modules\\BidarSales\\FieldProcessing\\Opportunity\\RottenLoader',
             $data['readLoaderClassNameList']
         );
+    }
+
+    public function testRottenLoaderHandlesFutureAndMalformedDatesAndClosedMappedStatus(): void
+    {
+        $loader = new RottenLoader();
+        $now = new DateTimeImmutable('2026-11-22 12:00:00');
+
+        $futureDeal = [
+            'id' => 'opp-future',
+            'stage' => 'Negotiation',
+            'stageRottenDays' => 5,
+            'lastActivityAt' => '2026-12-02 12:00:00',
+        ];
+        $enrichedFuture = $loader->processData($futureDeal, $now);
+        $this->assertFalse($enrichedFuture['isRotten']);
+        $this->assertSame(0, $enrichedFuture['daysSinceLastActivity']);
+
+        $badDateDeal = [
+            'id' => 'opp-bad-date',
+            'stage' => 'Negotiation',
+            'stageRottenDays' => 5,
+            'lastActivityAt' => 'not-a-valid-date',
+        ];
+        $enrichedBad = $loader->processData($badDateDeal, $now);
+        $this->assertFalse($enrichedBad['isRotten']);
+        $this->assertNull($enrichedBad['daysSinceLastActivity']);
+
+        $closedMappedDeal = [
+            'id' => 'opp-closed-mapped',
+            'stage' => 'فروش موفق',
+            'stageMappedStatus' => 'Closed Won',
+            'stageRottenDays' => 5,
+            'lastActivityAt' => '2026-01-01 12:00:00',
+        ];
+        $enrichedClosed = $loader->processData($closedMappedDeal, $now);
+        $this->assertFalse($enrichedClosed['isRotten']);
     }
 }

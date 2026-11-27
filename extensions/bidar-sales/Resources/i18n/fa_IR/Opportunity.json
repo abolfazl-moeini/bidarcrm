@@ -1,7 +1,20 @@
 {
   "fields": {
     "lastActivityAt": "آخرین پیگیری",
-    "isRotten": "معامله پوسیده",
-    "daysSinceLastActivity": "روزهای بدون پیگیری"
+    "isRotten": "معامله راکد",
+    "daysSinceLastActivity": "روزهای بدون پیگیری",
+    "lossReason": "دلیل شکست معامله",
+    "lossReasonNote": "یادداشت دلیل شکست"
+  },
+  "options": {
+    "lossReason": {
+      "": "- انتخاب کنید -",
+      "PriceTooHigh": "قیمت بالا",
+      "Competitor": "انتخاب رقیب",
+      "NoBudget": "نبود بودجه",
+      "NoResponse": "عدم پاسخگویی",
+      "NotQualified": "نبود نیاز واقعی",
+      "Other": "سایر"
+    }
   }
 }

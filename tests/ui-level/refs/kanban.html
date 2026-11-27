@@ -3,78 +3,126 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>کاریز معاملات بیدار - BidarCRM</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>کاریز معاملات و کانبان فروش | بیدار CRM</title>
+  <link rel="stylesheet" href="./assets/bidar-styles.css">
   <style>
-    body { font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    body { font-family: 'Vazirmatn', system-ui, -apple-system, sans-serif; }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 p-6 min-h-screen">
-  <div class="space-y-6 flex flex-col h-full" dir="rtl">
-    <!-- Top Header Controls -->
-    <div class="flex items-center justify-between border-b border-slate-800 pb-5">
-      <div>
-        <h1 class="text-xl font-bold text-slate-100">کاریز فروش اصلی</h1>
-        <p class="text-xs text-slate-400 mt-1">مجموع ارزش معاملات باز: ۸۵,۰۰۰,۰۰۰ تومان</p>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+  
+    <header class="bg-slate-900 border-b border-slate-800 px-4 py-2.5 flex items-center justify-between text-slate-100 select-none">
+      <div class="flex items-center gap-4">
+        <a href="index.html" class="flex items-center gap-2 hover:opacity-90 transition">
+          <div class="w-8 h-8 rounded-xl bg-teal-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+            ب
+          </div>
+          <span class="font-bold text-sm tracking-tight text-white">بیدار CRM</span>
+        </a>
+        <nav class="hidden md:flex items-center gap-1 border-r border-slate-800 pr-4">
+          <a href="dashboard.html" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">داشبورد</a>
+          <a href="kanban.html" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors bg-slate-800 text-white font-semibold">کاریز فروش</a>
+          <a href="deal-detail.html" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">جزئیات معامله</a>
+          <a href="leads.html" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">سرنخ‌ها</a>
+          <a href="contacts.html" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">مخاطبان</a>
+          <a href="accounts.html" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">شرکت‌ها</a>
+          <a href="activities.html" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">فعالیت‌ها</a>
+          <a href="reports.html" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">گزارشات</a>
+          <a href="settings.html" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">تنظیمات</a>
+        </nav>
       </div>
-      <button class="px-4 py-2 bg-indigo-600 text-white text-xs font-medium rounded-xl">معامله جدید</button>
-    </div>
+      <div class="flex items-center gap-3">
+        <span class="text-xs bg-teal-950/80 text-teal-400 border border-teal-800/60 px-2 py-0.5 rounded-md font-mono hidden sm:inline">نسخه آفلاین</span>
+        <a href="login.html" class="text-xs text-rose-400 hover:text-rose-300 font-medium">خروج</a>
+      </div>
+    </header>
+  
+  <main class="w-full">
+    
+      <div class="p-6 space-y-5" dir="rtl">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-800 pb-4">
+          <div>
+            <h1 class="text-lg sm:text-xl font-bold text-slate-100">کاریز فروش اصلی</h1>
+            <p class="text-xs text-slate-400 mt-0.5">مجموع ارزش معاملات باز: ۴۵۰,۰۰۰,۰۰۰ تومان</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <a href="deal-detail.html" class="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold rounded-xl shadow-xs">
+              + معامله جدید
+            </a>
+          </div>
+        </div>
 
-    <!-- Kanban Board Columns -->
-    <div class="bidar-kanban-board flex gap-5 overflow-x-auto pb-6 items-start">
-      <!-- Column 1 -->
-      <div class="w-80 flex-shrink-0 bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden">
-        <div class="p-4 border-b border-slate-800 bg-slate-900/80">
-          <div class="flex justify-between items-center mb-1">
-            <h3 class="text-sm font-bold text-slate-100">سرنخ جدید</h3>
-            <span class="text-xs text-slate-400 bg-slate-800 px-2 py-0.5 rounded">۱ معامله</span>
+        <!-- Kanban Board Columns -->
+        <div class="bidar-kanban-board flex gap-4 overflow-x-auto pb-6 items-start">
+          <!-- Column 1 -->
+          <div class="w-80 flex-shrink-0 bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+              <span class="text-xs font-bold text-slate-200">سرنخ اولیه</span>
+              <span class="text-[11px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-md font-mono">۲ معامله</span>
+            </div>
+            <div class="space-y-2.5">
+              <a href="deal-detail.html" class="bidar-deal-card block bg-slate-950 border border-slate-800 hover:border-teal-500/50 rounded-xl p-3.5 transition">
+                <div class="flex justify-between items-start">
+                  <h4 class="text-xs font-bold text-slate-200">طرح تحول دیجیتال فولاد البرز</h4>
+                </div>
+                <div class="text-xs font-bold text-teal-400 mt-2 font-mono">۸۵,۰۰۰,۰۰۰ تومان</div>
+                <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-900 text-[11px] text-slate-400">
+                  <span>فولاد البرز</span>
+                  <span class="font-mono">۱۴۰۵/۰۹/۰۲</span>
+                </div>
+              </a>
+              <div class="bidar-deal-card bg-slate-950 border border-slate-800 rounded-xl p-3.5">
+                <h4 class="text-xs font-bold text-slate-200">خرید نرم‌افزار توسعه صادرات</h4>
+                <div class="text-xs font-bold text-teal-400 mt-2 font-mono">۳۵,۰۰۰,۰۰۰ تومان</div>
+                <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-900 text-[11px] text-slate-400">
+                  <span>بازرگانی سینا</span>
+                  <span class="font-mono">۱۴۰۵/۰۹/۰۴</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="text-xs text-slate-400">۳۵,۰۰۰,۰۰۰ تومان</div>
-        </div>
-        <div class="p-3 space-y-3">
-          <div class="bidar-deal-card bg-slate-900 border border-slate-800 rounded-xl p-4">
-            <h4 class="text-xs font-bold text-slate-100 mb-1">فروش تجهیزات شبکه</h4>
-            <div class="text-[11px] text-slate-400 mb-3">شرکت فناوران آریا</div>
-            <div class="text-xs font-semibold text-slate-200 pt-2 border-t border-slate-800">۳۵,۰۰۰,۰۰۰ تومان</div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Column 2 -->
-      <div class="w-80 flex-shrink-0 bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden">
-        <div class="p-4 border-b border-slate-800 bg-slate-900/80">
-          <div class="flex justify-between items-center mb-1">
-            <h3 class="text-sm font-bold text-slate-100">مذاکره اولیه</h3>
-            <span class="text-xs text-slate-400 bg-slate-800 px-2 py-0.5 rounded">۱ معامله</span>
+          <!-- Column 2 -->
+          <div class="w-80 flex-shrink-0 bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+              <span class="text-xs font-bold text-slate-200">جلسه و مذاکره اولیه</span>
+              <span class="text-[11px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-md font-mono">۱ معامله</span>
+            </div>
+            <div class="space-y-2.5">
+              <a href="deal-detail.html" class="bidar-deal-card block bg-slate-950 border border-slate-800 hover:border-teal-500/50 rounded-xl p-3.5 transition">
+                <div class="flex items-center justify-between">
+                  <h4 class="text-xs font-bold text-slate-200">سامانه پشتیبانی مرکز داده آریا</h4>
+                  <span class="px-2 py-0.5 rounded text-[10px] bg-rose-500/10 text-rose-400 border border-rose-500/20">پوسیده (۶ روز)</span>
+                </div>
+                <div class="text-xs font-bold text-teal-400 mt-2 font-mono">۱۲۰,۰۰۰,۰۰۰ تومان</div>
+                <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-900 text-[11px] text-slate-400">
+                  <span>داده‌پردازان آریا</span>
+                  <span class="font-mono">۱۴۰۵/۰۹/۰۱</span>
+                </div>
+              </a>
+            </div>
           </div>
-          <div class="text-xs text-slate-400">۵۰,۰۰۰,۰۰۰ تومان</div>
-        </div>
-        <div class="p-3 space-y-3">
-          <div class="bidar-deal-card bg-slate-900 border border-slate-800 rounded-xl p-4">
-            <h4 class="text-xs font-bold text-slate-100 mb-1">تمدید پشتیبانی سالانه</h4>
-            <div class="text-[11px] text-slate-400 mb-3">بیمه سلامت</div>
-            <div class="text-xs font-semibold text-slate-200 pt-2 border-t border-slate-800">۵۰,۰۰۰,۰۰۰ تومان</div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Column 3 -->
-      <div class="w-80 flex-shrink-0 bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden">
-        <div class="p-4 border-b border-slate-800 bg-slate-900/80">
-          <div class="flex justify-between items-center mb-1">
-            <h3 class="text-sm font-bold text-slate-100">پیش‌نویس قرارداد</h3>
-            <span class="text-xs text-slate-400 bg-slate-800 px-2 py-0.5 rounded">۰ معامله</span>
-          </div>
-          <div class="text-xs text-slate-400">۰ تومان</div>
-        </div>
-        <div class="p-3">
-          <div class="h-32 border-2 border-dashed border-slate-800 rounded-xl flex items-center justify-center text-slate-600 text-xs">
-            معامله‌ای در این مرحله نیست
+          <!-- Column 3 -->
+          <div class="w-80 flex-shrink-0 bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+              <span class="text-xs font-bold text-slate-200">ارسال پیش‌فاکتور</span>
+              <span class="text-[11px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-md font-mono">۱ معامله</span>
+            </div>
+            <div class="space-y-2.5">
+              <a href="deal-detail.html" class="bidar-deal-card block bg-slate-950 border border-slate-800 hover:border-teal-500/50 rounded-xl p-3.5 transition">
+                <h4 class="text-xs font-bold text-slate-200">پروژه راه‌اندازی باشگاه مشتریان</h4>
+                <div class="text-xs font-bold text-teal-400 mt-2 font-mono">۲۱۰,۰۰۰,۰۰۰ تومان</div>
+                <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-900 text-[11px] text-slate-400">
+                  <span>هلدینگ پارسیان</span>
+                  <span class="font-mono">۱۴۰۵/۰۸/۲۸</span>
+                </div>
+              </a>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
+    
+  </main>
 </body>
 </html>

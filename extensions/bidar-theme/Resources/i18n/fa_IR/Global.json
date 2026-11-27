@@ -1,0 +1,23 @@
+{
+  "themes": {
+    "Bidar": "بیدار (پیش‌فرض RTL)"
+  },
+  "labels": {
+    "bidarShowEmptyOne": "نمایش فیلد خالی",
+    "bidarShowEmptyMany": "نمایش {count} فیلد خالی",
+    "bidarHideEmpty": "پنهان کردن فیلدهای خالی",
+    "bidarRecordInfo": "اطلاعات رکورد",
+    "bidarScheme": "ظاهر",
+    "bidarSchemeLight": "روشن",
+    "bidarSchemeDark": "تیره",
+    "bidarSchemeSystem": "مطابق سیستم",
+    "bidarMode": "حالت",
+    "bidarDensity": "تراکم",
+    "bidarDensityComfortable": "راحت",
+    "bidarDensityCompact": "فشرده",
+    "bidarDefault": "پیش‌فرض",
+    "bidarLayout": "چیدمان",
+    "bidarLayoutSplit": "دوستونه",
+    "bidarLayoutClassic": "کلاسیک"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "fields": {
+    "phoneNumber": "شماره گیرنده",
+    "body": "متن پیامک",
+    "status": "وضعیت",
+    "providerMessageId": "شناسه پیامک در سامانه",
+    "contact": "مخاطب",
+    "opportunity": "معامله",
+    "scheduledAt": "زمان‌بندی ارسال"
+  },
+  "options": {
+    "status": {
+      "sent": "ارسال شده",
+      "scheduled": "زمان‌بندی شده",
+      "failed": "ناموفق",
+      "received": "دریافت شده"
+    }
+  }
+}

@@ -1,11 +1,11 @@
 {
   "name": "BidarSales",
-  "version": "1.0.1",
+  "version": "1.0.5",
   "acceptableVersions": [
     ">=10.1.0"
   ],
   "php": [
     ">=8.3"
   ],
-  "description": "BidarSales Extension for EspoCRM 10.1.4 - Multi-pipeline, Rotten Deals, and Sales Dashboard"
+  "description": "BidarSales Extension for BidarCRM Extension - Multi-pipeline, Rotten Deals, and Sales Dashboard"
 }

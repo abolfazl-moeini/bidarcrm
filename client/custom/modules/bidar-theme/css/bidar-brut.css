@@ -1,0 +1,10 @@
+/**
+ * Bidar Brut theme: the Bidar stylesheet in the Brut style.
+ *
+ * js/appearance.js reads the style from the name of this file (bidar-<style>.css) and sets
+ * data-bidar-style on the root element; the rules of the style are in bidar-style-brut.css.
+ * The theme name lets EspoCRM see that the stylesheet of the chosen theme is applied.
+ */
+@import "bidar.css?v=1.1.0";
+
+:root, body { --theme-name: BidarBrut !important; }

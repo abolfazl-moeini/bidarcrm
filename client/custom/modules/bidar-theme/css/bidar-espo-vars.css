@@ -1,0 +1,220 @@
+/**
+ * EspoCRM variables redefined from the Bidar tokens.
+ * As much as possible goes through here: the following stylesheets only handle
+ * what the variables cannot express.
+ */
+:root {
+    color-scheme: light;
+
+    --font-family: var(--bidar-font);
+    --top-bar-height: var(--48px);
+    --navbar-tab-vertical-padding: var(--7px);
+    --navbar-tab-left-padding: var(--12px);
+    --panel-padding: var(--16px);
+    --panel-heading-height: var(--46px);
+    --panel-heading-font-size: var(--14px);
+    --input-height-base: var(--38px);
+
+    /* Surfaces */
+    --body-bg: var(--bidar-canvas);
+    --panel-bg: var(--bidar-surface);
+    --main-gray: var(--bidar-border);
+    --main-gray-5: var(--bidar-border);
+    --main-gray-7: var(--bidar-border);
+    --main-gray-10: var(--bidar-border-strong);
+    --main-gray-12: var(--bidar-border-strong);
+    --main-gray-17: var(--bidar-border-strong);
+    --main-gray-25: var(--bidar-n-300);
+    --main-gray-40: var(--bidar-n-400);
+    --main-gray-lighten-40: var(--bidar-n-0);
+    --white-color: var(--bidar-n-0);
+    --default-border-color: var(--bidar-border);
+    --default-heading-bg-color: var(--bidar-surface-sunken);
+    --default-box-shadow: var(--bidar-shadow-xs);
+    --table-bg-accent: var(--bidar-n-50);
+    --well-bg: var(--bidar-n-50);
+    --well-border: var(--bidar-border);
+    --code-bg: var(--bidar-n-50);
+    --code-border-color: var(--bidar-border);
+    --warning-bg: var(--bidar-warning-bg);
+
+    /* Text */
+    --text-color: var(--bidar-text);
+    --text-muted-color: var(--bidar-text-muted);
+    --text-gray-color: var(--bidar-text-secondary);
+    --link-color: var(--bidar-link);
+    --link-hover-color: var(--bidar-link-hover);
+    --link-record-color: var(--bidar-link);
+    --link-record-hover-color: var(--bidar-link-hover);
+    --text-link-color: var(--bidar-link);
+    --text-link-hover-color: var(--bidar-link-hover);
+    --site-footer-color: var(--bidar-text-faint);
+
+    /* Greys */
+    --gray: var(--bidar-n-600);
+    --gray-dark: var(--bidar-n-800);
+    --gray-soft: var(--bidar-n-500);
+    --gray-light: var(--bidar-n-400);
+    --gray-lighter: var(--bidar-n-150);
+
+    /* Brand and states */
+    --brand-primary: var(--bidar-brand);
+    --brand-primary-text: var(--bidar-on-brand);
+    --brand-primary-5: var(--bidar-brand-hover);
+    --brand-primary-10: var(--bidar-brand-active);
+    --brand-primary-lighten-10: #3b3e8a;
+    --brand-primary-lighten-30: #7a7db8;
+    --brand-primary-lighten-50: #c3c5e3;
+    --brand-success: var(--bidar-success-solid);
+    --brand-success-10: var(--bidar-success);
+    --brand-danger: var(--bidar-danger-solid);
+    --brand-danger-10: var(--bidar-danger);
+    --brand-danger-lighten-20: var(--bidar-danger-border);
+    --brand-warning: var(--bidar-warning-solid);
+    --brand-warning-10: var(--bidar-warning);
+    --brand-info: var(--bidar-info);
+    --brand-info-10: #5a3ab0;
+
+    --state-default-bg: var(--bidar-n-100);
+    --state-default-text: var(--bidar-n-600);
+    --state-primary-bg: var(--bidar-brand-subtle);
+    --state-primary-text: var(--bidar-brand-text);
+    --state-primary-border: var(--bidar-brand-border);
+    --state-info-bg: var(--bidar-info-bg);
+    --state-info-text: var(--bidar-info);
+    --state-info-border: var(--bidar-info-border);
+    --state-success-bg: var(--bidar-success-bg);
+    --state-success-text: var(--bidar-success);
+    --state-success-border: var(--bidar-success-border);
+    --state-warning-bg: var(--bidar-warning-bg);
+    --state-warning-text: var(--bidar-warning);
+    --state-warning-border: var(--bidar-warning-border);
+    --state-danger-bg: var(--bidar-danger-bg);
+    --state-danger-text: var(--bidar-danger);
+    --state-danger-border: var(--bidar-danger-border);
+
+    /* Radii */
+    --border-radius: var(--bidar-radius);
+    --border-radius-small: var(--bidar-radius-sm);
+    --dropdown-border-radius: var(--bidar-radius-md);
+    --panel-border-radius: var(--bidar-radius-lg);
+    --panel-border-width: var(--1px);
+
+    /* Buttons */
+    --btn-default-bg: var(--bidar-n-0);
+    --btn-default-border: var(--bidar-border-strong);
+    --btn-default-color: var(--bidar-n-800);
+    --btn-default-hover-bg: var(--bidar-n-100);
+    --btn-default-hover-border: var(--bidar-n-300);
+    --btn-default-active-bg: var(--bidar-n-150);
+    --btn-default-active-border: var(--bidar-n-300);
+    --btn-text-color: var(--bidar-n-600);
+    --btn-active-box-shadow: none;
+
+    --btn-primary-bg: var(--bidar-brand);
+    --btn-primary-border: var(--bidar-brand);
+    --btn-primary-color: var(--bidar-on-brand);
+    --btn-primary-hover-bg: var(--bidar-brand-hover);
+    --btn-primary-hover-border: var(--bidar-brand-hover);
+    --btn-primary-active-bg: var(--bidar-brand-active);
+    --btn-primary-active-border: var(--bidar-brand-active);
+
+    --btn-success-bg: var(--bidar-success-solid);
+    --btn-success-border: var(--bidar-success-solid);
+    --btn-success-hover-bg: var(--bidar-success);
+    --btn-success-hover-border: var(--bidar-success);
+    --btn-success-active-bg: var(--bidar-success);
+    --btn-success-active-border: var(--bidar-success);
+
+    --btn-danger-bg: var(--bidar-danger-solid);
+    --btn-danger-border: var(--bidar-danger-solid);
+    --btn-danger-hover-bg: var(--bidar-danger);
+    --btn-danger-hover-border: var(--bidar-danger);
+    --btn-danger-active-bg: var(--bidar-danger);
+    --btn-danger-active-border: var(--bidar-danger);
+
+    --btn-warning-bg: var(--bidar-warning-solid);
+    --btn-warning-border: var(--bidar-warning-solid);
+    --btn-warning-hover-bg: var(--bidar-warning);
+    --btn-warning-hover-border: var(--bidar-warning);
+    --btn-warning-active-bg: var(--bidar-warning);
+    --btn-warning-active-border: var(--bidar-warning);
+
+    /* Fields */
+    --input-color: var(--bidar-text);
+    --input-bg: var(--bidar-n-0);
+    --input-border: var(--bidar-border-input);
+    --input-border-focus: var(--bidar-brand-ring);
+    --input-border-focus-rgba: rgba(90, 95, 208, 0.18);
+    --input-box-shadow: var(--bidar-shadow-xs);
+    --input-bg-disabled: var(--bidar-n-50);
+    --input-color-disabled: var(--bidar-text-muted);
+    --select-item-bg: var(--bidar-n-100);
+    --select-item-text-color: var(--bidar-n-800);
+    --select-item-border: var(--bidar-border-strong);
+    --select-item-active-bg: var(--bidar-brand-subtle);
+    --select-item-active-text-color: var(--bidar-brand-text);
+
+    /* Side menu (inverse navbar) and top bar (navbar) */
+    --navbar-border-width: var(--1px);
+    --navbar-box-shadow: none;
+    --navbar-bg: #eef5f9;
+    --navbar-link-color: var(--bidar-n-500);
+    --navbar-link-hover-color: var(--bidar-text);
+    --navbar-link-hover-bg: var(--bidar-hover);
+    --navbar-link-active-bg: var(--bidar-hover);
+    --navbar-link-icon-color: var(--bidar-n-500);
+    --navbar-inverse-bg: var(--bidar-sidebar-bg);
+    --navbar-inverse-border: var(--bidar-sidebar-line);
+    --navbar-inverse-color: var(--bidar-sidebar-muted);
+    --navbar-inverse-link-color: var(--bidar-sidebar-text);
+    --navbar-inverse-link-hover-color: var(--bidar-sidebar-text);
+    --navbar-inverse-link-hover-bg: var(--bidar-sidebar-hover);
+    --navbar-inverse-link-active-bg: var(--bidar-sidebar-active);
+    --navbar-inverse-link-icon-color: var(--bidar-sidebar-muted);
+    --navbar-inverse-link-icon-hover-color: var(--bidar-sidebar-text);
+
+    /* Dropdown menus */
+    --dropdown-bg: var(--bidar-surface);
+    --dropdown-border: var(--bidar-border);
+    --dropdown-border-width: var(--1px);
+    --dropdown-box-shadow: var(--bidar-shadow-lg);
+    --dropdown-link-color: var(--bidar-n-800);
+    --dropdown-link-hover-color: var(--bidar-text);
+    --dropdown-link-hover-bg: var(--bidar-hover);
+    --dropdown-link-active-bg: var(--bidar-brand-subtle);
+    --dropdown-divider-bg: var(--bidar-border);
+    --popover-bg: var(--bidar-surface);
+
+    /* Modals */
+    --modal-backdrop-bg: rgba(20, 22, 31, 0.32);
+    --modal-backdrop-filter: blur(3px);
+    --modal-header-bg: var(--bidar-surface);
+    --modal-footer-bg: var(--bidar-surface);
+    --modal-content-bg: var(--bidar-surface);
+    --modal-header-border-color: var(--bidar-border);
+    --modal-border-color: var(--bidar-border);
+    --modal-box-shadow: var(--bidar-shadow-lg);
+
+    /* Panels */
+    --panel-default-bg: var(--bidar-surface);
+    --panel-default-text: var(--bidar-text);
+    --panel-default-border: var(--bidar-border);
+    --login-panel-heading-bg: var(--bidar-surface);
+
+    /* Coloured panels: native tints, action icons at 4.5:1 or more on the tint */
+    --panel-primary-text: var(--bidar-brand-text);
+    --panel-info-text: var(--bidar-info);
+    --panel-success-text: var(--bidar-success);
+    --panel-warning-text: var(--bidar-warning);
+    --panel-danger-text: var(--bidar-danger);
+
+    /* Miscellaneous */
+    --tooltip-bg: var(--bidar-n-900);
+    --tooltip-color: #ffffff;
+    --label-default-bg: var(--bidar-n-100);
+    --scroll-bg: transparent;
+    --scroll-thumb-bg: var(--bidar-n-300);
+    --calendar-today-bg: var(--bidar-brand-subtle);
+    --calendar-border: var(--bidar-border);
+}

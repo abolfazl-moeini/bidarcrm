@@ -81,4 +81,14 @@ class RottenDealCalculatorTest extends TestCase
 
         $this->assertFalse($result->isRotten());
     }
+
+    public function testFutureLastActivityAtIsNotRotten(): void
+    {
+        $now = new DateTimeImmutable('2026-11-22 12:00:00');
+        $lastActivityAt = new DateTimeImmutable('2026-12-02 12:00:00');
+        $result = $this->calculator->calculate('Negotiation', 5, $lastActivityAt, $now);
+
+        $this->assertFalse($result->isRotten());
+        $this->assertSame(0, $result->daysSinceLastActivity());
+    }
 }

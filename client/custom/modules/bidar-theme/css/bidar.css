@@ -1,0 +1,20 @@
+/**
+ * Bidar theme for EspoCRM: entry point.
+ * Layers: stock light theme -> Bidar fonts -> Bidar tokens -> EspoCRM variables
+ * -> components -> RTL layer -> dark palette -> density.
+ */
+@import "../../../../css/espo/light.css";
+@import "bidar-fonts.css?v=1.1.0";
+@import "bidar-tokens.css?v=1.1.0";
+@import "bidar-espo-vars.css?v=1.1.0";
+@import "bidar-base.css?v=1.1.0";
+@import "bidar-shell.css?v=1.1.0";
+@import "bidar-controls.css?v=1.1.0";
+@import "bidar-data.css?v=1.1.0";
+@import "bidar-record.css?v=1.1.0";
+@import "bidar-detail.css?v=1.1.0";
+@import "bidar-overlays.css?v=1.1.0";
+@import "bidar-login.css?v=1.1.0";
+@import "bidar-rtl.css?v=1.1.0";
+@import "bidar-dark.css?v=1.1.0";
+@import "bidar-density.css?v=1.1.0";

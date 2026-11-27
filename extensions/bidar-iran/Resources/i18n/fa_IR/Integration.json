@@ -1,0 +1,11 @@
+{
+  "Kavenegar": "کاوه‌نگار",
+  "BidarVoip": "تلفن اینترنتی بیدار",
+  "fields": {
+    "apiKey": "کلید API",
+    "senderLine": "شماره فرستنده",
+    "webhookSecret": "رمز وب‌هوک",
+    "hmacSecret": "کلید امضای وب‌هوک",
+    "allowedIps": "نشانی‌های IP مجاز"
+  }
+}
